@@ -1,0 +1,609 @@
+# dmidecode 3.6
+Getting SMBIOS data from sysfs.
+SMBIOS 3.4.0 present.
+
+Handle 0x0017, DMI type 16, 23 bytes
+Physical Memory Array
+        Location: System Board Or Motherboard
+        Use: System Memory
+        Error Correction Type: Multi-bit ECC
+        Maximum Capacity: 6 TB
+        Error Information Handle: Not Provided
+        Number Of Devices: 12
+
+Handle 0x0018, DMI type 16, 23 bytes
+Physical Memory Array
+        Location: System Board Or Motherboard
+        Use: System Memory
+        Error Correction Type: Multi-bit ECC
+        Maximum Capacity: 6 TB
+        Error Information Handle: Not Provided
+        Number Of Devices: 12
+
+Handle 0x002A, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0017
+        Error Information Handle: Not Provided
+        Total Width: 80 bits
+        Data Width: 64 bits
+        Size: 32 GB
+        Form Factor: DIMM
+        Set: None
+        Locator: PROC 1 DIMM 1
+        Bank Locator: Not Specified
+        Type: DDR5
+        Type Detail: Synchronous Registered (Buffered)
+        Speed: 6400 MT/s
+        Manufacturer: Micron
+        Serial Number: 4BA9226C
+        Asset Tag: Not Specified
+        Part Number: MTC20F2085S1RC64BD2 QWCC
+        Rank: 2
+        Configured Memory Speed: 6400 MT/s
+        Minimum Voltage: 1.1 V
+        Maximum Voltage: 1.1 V
+        Configured Voltage: 1.1 V
+        Memory Technology: DRAM
+        Memory Operating Mode Capability: Volatile memory
+        Firmware Version: Not Specified
+        Module Manufacturer ID: Bank 1, Hex 0x2C
+        Module Product ID: Unknown
+        Memory Subsystem Controller Manufacturer ID: Unknown
+        Memory Subsystem Controller Product ID: Unknown
+        Non-Volatile Size: None
+        Volatile Size: 32 GB
+        Cache Size: None
+        Logical Size: None
+
+Handle 0x002B, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0017
+        Error Information Handle: Not Provided
+        Total Width: 80 bits
+        Data Width: 64 bits
+        Size: 32 GB
+        Form Factor: DIMM
+        Set: 1
+        Locator: PROC 1 DIMM 2
+        Bank Locator: Not Specified
+        Type: DDR5
+        Type Detail: Synchronous Registered (Buffered)
+        Speed: 6400 MT/s
+        Manufacturer: Micron
+        Serial Number: 4BA925A3
+        Asset Tag: Not Specified
+        Part Number: MTC20F2085S1RC64BD2 QWCC
+        Rank: 2
+        Configured Memory Speed: 6400 MT/s
+        Minimum Voltage: 1.1 V
+        Maximum Voltage: 1.1 V
+        Configured Voltage: 1.1 V
+        Memory Technology: DRAM
+        Memory Operating Mode Capability: Volatile memory
+        Firmware Version: Not Specified
+        Module Manufacturer ID: Bank 1, Hex 0x2C
+        Module Product ID: Unknown
+        Memory Subsystem Controller Manufacturer ID: Unknown
+        Memory Subsystem Controller Product ID: Unknown
+        Non-Volatile Size: None
+        Volatile Size: 32 GB
+        Cache Size: None
+        Logical Size: None
+
+Handle 0x002C, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0017
+        Error Information Handle: Not Provided
+        Total Width: 80 bits
+        Data Width: 64 bits
+        Size: 32 GB
+        Form Factor: DIMM
+        Set: 2
+        Locator: PROC 1 DIMM 3
+        Bank Locator: Not Specified
+        Type: DDR5
+        Type Detail: Synchronous Registered (Buffered)
+        Speed: 6400 MT/s
+        Manufacturer: Micron
+        Serial Number: 4BA925E0
+        Asset Tag: Not Specified
+        Part Number: MTC20F2085S1RC64BD2 QWCC
+        Rank: 2
+        Configured Memory Speed: 6400 MT/s
+        Minimum Voltage: 1.1 V
+        Maximum Voltage: 1.1 V
+        Configured Voltage: 1.1 V
+        Memory Technology: DRAM
+        Memory Operating Mode Capability: Volatile memory
+        Firmware Version: Not Specified
+        Module Manufacturer ID: Bank 1, Hex 0x2C
+        Module Product ID: Unknown
+        Memory Subsystem Controller Manufacturer ID: Unknown
+        Memory Subsystem Controller Product ID: Unknown
+        Non-Volatile Size: None
+        Volatile Size: 32 GB
+        Cache Size: None
+        Logical Size: None
+
+Handle 0x002D, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0017
+        Error Information Handle: Not Provided
+        Total Width: 80 bits
+        Data Width: 64 bits
+        Size: 32 GB
+        Form Factor: DIMM
+        Set: 3
+        Locator: PROC 1 DIMM 4
+        Bank Locator: Not Specified
+        Type: DDR5
+        Type Detail: Synchronous Registered (Buffered)
+        Speed: 6400 MT/s
+        Manufacturer: Micron
+        Serial Number: 4BA923E6
+        Asset Tag: Not Specified
+        Part Number: MTC20F2085S1RC64BD2 QWCC
+        Rank: 2
+        Configured Memory Speed: 6400 MT/s
+        Minimum Voltage: 1.1 V
+        Maximum Voltage: 1.1 V
+        Configured Voltage: 1.1 V
+        Memory Technology: DRAM
+        Memory Operating Mode Capability: Volatile memory
+        Firmware Version: Not Specified
+        Module Manufacturer ID: Bank 1, Hex 0x2C
+        Module Product ID: Unknown
+        Memory Subsystem Controller Manufacturer ID: Unknown
+        Memory Subsystem Controller Product ID: Unknown
+        Non-Volatile Size: None
+        Volatile Size: 32 GB
+        Cache Size: None
+        Logical Size: None
+
+Handle 0x002E, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0017
+        Error Information Handle: Not Provided
+        Total Width: 80 bits
+        Data Width: 64 bits
+        Size: 32 GB
+        Form Factor: DIMM
+        Set: 4
+        Locator: PROC 1 DIMM 5
+        Bank Locator: Not Specified
+        Type: DDR5
+        Type Detail: Synchronous Registered (Buffered)
+        Speed: 6400 MT/s
+        Manufacturer: Micron
+        Serial Number: 4BA925DB
+        Asset Tag: Not Specified
+        Part Number: MTC20F2085S1RC64BD2 QWCC
+        Rank: 2
+        Configured Memory Speed: 6400 MT/s
+        Minimum Voltage: 1.1 V
+        Maximum Voltage: 1.1 V
+        Configured Voltage: 1.1 V
+        Memory Technology: DRAM
+        Memory Operating Mode Capability: Volatile memory
+        Firmware Version: Not Specified
+        Module Manufacturer ID: Bank 1, Hex 0x2C
+        Module Product ID: Unknown
+        Memory Subsystem Controller Manufacturer ID: Unknown
+        Memory Subsystem Controller Product ID: Unknown
+        Non-Volatile Size: None
+        Volatile Size: 32 GB
+        Cache Size: None
+        Logical Size: None
+
+Handle 0x002F, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0017
+        Error Information Handle: Not Provided
+        Total Width: 80 bits
+        Data Width: 64 bits
+        Size: 32 GB
+        Form Factor: DIMM
+        Set: 5
+        Locator: PROC 1 DIMM 6
+        Bank Locator: Not Specified
+        Type: DDR5
+        Type Detail: Synchronous Registered (Buffered)
+        Speed: 6400 MT/s
+        Manufacturer: Micron
+        Serial Number: 4BA929F7
+        Asset Tag: Not Specified
+        Part Number: MTC20F2085S1RC64BD2 QWCC
+        Rank: 2
+        Configured Memory Speed: 6400 MT/s
+        Minimum Voltage: 1.1 V
+        Maximum Voltage: 1.1 V
+        Configured Voltage: 1.1 V
+        Memory Technology: DRAM
+        Memory Operating Mode Capability: Volatile memory
+        Firmware Version: Not Specified
+        Module Manufacturer ID: Bank 1, Hex 0x2C
+        Module Product ID: Unknown
+        Memory Subsystem Controller Manufacturer ID: Unknown
+        Memory Subsystem Controller Product ID: Unknown
+        Non-Volatile Size: None
+        Volatile Size: 32 GB
+        Cache Size: None
+        Logical Size: None
+
+Handle 0x0030, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0017
+        Error Information Handle: Not Provided
+        Total Width: 80 bits
+        Data Width: 64 bits
+        Size: 32 GB
+        Form Factor: DIMM
+        Set: 6
+        Locator: PROC 1 DIMM 7
+        Bank Locator: Not Specified
+        Type: DDR5
+        Type Detail: Synchronous Registered (Buffered)
+        Speed: 6400 MT/s
+        Manufacturer: Hynix
+        Serial Number: 3899B9F0
+        Asset Tag: Not Specified
+        Part Number: HMCG88AHBRA478N
+        Rank: 2
+        Configured Memory Speed: 6400 MT/s
+        Minimum Voltage: 1.1 V
+        Maximum Voltage: 1.1 V
+        Configured Voltage: 1.1 V
+        Memory Technology: DRAM
+        Memory Operating Mode Capability: Volatile memory
+        Firmware Version: Not Specified
+        Module Manufacturer ID: Bank 1, Hex 0xAD
+        Module Product ID: Unknown
+        Memory Subsystem Controller Manufacturer ID: Unknown
+        Memory Subsystem Controller Product ID: Unknown
+        Non-Volatile Size: None
+        Volatile Size: 32 GB
+        Cache Size: None
+        Logical Size: None
+
+Handle 0x0031, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0017
+        Error Information Handle: Not Provided
+        Total Width: 80 bits
+        Data Width: 64 bits
+        Size: 32 GB
+        Form Factor: DIMM
+        Set: 7
+        Locator: PROC 1 DIMM 8
+        Bank Locator: Not Specified
+        Type: DDR5
+        Type Detail: Synchronous Registered (Buffered)
+        Speed: 6400 MT/s
+        Manufacturer: Micron
+        Serial Number: 4BA92326
+        Asset Tag: Not Specified
+        Part Number: MTC20F2085S1RC64BD2 QWCC
+        Rank: 2
+        Configured Memory Speed: 6400 MT/s
+        Minimum Voltage: 1.1 V
+        Maximum Voltage: 1.1 V
+        Configured Voltage: 1.1 V
+        Memory Technology: DRAM
+        Memory Operating Mode Capability: Volatile memory
+        Firmware Version: Not Specified
+        Module Manufacturer ID: Bank 1, Hex 0x2C
+        Module Product ID: Unknown
+        Memory Subsystem Controller Manufacturer ID: Unknown
+        Memory Subsystem Controller Product ID: Unknown
+        Non-Volatile Size: None
+        Volatile Size: 32 GB
+        Cache Size: None
+        Logical Size: None
+
+Handle 0x0032, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0017
+        Error Information Handle: Not Provided
+        Total Width: 80 bits
+        Data Width: 64 bits
+        Size: 32 GB
+        Form Factor: DIMM
+        Set: 8
+        Locator: PROC 1 DIMM 9
+        Bank Locator: Not Specified
+        Type: DDR5
+        Type Detail: Synchronous Registered (Buffered)
+        Speed: 6400 MT/s
+        Manufacturer: Micron
+        Serial Number: 4BA92977
+        Asset Tag: Not Specified
+        Part Number: MTC20F2085S1RC64BD2 QWCC
+        Rank: 2
+        Configured Memory Speed: 6400 MT/s
+        Minimum Voltage: 1.1 V
+        Maximum Voltage: 1.1 V
+        Configured Voltage: 1.1 V
+        Memory Technology: DRAM
+        Memory Operating Mode Capability: Volatile memory
+        Firmware Version: Not Specified
+        Module Manufacturer ID: Bank 1, Hex 0x2C
+        Module Product ID: Unknown
+        Memory Subsystem Controller Manufacturer ID: Unknown
+        Memory Subsystem Controller Product ID: Unknown
+        Non-Volatile Size: None
+        Volatile Size: 32 GB
+        Cache Size: None
+        Logical Size: None
+
+Handle 0x0033, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0017
+        Error Information Handle: Not Provided
+        Total Width: 80 bits
+        Data Width: 64 bits
+        Size: 32 GB
+        Form Factor: DIMM
+        Set: 9
+        Locator: PROC 1 DIMM 10
+        Bank Locator: Not Specified
+        Type: DDR5
+        Type Detail: Synchronous Registered (Buffered)
+        Speed: 6400 MT/s
+        Manufacturer: Micron
+        Serial Number: 4BA9231D
+        Asset Tag: Not Specified
+        Part Number: MTC20F2085S1RC64BD2 QWCC
+        Rank: 2
+        Configured Memory Speed: 6400 MT/s
+        Minimum Voltage: 1.1 V
+        Maximum Voltage: 1.1 V
+        Configured Voltage: 1.1 V
+        Memory Technology: DRAM
+        Memory Operating Mode Capability: Volatile memory
+        Firmware Version: Not Specified
+        Module Manufacturer ID: Bank 1, Hex 0x2C
+        Module Product ID: Unknown
+        Memory Subsystem Controller Manufacturer ID: Unknown
+        Memory Subsystem Controller Product ID: Unknown
+        Non-Volatile Size: None
+        Volatile Size: 32 GB
+        Cache Size: None
+        Logical Size: None
+
+Handle 0x0034, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0017
+        Error Information Handle: Not Provided
+        Total Width: 80 bits
+        Data Width: 64 bits
+        Size: 32 GB
+        Form Factor: DIMM
+        Set: 10
+        Locator: PROC 1 DIMM 11
+        Bank Locator: Not Specified
+        Type: DDR5
+        Type Detail: Synchronous Registered (Buffered)
+        Speed: 6400 MT/s
+        Manufacturer: Micron
+        Serial Number: 4C1D64C9
+        Asset Tag: Not Specified
+        Part Number: MTC20F2085S1RC64BD2 MWFF
+        Rank: 2
+        Configured Memory Speed: 6400 MT/s
+        Minimum Voltage: 1.1 V
+        Maximum Voltage: 1.1 V
+        Configured Voltage: 1.1 V
+        Memory Technology: DRAM
+        Memory Operating Mode Capability: Volatile memory
+        Firmware Version: Not Specified
+        Module Manufacturer ID: Bank 1, Hex 0x2C
+        Module Product ID: Unknown
+        Memory Subsystem Controller Manufacturer ID: Unknown
+        Memory Subsystem Controller Product ID: Unknown
+        Non-Volatile Size: None
+        Volatile Size: 32 GB
+        Cache Size: None
+        Logical Size: None
+
+Handle 0x0035, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0017
+        Error Information Handle: Not Provided
+        Total Width: 80 bits
+        Data Width: 64 bits
+        Size: 32 GB
+        Form Factor: DIMM
+        Set: 11
+        Locator: PROC 1 DIMM 12
+        Bank Locator: Not Specified
+        Type: DDR5
+        Type Detail: Synchronous Registered (Buffered)
+        Speed: 6400 MT/s
+        Manufacturer: Micron
+        Serial Number: 4BA92544
+        Asset Tag: Not Specified
+        Part Number: MTC20F2085S1RC64BD2 QWCC
+        Rank: 2
+        Configured Memory Speed: 6400 MT/s
+        Minimum Voltage: 1.1 V
+        Maximum Voltage: 1.1 V
+        Configured Voltage: 1.1 V
+        Memory Technology: DRAM
+        Memory Operating Mode Capability: Volatile memory
+        Firmware Version: Not Specified
+        Module Manufacturer ID: Bank 1, Hex 0x2C
+        Module Product ID: Unknown
+        Memory Subsystem Controller Manufacturer ID: Unknown
+        Memory Subsystem Controller Product ID: Unknown
+        Non-Volatile Size: None
+        Volatile Size: 32 GB
+        Cache Size: None
+        Logical Size: None
+
+Handle 0x0036, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0018
+        Error Information Handle: Not Provided
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 12
+        Locator: PROC 2 DIMM 1
+        Bank Locator: Not Specified
+        Type: Other
+        Type Detail: Synchronous
+
+Handle 0x0037, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0018
+        Error Information Handle: Not Provided
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 13
+        Locator: PROC 2 DIMM 2
+        Bank Locator: Not Specified
+        Type: Other
+        Type Detail: Synchronous
+
+Handle 0x0038, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0018
+        Error Information Handle: Not Provided
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 14
+        Locator: PROC 2 DIMM 3
+        Bank Locator: Not Specified
+        Type: Other
+        Type Detail: Synchronous
+
+Handle 0x0039, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0018
+        Error Information Handle: Not Provided
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 15
+        Locator: PROC 2 DIMM 4
+        Bank Locator: Not Specified
+        Type: Other
+        Type Detail: Synchronous
+
+Handle 0x003A, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0018
+        Error Information Handle: Not Provided
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 16
+        Locator: PROC 2 DIMM 5
+        Bank Locator: Not Specified
+        Type: Other
+        Type Detail: Synchronous
+
+Handle 0x003B, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0018
+        Error Information Handle: Not Provided
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 17
+        Locator: PROC 2 DIMM 6
+        Bank Locator: Not Specified
+        Type: Other
+        Type Detail: Synchronous
+
+Handle 0x003C, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0018
+        Error Information Handle: Not Provided
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 18
+        Locator: PROC 2 DIMM 7
+        Bank Locator: Not Specified
+        Type: Other
+        Type Detail: Synchronous
+
+Handle 0x003D, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0018
+        Error Information Handle: Not Provided
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 19
+        Locator: PROC 2 DIMM 8
+        Bank Locator: Not Specified
+        Type: Other
+        Type Detail: Synchronous
+
+Handle 0x003E, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0018
+        Error Information Handle: Not Provided
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 20
+        Locator: PROC 2 DIMM 9
+        Bank Locator: Not Specified
+        Type: Other
+        Type Detail: Synchronous
+
+Handle 0x003F, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0018
+        Error Information Handle: Not Provided
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 21
+        Locator: PROC 2 DIMM 10
+        Bank Locator: Not Specified
+        Type: Other
+        Type Detail: Synchronous
+
+Handle 0x0040, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0018
+        Error Information Handle: Not Provided
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 22
+        Locator: PROC 2 DIMM 11
+        Bank Locator: Not Specified
+        Type: Other
+        Type Detail: Synchronous
+
+Handle 0x0041, DMI type 17, 92 bytes
+Memory Device
+        Array Handle: 0x0018
+        Error Information Handle: Not Provided
+        Total Width: Unknown
+        Data Width: Unknown
+        Size: No Module Installed
+        Form Factor: DIMM
+        Set: 23
+        Locator: PROC 2 DIMM 12
+        Bank Locator: Not Specified
+        Type: Other
+        Type Detail: Synchronous

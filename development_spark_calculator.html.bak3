@@ -767,9 +767,9 @@
       <div class="card-title">Parquet Partitioning</div>
 
       <div class="control-row">
-        <div class="ctrl-label"><strong>CSV input size</strong><br><span style="font-size:10px">500 MB steps · shows MB / GB</span></div>
-        <input type="range" id="csv_size_tb" min="500" max="20000" step="500" value="4500" oninput="recalc()">
-        <div class="ctrl-val" id="csv_size_tb_val">4,500 MB</div>
+        <div class="ctrl-label"><strong>CSV input size</strong><br><span style="font-size:10px">round up to nearest TB</span></div>
+        <input type="range" id="csv_size_tb" min="1" max="20" step="1" value="1" oninput="recalc()">
+        <div class="ctrl-val" id="csv_size_tb_val">1 TB</div>
       </div>
       <div class="control-row">
         <div class="ctrl-label"><strong>Parquet compression</strong><br><span style="font-size:10px">CSV → Parquet size ratio</span></div>
@@ -823,9 +823,9 @@
         <div class="ctrl-val" id="net_switch_core_val">10 Gbps</div>
       </div>
       <div class="control-row">
-        <div class="ctrl-label"><strong>Core → Snowflake</strong><br><span style="font-size:10px">100 Mbps steps · shows Mbps / Gbps</span></div>
-        <input type="range" id="net_wan_speed" min="100" max="10000" step="100" value="1000" oninput="recalc()">
-        <div class="ctrl-val" id="net_wan_speed_val">1,000 Mbps</div>
+        <div class="ctrl-label"><strong>Core → Snowflake</strong><br><span style="font-size:10px">WAN / internet</span></div>
+        <input type="range" id="net_wan_speed" min="1" max="10" step="1" value="1" oninput="recalc()">
+        <div class="ctrl-val" id="net_wan_speed_val">1 Gbps</div>
       </div>
 
       <div class="section-divider"></div>
@@ -930,12 +930,12 @@ function recalc() {
   setVal('partition_mb_val',   el('partition_mb').value + ' MB');
   setVal('svc_vm_cores_val',       el('svc_vm_cores').value);
   setVal('svc_vm_ram_val',         el('svc_vm_ram').value + ' GB');
-  setVal('csv_size_tb_val',        (+el('csv_size_tb').value).toLocaleString() + ' MB');
+  setVal('csv_size_tb_val',        el('csv_size_tb').value + ' TB');
   setVal('parquet_compression_val',el('parquet_compression').value + '×');
   setVal('max_partition_bytes_val',el('max_partition_bytes').value + ' MB');
   setVal('net_node_speed_val',     el('net_node_speed').value + ' Gbps');
   setVal('net_switch_core_val',    el('net_switch_core').value + ' Gbps');
-  setVal('net_wan_speed_val',      (+el('net_wan_speed').value).toLocaleString() + ' Mbps');
+  setVal('net_wan_speed_val',      el('net_wan_speed').value + ' Gbps');
 
   // ── Show/hide services VM controls
   const svcCtrl = el('svc_vm_controls');
@@ -1148,10 +1148,10 @@ function recalc() {
   buildOSDVisual(OSD_NODE, SCRATCH_NVME_PER_NODE, NODES);
 
   // ── Partitioning card calculations
-  const CSV_MB         = +el('csv_size_tb').value;          // slider unit is MB
-  const CSV_TB         = CSV_MB / 1024;                     // for display only
+  const CSV_TB         = +el('csv_size_tb').value;
   const PARQ_COMP      = +el('parquet_compression').value;
   const MAX_PART_MB    = +el('max_partition_bytes').value;
+  const CSV_MB         = CSV_TB * 1024 * 1024;
   const PARQ_MB        = CSV_MB / PARQ_COMP;
   const INPUT_PARTS    = Math.ceil(CSV_MB / MAX_PART_MB);
   const TARGET_OUT_MB  = 150;
@@ -1161,8 +1161,7 @@ function recalc() {
   // ── Network card calculations
   const NET_NODE_G     = +el('net_node_speed').value;
   const NET_SWITCH_G   = +el('net_switch_core').value;
-  const NET_WAN_MBPS   = +el('net_wan_speed').value;
-  const NET_WAN_G      = NET_WAN_MBPS / 1000;              // convert Mbps → Gbps
+  const NET_WAN_G      = +el('net_wan_speed').value;
   const AGG_NODE_G     = NET_NODE_G * NODES;
   const BOTTLENECK_G   = Math.min(AGG_NODE_G, NET_SWITCH_G, NET_WAN_G);
   const UTIL           = 0.80;
@@ -1189,12 +1188,12 @@ function recalc() {
 
   // Partitioning card
   buildPartitionCard({
-    CSV_MB, CSV_TB, PARQ_COMP, PARQ_MB, INPUT_PARTS, OUTPUT_PARTS, FILE_SIZE_MB
+    CSV_TB, PARQ_COMP, PARQ_MB, INPUT_PARTS, OUTPUT_PARTS, FILE_SIZE_MB
   });
 
   // Network card
   buildNetworkCard({
-    NET_NODE_G, NET_SWITCH_G, NET_WAN_G, NET_WAN_MBPS, AGG_NODE_G,
+    NET_NODE_G, NET_SWITCH_G, NET_WAN_G, AGG_NODE_G,
     BOTTLENECK_G, EFF_GBPS, TRANSFER_SEC, RERUN_SEC, PARQ_MB
   });
 }
@@ -1275,7 +1274,7 @@ function buildParamTable(p) {
 
 function buildPartitionCard(p) {
   setVal('out_parquet_size',     fmtMB(p.PARQ_MB));
-  setVal('out_parquet_size_sub', `${Math.round(p.CSV_MB).toLocaleString()} MB / ${fmt(p.CSV_MB/1024,2)} GB input ÷ ${p.PARQ_COMP}×`);
+  setVal('out_parquet_size_sub', `${p.CSV_TB} TB CSV ÷ ${p.PARQ_COMP}× compression`);
   setVal('out_input_parts',      p.INPUT_PARTS.toLocaleString());
   setVal('out_output_parts',     p.OUTPUT_PARTS.toLocaleString());
   const fileSizeMB = p.FILE_SIZE_MB;
@@ -1298,9 +1297,7 @@ function buildNetworkCard(p) {
   segs.forEach((seg, i) => {
     const isBottleneck = segSpeeds[i] === p.BOTTLENECK_G;
     const cls = isBottleneck ? 'bottleneck' : 'ok';
-    const speedLabel = i === 0 ? `${p.AGG_NODE_G} Gbps agg`
-                     : i === 2 ? `${p.NET_WAN_MBPS.toLocaleString()} Mbps`
-                     : `${seg.speed} Gbps`;
+    const speedLabel = i === 0 ? `${p.AGG_NODE_G} Gbps agg` : `${seg.speed} Gbps`;
     diagram += `<div class="net-seg">
       <div class="net-seg-badge ${cls}">${speedLabel}</div>
       <div class="net-seg-arrow">→</div>
@@ -1321,7 +1318,7 @@ function buildNetworkCard(p) {
     bottleneckLabel = `Switch→Core (${p.NET_SWITCH_G} Gbps)`;
     bottleneckSub = `Uplink to core router is the limiting factor`;
   } else {
-    bottleneckLabel = `WAN / Core→Snowflake (${p.NET_WAN_MBPS.toLocaleString()} Mbps / ${p.NET_WAN_G.toFixed(p.NET_WAN_G < 1 ? 2 : 1)} Gbps)`;
+    bottleneckLabel = `WAN / Core→Snowflake (${p.NET_WAN_G} Gbps)`;
     bottleneckSub = `Internet/private circuit to Azure is the limiting factor`;
   }
   setVal('out_net_bottleneck',     bottleneckLabel);

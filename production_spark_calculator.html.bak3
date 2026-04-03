@@ -346,6 +346,17 @@
     color: var(--text); border-radius: 5px; padding: 6px 8px;
     max-width: 200px; cursor: pointer;
   }
+
+  /* Partitioning & Network cards */
+  .net-path { display:flex; align-items:center; gap:6px; margin:14px 0; flex-wrap:wrap; }
+  .net-box { background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:6px; padding:8px 12px; text-align:center; }
+  .net-box-label { font-family:var(--mono); font-size:11px; font-weight:600; color:var(--text); }
+  .net-box-sub { font-size:10px; color:var(--muted); margin-top:2px; }
+  .net-seg { display:flex; flex-direction:column; align-items:center; flex:1; min-width:70px; }
+  .net-seg-badge { font-family:var(--mono); font-size:10px; font-weight:700; padding:2px 7px; border-radius:3px; margin-bottom:3px; border:1px solid; white-space:nowrap; }
+  .net-seg-badge.ok         { background:rgba(62,207,142,0.1); border-color:rgba(62,207,142,0.4); color:var(--green); }
+  .net-seg-badge.bottleneck { background:rgba(255,94,94,0.12); border-color:rgba(255,94,94,0.4); color:var(--red); }
+  .net-seg-arrow { color:var(--muted); font-size:14px; }
 </style>
 </head>
 <body>
@@ -750,6 +761,111 @@
 
   </div>
 
+  <!-- Row 3: Partitioning + Network -->
+  <div class="grid" style="margin-top:20px;">
+
+    <!-- Partitioning card -->
+    <div class="card">
+      <div class="card-title">Parquet Partitioning</div>
+
+      <div class="control-row">
+        <div class="ctrl-label"><strong>CSV input size</strong><br><span style="font-size:10px">round up to nearest TB</span></div>
+        <input type="range" id="csv_size_tb" min="1" max="20" step="1" value="1" oninput="recalc()">
+        <div class="ctrl-val" id="csv_size_tb_val">1 TB</div>
+      </div>
+      <div class="control-row">
+        <div class="ctrl-label"><strong>Parquet compression</strong><br><span style="font-size:10px">CSV → Parquet size ratio</span></div>
+        <input type="range" id="parquet_compression" min="2" max="10" step="1" value="5" oninput="recalc()">
+        <div class="ctrl-val" id="parquet_compression_val">5×</div>
+      </div>
+      <div class="control-row">
+        <div class="ctrl-label"><strong>Max partition bytes</strong><br><span style="font-size:10px">spark.sql.files.maxPartitionBytes</span></div>
+        <input type="range" id="max_partition_bytes" min="64" max="256" step="32" value="128" oninput="recalc()">
+        <div class="ctrl-val" id="max_partition_bytes_val">128 MB</div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
+        <div class="metric">
+          <div class="metric-label">Parquet size</div>
+          <div class="metric-val" id="out_parquet_size">—</div>
+          <div class="metric-sub" id="out_parquet_size_sub">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Input partitions</div>
+          <div class="metric-val" id="out_input_parts">—</div>
+          <div class="metric-sub">read chunks from CSV</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Output partitions</div>
+          <div class="metric-val" id="out_output_parts">—</div>
+          <div class="metric-sub" id="out_output_parts_sub">Parquet files to staging</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Output file size</div>
+          <div class="metric-val" id="out_file_size">—</div>
+          <div class="metric-sub" id="out_file_size_sub">per Parquet file</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Network estimator card -->
+    <div class="card">
+      <div class="card-title">Network Path — Ceph RGW → Snowflake</div>
+
+      <div class="control-row">
+        <div class="ctrl-label"><strong>Node → Switch</strong><br><span style="font-size:10px">northbound per node</span></div>
+        <input type="range" id="net_node_speed" min="10" max="100" step="10" value="10" oninput="recalc()">
+        <div class="ctrl-val" id="net_node_speed_val">10 Gbps</div>
+      </div>
+      <div class="control-row">
+        <div class="ctrl-label"><strong>Switch → Core</strong><br><span style="font-size:10px">switch uplink</span></div>
+        <input type="range" id="net_switch_core" min="10" max="100" step="10" value="10" oninput="recalc()">
+        <div class="ctrl-val" id="net_switch_core_val">10 Gbps</div>
+      </div>
+      <div class="control-row">
+        <div class="ctrl-label"><strong>Core → Snowflake</strong><br><span style="font-size:10px">WAN / internet</span></div>
+        <input type="range" id="net_wan_speed" min="1" max="10" step="1" value="1" oninput="recalc()">
+        <div class="ctrl-val" id="net_wan_speed_val">1 Gbps</div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="net-path" id="net_path_diagram"></div>
+
+      <div class="section-divider"></div>
+
+      <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
+        <div class="metric">
+          <div class="metric-label">Bottleneck</div>
+          <div class="metric-val" id="out_net_bottleneck" style="font-size:12px;">—</div>
+          <div class="metric-sub" id="out_net_bottleneck_sub">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Eff. throughput</div>
+          <div class="metric-val" id="out_net_throughput">—</div>
+          <div class="metric-sub">at 80% utilization</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Transfer time</div>
+          <div class="metric-val" id="out_transfer_time">—</div>
+          <div class="metric-sub" id="out_transfer_time_sub">single run</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Re-run window</div>
+          <div class="metric-val" id="out_rerun_time">—</div>
+          <div class="metric-sub" id="out_rerun_time_sub">4-hr SLA</div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;font-size:10px;color:var(--muted);line-height:1.6;">
+        ⚠ Ceph RGW requires a publicly reachable endpoint for Snowflake (Azure) to execute COPY INTO directly.
+      </div>
+    </div>
+
+  </div>
+
 
 </div>
 
@@ -758,6 +874,8 @@
 const el = id => document.getElementById(id);
 const fmt = (n, dec=1) => n % 1 === 0 ? n.toString() : n.toFixed(dec);
 const _escHtml = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtTime  = sec => sec < 1 ? '<1s' : sec < 60 ? fmt(sec,1)+'s' : sec < 3600 ? fmt(sec/60,1)+' min' : fmt(sec/3600,1)+' hr';
+const fmtMB    = mb  => mb < 1024 ? fmt(mb,0)+' MB' : mb < 1048576 ? fmt(mb/1024,2)+' GB' : fmt(mb/1048576,2)+' TB';
 
 // ─── Hardware constants (physical spec — update here if hardware changes) ────
 const NODES      = 3;
@@ -818,6 +936,12 @@ function recalc() {
   setVal('partition_mb_val',   el('partition_mb').value + ' MB');
   setVal('svc_vm_cores_val',   el('svc_vm_cores').value);
   setVal('svc_vm_ram_val',     el('svc_vm_ram').value + ' GB');
+  setVal('csv_size_tb_val',        el('csv_size_tb').value + ' TB');
+  setVal('parquet_compression_val',el('parquet_compression').value + '×');
+  setVal('max_partition_bytes_val',el('max_partition_bytes').value + ' MB');
+  setVal('net_node_speed_val',     el('net_node_speed').value + ' Gbps');
+  setVal('net_switch_core_val',    el('net_switch_core').value + ' Gbps');
+  setVal('net_wan_speed_val',      el('net_wan_speed').value + ' Gbps');
 
   // ── Show/hide services VM controls
   const svcCtrl = el('svc_vm_controls');
@@ -1029,11 +1153,36 @@ function recalc() {
   // Ceph OSD visual
   buildOSDVisual(OSD_NODE, SCRATCH_NVME_PER_NODE, NODES);
 
+  // ── Partitioning card calculations
+  const CSV_TB         = +el('csv_size_tb').value;
+  const PARQ_COMP      = +el('parquet_compression').value;
+  const MAX_PART_MB    = +el('max_partition_bytes').value;
+  const CSV_MB         = CSV_TB * 1024 * 1024;
+  const PARQ_MB        = CSV_MB / PARQ_COMP;
+  const INPUT_PARTS    = Math.ceil(CSV_MB / MAX_PART_MB);
+  const TARGET_OUT_MB  = 150;                                  // Snowflake sweet-spot
+  const OUTPUT_PARTS   = Math.max(1, Math.ceil(PARQ_MB / TARGET_OUT_MB));
+  const FILE_SIZE_MB   = PARQ_MB / OUTPUT_PARTS;
+
+  // ── Network card calculations
+  const NET_NODE_G     = +el('net_node_speed').value;
+  const NET_SWITCH_G   = +el('net_switch_core').value;
+  const NET_WAN_G      = +el('net_wan_speed').value;
+  // Aggregate capacity from all nodes into the switch
+  const AGG_NODE_G     = NET_NODE_G * NODES;
+  const BOTTLENECK_G   = Math.min(AGG_NODE_G, NET_SWITCH_G, NET_WAN_G);
+  const UTIL           = 0.80;
+  const EFF_GBPS       = BOTTLENECK_G * UTIL;
+  const EFF_GBps       = EFF_GBPS / 8;                        // gigabytes per second
+  const PARQ_GB        = PARQ_MB / 1024;
+  const TRANSFER_SEC   = EFF_GBps > 0 ? PARQ_GB / EFF_GBps : Infinity;
+  const RERUN_SEC      = TRANSFER_SEC * 2;                    // re-run = 2× single pass
+
   // Spark param table
   buildParamTable({
     EXEC_CORES, EXEC_MEM, OFFHEAP, TOTAL_EXEC,
     DEFAULT_PARALLELISM, SHUFFLE_PARTS, AQE, OVH_PCT,
-    TOTAL_EXEC_CORES
+    TOTAL_EXEC_CORES, MAX_PART_MB, OUTPUT_PARTS
   });
 
   // Warnings
@@ -1042,6 +1191,17 @@ function recalc() {
     SCRATCH_TB_PER_VM, DAILY_TB, SHUF_AMP,
     CEPH_DAYS, NUMA_PIN, AQE, VMS_NODE,
     CEPH_USABLE, VCPU_VM, TOTAL_EXEC, EXEC_MEM, OFFHEAP
+  });
+
+  // Partitioning card
+  buildPartitionCard({
+    CSV_TB, PARQ_COMP, PARQ_MB, INPUT_PARTS, OUTPUT_PARTS, FILE_SIZE_MB
+  });
+
+  // Network card
+  buildNetworkCard({
+    NET_NODE_G, NET_SWITCH_G, NET_WAN_G, AGG_NODE_G,
+    BOTTLENECK_G, EFF_GBPS, TRANSFER_SEC, RERUN_SEC, PARQ_MB
   });
 }
 
@@ -1111,10 +1271,76 @@ function buildParamTable(p) {
     ['spark.sql.parquet.compression.codec','snappy',                    'Snappy for Snowflake compatibility'],
     ['spark.hadoop.fs.s3a.endpoint',      'https://<rgw-ip>:7480',     'Point to local Ceph RGW'],
     ['spark.hadoop.fs.s3a.path.style.access','true',                   'Required for RGW / non-AWS S3'],
+    ['spark.sql.files.maxPartitionBytes',   `${p.MAX_PART_MB || 128}m`, 'Input CSV read partition size (from Partitioning card)'],
+    ['df.repartition(N) — code level',      `${p.OUTPUT_PARTS || '—'}`, 'Output Parquet partition count → ~150 MB files for Snowflake COPY INTO'],
   ];
   t.innerHTML = rows.map(([k,v,d]) =>
     `<tr><td>${k}</td><td>${v}</td><td>${d}</td></tr>`
   ).join('');
+}
+
+function buildPartitionCard(p) {
+  setVal('out_parquet_size',     fmtMB(p.PARQ_MB));
+  setVal('out_parquet_size_sub', `${p.CSV_TB} TB CSV ÷ ${p.PARQ_COMP}× compression`);
+  setVal('out_input_parts',      p.INPUT_PARTS.toLocaleString());
+  setVal('out_output_parts',     p.OUTPUT_PARTS.toLocaleString());
+  const fileSizeMB = p.FILE_SIZE_MB;
+  const fileSizeClass = fileSizeMB < 64 ? 'warn' : fileSizeMB > 300 ? 'warn' : 'ok';
+  setVal('out_output_parts_sub', `target ~150 MB/file`);
+  setVal('out_file_size',        fmtMB(fileSizeMB));
+  setVal('out_file_size_sub',    fileSizeMB < 64 ? 'Too small — Snowflake overhead high' : fileSizeMB > 300 ? 'Too large — parallelism reduced' : 'Good size for Snowflake COPY INTO');
+  setClass('out_file_size', fileSizeClass);
+}
+
+function buildNetworkCard(p) {
+  // Path diagram
+  const segs = [
+    { label: `Node→Switch`, speed: p.NET_NODE_G, agg: `${p.NODES||NODES}× ${p.NET_NODE_G}G = ${p.AGG_NODE_G}G agg` },
+    { label: `Switch→Core`, speed: p.NET_SWITCH_G, agg: `${p.NET_SWITCH_G} Gbps` },
+    { label: `Core→Snowflake`, speed: p.NET_WAN_G, agg: `${p.NET_WAN_G} Gbps WAN` },
+  ];
+  const minSpeed = p.BOTTLENECK_G;
+  let diagram = '<div class="net-path">';
+  diagram += `<div class="net-box"><div class="net-box-label">Ceph RGW</div><div class="net-box-sub">on-prem S3</div></div>`;
+  // Effective speed of each segment (segment 0 uses aggregate)
+  const segSpeeds = [p.AGG_NODE_G, p.NET_SWITCH_G, p.NET_WAN_G];
+  segs.forEach((seg, i) => {
+    const isBottleneck = segSpeeds[i] === p.BOTTLENECK_G;
+    const cls = isBottleneck ? 'bottleneck' : 'ok';
+    const speedLabel = i === 0 ? `${p.AGG_NODE_G} Gbps agg` : `${seg.speed} Gbps`;
+    diagram += `<div class="net-seg">
+      <div class="net-seg-badge ${cls}">${speedLabel}</div>
+      <div class="net-seg-arrow">→</div>
+      <div style="font-size:10px;color:var(--muted)">${seg.label}</div>
+    </div>`;
+    const destinations = ['Switch', 'Core Router', 'Snowflake'];
+    diagram += `<div class="net-box"><div class="net-box-label">${destinations[i]}</div></div>`;
+  });
+  diagram += '</div>';
+  const diagEl = el('net_path_diagram');
+  if(diagEl) diagEl.innerHTML = diagram;
+
+  // Bottleneck
+  let bottleneckLabel, bottleneckSub;
+  if(p.AGG_NODE_G <= p.NET_SWITCH_G && p.AGG_NODE_G <= p.NET_WAN_G) {
+    bottleneckLabel = `Node uplinks (${p.AGG_NODE_G} Gbps agg)`;
+    bottleneckSub = `${NODES}× ${p.NET_NODE_G} Gbps = ${p.AGG_NODE_G} Gbps — add 10GbE cards or bond ports`;
+  } else if(p.NET_SWITCH_G <= p.AGG_NODE_G && p.NET_SWITCH_G <= p.NET_WAN_G) {
+    bottleneckLabel = `Switch→Core (${p.NET_SWITCH_G} Gbps)`;
+    bottleneckSub = `Uplink to core router is the limiting factor`;
+  } else {
+    bottleneckLabel = `WAN / Core→Snowflake (${p.NET_WAN_G} Gbps)`;
+    bottleneckSub = `Internet/private circuit to Azure is the limiting factor`;
+  }
+  setVal('out_net_bottleneck',     bottleneckLabel);
+  setVal('out_net_bottleneck_sub', bottleneckSub);
+  setVal('out_net_throughput',     `${p.EFF_GBPS.toFixed(1)} Gbps effective (80% util)`);
+
+  const transSec = p.TRANSFER_SEC;
+  setVal('out_transfer_time',     fmtTime(transSec));
+  setVal('out_transfer_time_sub', `${fmtMB(p.PARQ_MB)} Parquet @ ${p.EFF_GBPS.toFixed(1)} Gbps`);
+  setVal('out_rerun_time',        fmtTime(p.RERUN_SEC));
+  setVal('out_rerun_time_sub',    'estimate for 2× re-run window');
 }
 
 function buildWarnings(w) {
