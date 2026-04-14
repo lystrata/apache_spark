@@ -18,14 +18,16 @@ Then open `http://localhost:8080/production_spark_calculator.html` or the dev eq
 
 ## Editing Rules
 
-**Always back up before editing any calculator or guide HTML file:**
+**Always back up before editing any HTML file in this project** — calculators, guides, or any other `.html` file. Do this before making any change, no exceptions:
 
 ```bash
 cp production_spark_calculator.html production_spark_calculator.html.bak
 cp development_spark_calculator.html development_spark_calculator.html.bak
+cp prod_calculator_guide.html prod_calculator_guide.html.bak
+cp dev_calculator_guide.html dev_calculator_guide.html.bak
 ```
 
-Never edit `.bak` files. When a change is made to either calculator, the corresponding guide file (`prod_calculator_guide.html`, `dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
+Back up only the specific file(s) being edited. Never edit `.bak` files. When a change is made to either calculator, the corresponding guide file (`prod_calculator_guide.html`, `dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
 
 ## Calculator Architecture
 
@@ -35,8 +37,8 @@ Both calculators are single-file HTML/CSS/JS with no external dependencies and n
 
 Defined at the **top of the `<script>` block** as module-level constants — not inside `recalc()`. Update here when hardware specs change:
 
-- **Production:** `NODES=3`, `CORES_NODE=64`, `NVME_COUNT=9`, `NVME_TB=3.2`, `SSD_COUNT=2`, `SSD_GB=0.48`
-- **Development:** `NODES=3`, `CORES_NODE=32`, `NVME_COUNT=6`, `NVME_TB=3.84`, `SSD_COUNT=2`, `SSD_GB=0.48`
+- **Production:** `NODES=3`, `CORES_NODE=64`, `NVME_COUNT=9`, `NVME_TB=3.2`, `SSD_COUNT=3`, `SSD_GB=0.48`
+- **Development:** `NODES=3`, `CORES_NODE=32`, `NVME_COUNT=7`, `NVME_TB=3.84`, `SSD_COUNT=3`, `SSD_GB=0.48`
 
 ### `recalc()` Execution Order — Critical
 
@@ -107,8 +109,8 @@ Max 32 vCPUs per VM with NUMA pinning enabled (one NUMA domain = one CPU socket 
 | Nodes | 3 | 3 |
 | Cores/node | 64 (2× 32c, dual NUMA) | 32 (1× 32c, single NUMA) |
 | RAM/node | 768 GB (24× 32 GB DIMMs) | 384 GB (12× 32 GB DIMMs) |
-| NVMe/node | 9× 3.2 TB | 6× 3.84 TB |
-| SSD/node | 2× 480 GB (Proxmox OS ZFS mirror) | 2× 480 GB |
+| NVMe/node | 9× 3.2 TB | 7× 3.84 TB |
+| SSD/node | 3× 480 GB (ZFS mirror + hot spare) | 3× 480 GB |
 | RAM slider step | 32 GB (one DIMM) | 32 GB |
 
 Infrastructure reservations per node: Proxmox 2c/8 GB, Ceph RGW 4c/8 GB, Ceph MON 2c/6 GB, Ceph OSD 1c/3 GB each.

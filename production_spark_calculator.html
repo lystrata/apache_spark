@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Proxmox Spark Production Cluster Calculator</title>
+<title>Proxmox Spark Prod Calculator — Proto v1</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -14,7 +14,7 @@
     --border:   #2a3140;
     --border2:  #3a4455;
     --text:     #d4dbe8;
-    --muted:    #6b7a92;
+    --muted:    #8f9db5;
     --accent:   #4e9eff;
     --accent2:  #7ec8ff;
     --green:    #3ecf8e;
@@ -357,6 +357,159 @@
   .net-seg-badge.ok         { background:rgba(62,207,142,0.1); border-color:rgba(62,207,142,0.4); color:var(--green); }
   .net-seg-badge.bottleneck { background:rgba(255,94,94,0.12); border-color:rgba(255,94,94,0.4); color:var(--red); }
   .net-seg-arrow { color:var(--muted); font-size:14px; }
+
+  /* Workload characteristic selects */
+  .workload-select {
+    -webkit-appearance: none; appearance: none;
+    font-family: var(--mono); font-size: 12px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text); border-radius: 5px; padding: 6px 10px;
+    flex: 1; cursor: pointer;
+  }
+  .workload-select:focus { outline: 1px solid var(--accent); }
+
+  /* Operating envelope */
+  .envelope-header { font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin:16px 0 10px; }
+  .envelope-table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11px; }
+  .envelope-table th { color:var(--muted); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; padding:6px 10px; border-bottom:1px solid var(--border2); text-align:left; }
+  .envelope-table th:not(:first-child) { text-align:center; }
+  .envelope-table td { padding:7px 10px; border-bottom:1px solid var(--border); }
+  .envelope-table tr:last-child td { border-bottom:none; }
+  .envelope-table td:first-child { color:var(--text); }
+  .envelope-table td:not(:first-child) { text-align:center; }
+  .env-safe  { color:var(--green); }
+  .env-warn  { color:var(--yellow); }
+  .env-bad   { color:var(--red); }
+  .env-current-ok   { color:var(--green); font-weight:700; font-size:13px; }
+  .env-current-warn { color:var(--yellow); font-weight:700; font-size:13px; }
+  .env-current-bad  { color:var(--red); font-weight:700; font-size:13px; }
+
+  /* Cores comparison table */
+  .cmp-table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; }
+  .cmp-table th { color:var(--muted); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; padding:8px 14px; border-bottom:1px solid var(--border2); text-align:center; }
+  .cmp-table th:first-child { text-align:left; }
+  .cmp-table td { padding:8px 14px; border-bottom:1px solid var(--border); text-align:center; }
+  .cmp-table td:first-child { text-align:left; color:var(--muted); }
+  .cmp-table tr:last-child td { border-bottom:none; }
+  .cmp-col-current { background:rgba(78,158,255,0.06); }
+  .cmp-col-current td { border-left:1px solid rgba(78,158,255,0.25); border-right:1px solid rgba(78,158,255,0.25); }
+  .cmp-val-main { color:#fff; font-weight:700; }
+  .cmp-val-dim  { color:var(--muted); }
+  .cmp-val-ok   { color:var(--green); }
+  .cmp-val-warn { color:var(--yellow); }
+  .cmp-val-bad  { color:var(--red); }
+  .cmp-val-bold { font-weight:700; font-size:13px; }
+
+  /* ── Theme toggle button ─────────────────────────────────────── */
+  .btn-theme {
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    padding: 6px 14px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--border2); background: var(--bg3);
+    color: var(--muted); letter-spacing: 0.06em;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-theme:hover { background: var(--bg4); color: var(--text); }
+
+  /* ── Light theme overrides — Option B: Warm Tone ────────────── */
+  [data-theme="light"] {
+    --bg:      #e6dfd0;
+    --bg2:     #f7f2e8;
+    --bg3:     #e6dfd0;
+    --bg4:     #dad2c2;
+    --border:  #ccc0a8;
+    --border2: #b8ac94;
+    --text:    #1e1810;
+    --muted:   #706050;
+    --accent:  #b06820;
+    --accent2: #885018;
+    --green:   #2a7040;
+    --yellow:  #a87000;
+    --red:     #c02828;
+    --purple:  #7040b8;
+  }
+
+  /* Body grid pattern — warm amber tint */
+  [data-theme="light"] body {
+    background-image:
+      linear-gradient(rgba(176,104,32,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(176,104,32,0.05) 1px, transparent 1px);
+  }
+
+  /* Warning / status boxes */
+  [data-theme="light"] .warn-item.error   { background:rgba(192,40,40,0.07);   border-color:rgba(192,40,40,0.35);   color:#981818; }
+  [data-theme="light"] .warn-item.warning { background:rgba(168,112,0,0.07);   border-color:rgba(168,112,0,0.35);   color:#7a4a00; }
+  [data-theme="light"] .warn-item.ok      { background:rgba(42,112,64,0.07);   border-color:rgba(42,112,64,0.3);    color:#1a5430; }
+  [data-theme="light"] .warn-item.info    { background:rgba(176,104,32,0.07);  border-color:rgba(176,104,32,0.3);   color:#7a4c10; }
+
+  /* OSD chips */
+  [data-theme="light"] .osd-chip.active  { background:rgba(42,112,64,0.12);  border-color:rgba(42,112,64,0.45); }
+  [data-theme="light"] .osd-chip.scratch { background:rgba(176,104,32,0.1);  border-color:rgba(176,104,32,0.4); }
+
+  /* Overhead table available row */
+  [data-theme="light"] .ohd-avail td { background:rgba(176,104,32,0.05); }
+
+  /* Buttons */
+  [data-theme="light"] .btn-save          { background:rgba(176,104,32,0.1);  border-color:rgba(176,104,32,0.4); }
+  [data-theme="light"] .btn-save:hover    { background:rgba(176,104,32,0.2); }
+  [data-theme="light"] .btn-reset         { background:rgba(192,40,40,0.08); border-color:rgba(192,40,40,0.35); }
+  [data-theme="light"] .btn-reset:hover   { background:rgba(192,40,40,0.18); }
+  [data-theme="light"] .btn-scenario-save      { background:rgba(42,112,64,0.1);   border-color:rgba(42,112,64,0.4); }
+  [data-theme="light"] .btn-scenario-save:hover{ background:rgba(42,112,64,0.2); }
+  [data-theme="light"] .btn-scenario-load      { background:rgba(176,104,32,0.1);  border-color:rgba(176,104,32,0.4); }
+  [data-theme="light"] .btn-scenario-load:hover{ background:rgba(176,104,32,0.2); }
+  [data-theme="light"] .btn-scenario-view      { background:rgba(112,64,184,0.1);  border-color:rgba(112,64,184,0.4); }
+  [data-theme="light"] .btn-scenario-view:hover{ background:rgba(112,64,184,0.2); }
+  [data-theme="light"] .btn-scenario-del       { background:rgba(192,40,40,0.08); border-color:rgba(192,40,40,0.35); }
+  [data-theme="light"] .btn-scenario-del:hover { background:rgba(192,40,40,0.18); }
+  [data-theme="light"] .scenario-divider { background:rgba(0,0,0,0.15); }
+  [data-theme="light"] .scenario-select,
+  [data-theme="light"] .scenario-select-sm { background:rgba(0,0,0,0.04); border-color:rgba(0,0,0,0.18); color:var(--text); }
+
+  /* Executor comparison table */
+  [data-theme="light"] .cmp-col-current { background:rgba(176,104,32,0.07); }
+  [data-theme="light"] .cmp-col-current td { border-left-color:rgba(176,104,32,0.3); border-right-color:rgba(176,104,32,0.3); }
+  [data-theme="light"] .cmp-val-main { color:#1e1810; }
+
+  /* Bar segments — 4 distinct hues for warm light mode */
+  [data-theme="light"] #bar_cores_prox,
+  [data-theme="light"] #bar_ram_prox   { background:#5a4e3e !important; } /* dark charcoal — OS overhead */
+  [data-theme="light"] #bar_cores_free,
+  [data-theme="light"] #bar_ram_free,
+  [data-theme="light"] #bar_mem_free   { background:#d4ccba !important; } /* light warm tan — unallocated */
+  [data-theme="light"] #bar_cores_ceph,
+  [data-theme="light"] #bar_ram_ceph   { background:#c07820 !important; } /* amber — infra reservation */
+  [data-theme="light"] #bar_cores_vm,
+  [data-theme="light"] #bar_ram_vm,
+  [data-theme="light"] #bar_mem_exec   { background:#3a7858 !important; } /* forest green — productive */
+  [data-theme="light"] #bar_mem_over   { background:#c07820 !important; } /* amber — overhead */
+  [data-theme="light"] #bar_mem_off    { background:#7040b8 !important; } /* purple — off-heap */
+  /* Legend dots to match */
+  [data-theme="light"] #legend_free_cores,
+  [data-theme="light"] #legend_free_ram_dot { background:#2a7040 !important; }
+
+  /* Slider current values (hardcoded #fff in base CSS) */
+  [data-theme="light"] .ctrl-val { color: var(--accent); font-weight: 700; }
+
+  /* JSON viewer modal */
+  [data-theme="light"] #json_modal_body { background:#f5f0e4 !important; color:#1e1810 !important; }
+
+  /* Hardcoded #fff text — override for light mode */
+  [data-theme="light"] h1                          { color: var(--text); }
+  [data-theme="light"] .metric-val                 { color: var(--text); }
+  [data-theme="light"] .param-table td:nth-child(2){ color: var(--text); }
+
+  /* View JSON button — hardcoded #b482ff text needs light override */
+  [data-theme="light"] .btn-scenario-view          { color: var(--purple); }
+
+  /* Workload selects — rgba(255,255,255,0.05) bg invisible on light */
+  [data-theme="light"] .workload-select            { background:rgba(0,0,0,0.04); border-color:rgba(0,0,0,0.15); }
+
+  /* Network path boxes — rgba(255,255,255,0.05) bg invisible on light */
+  [data-theme="light"] .net-box                    { background:rgba(0,0,0,0.04); }
+
+  /* Network segment badges — re-tint for warm background */
+  [data-theme="light"] .net-seg-badge.ok           { background:rgba(42,112,64,0.1);  border-color:rgba(42,112,64,0.4); }
+  [data-theme="light"] .net-seg-badge.bottleneck   { background:rgba(192,40,40,0.1);  border-color:rgba(192,40,40,0.4); }
 </style>
 </head>
 <body>
@@ -364,7 +517,7 @@
 
   <!-- Header -->
   <header>
-    <div class="header-tag">◈ Infrastructure Sizing Tool</div>
+    <div class="header-tag">◈ Infrastructure Sizing Tool &nbsp;·&nbsp; <span style="color:var(--purple)">PROTO v1 — envelope + core sensitivity + blast radius</span></div>
     <h1>Proxmox / Spark Production Cluster Calculator</h1>
     <div class="header-sub">3-node hyperconverged · Ceph RGW (S3) · YARN · Snowflake output · 2 TB/day ingest</div>
     <div class="header-actions">
@@ -376,6 +529,7 @@
       <button class="btn btn-scenario-load" id="btn_load_scenario" onclick="loadScenario()">Load</button>
       <button class="btn btn-scenario-view" onclick="viewScenario()">View JSON</button>
       <button class="btn btn-scenario-del" onclick="deleteScenario()">Delete</button>
+      <button class="btn-theme" id="btn_theme" onclick="toggleTheme()">☀ Light</button>
     </div>
   </header>
 
@@ -403,8 +557,8 @@
     </div>
     <div class="hw-item">
       <div class="hw-label">SSDs / node</div>
-      <div class="hw-val">2× 480 GB</div>
-      <div class="hw-sub">Proxmox OS (ZFS mirror)</div>
+      <div class="hw-val">3× 480 GB</div>
+      <div class="hw-sub">Proxmox OS (ZFS mirror + hot spare)</div>
     </div>
     <div class="hw-item">
       <div class="hw-label">NVMe / node</div>
@@ -417,6 +571,12 @@
   <div class="card" style="margin-bottom:20px;">
     <div class="card-title">Diagnostics &amp; Warnings</div>
     <div class="warnings" id="warnings_panel"></div>
+    <div style="height:1px;background:var(--border2);margin:18px 0 0;"></div>
+    <div class="envelope-header">Operating Envelope — current configuration</div>
+    <table class="envelope-table" id="envelope_table">
+      <thead><tr><th>Dimension</th><th class="env-safe">Safe</th><th class="env-warn">Marginal</th><th class="env-bad">Unsafe</th><th>Current</th></tr></thead>
+      <tbody id="envelope_body"></tbody>
+    </table>
   </div>
 
   <!-- Controls -->
@@ -431,12 +591,12 @@
         <div class="ctrl-val" id="ram_node_val">768 GB</div>
       </div>
       <div class="control-row">
-        <div class="ctrl-label"><strong>VMs per node</strong></div>
+        <div class="ctrl-label"><strong>VMs per node</strong><br><span style="font-size:10px"><span id="vms_current">2</span> VM/node × 3 nodes → <span id="vms_total">6</span> worker VMs · <span id="vms_exec_total">—</span> cluster executors</span></div>
         <input type="range" id="vms_per_node" min="1" max="2" step="1" value="2" oninput="recalc()">
         <div class="ctrl-val" id="vms_per_node_val">2</div>
       </div>
       <div class="control-row">
-        <div class="ctrl-label"><strong>vCPUs per worker VM</strong><br><span style="font-size:10px">Max 32 (1 NUMA domain)</span></div>
+        <div class="ctrl-label"><strong>vCPUs per worker VM</strong><br><span style="font-size:10px"><span id="vcpu_current">22</span> vCPUs → <span id="vcpu_avail">20</span> for executors · ceiling <span id="vcpu_max">32</span></span></div>
         <input type="range" id="vcpus_per_vm" min="8" max="32" step="2" value="22" oninput="recalc()">
         <div class="ctrl-val" id="vcpus_per_vm_val">22</div>
       </div>
@@ -449,12 +609,12 @@
       <div class="section-divider"></div>
 
       <div class="control-row">
-        <div class="ctrl-label"><strong>NVMe drives → Ceph OSDs</strong><br><span style="font-size:10px">per node (of 9 total)</span></div>
+        <div class="ctrl-label"><strong>NVMe drives → Ceph OSDs</strong><br><span style="font-size:10px">↑ more Ceph, less scratch &nbsp;·&nbsp; Ceph: <span id="osd_usable">—</span> TB usable &nbsp;·&nbsp; Scratch: <span id="osd_scratch_cluster">—</span> TB cluster</span></div>
         <input type="range" id="nvme_osd_count" min="0" max="9" step="1" value="4" oninput="recalc()">
         <div class="ctrl-val" id="nvme_osd_count_val">4</div>
       </div>
       <div class="control-row">
-        <div class="ctrl-label"><strong>Ceph replication factor</strong></div>
+        <div class="ctrl-label"><strong>Ceph replication factor</strong><br><span style="font-size:10px"><span id="ceph_rep_current">3</span>× → <span id="ceph_rep_usable">—</span> TB usable · <span id="ceph_rep_days">—</span> days at current ingest</span></div>
         <input type="range" id="ceph_rep" min="2" max="3" step="1" value="3" oninput="recalc()">
         <div class="ctrl-val" id="ceph_rep_val">3×</div>
       </div>
@@ -472,21 +632,27 @@
 
       <div class="section-divider"></div>
 
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">On-cluster optional services</div>
+      <p style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px;">YARN RM always reserved (2 vCPU / 4 GB, amortized ÷3). Check any services running on-cluster instead of the remote service host.</p>
       <div class="toggle-row">
-        <div class="toggle-label"><strong>YARN services VM</strong> (RM + History + Hive Metastore + Airflow)</div>
-        <label class="toggle"><input type="checkbox" id="svc_vm_enabled" checked onchange="recalc()"><span class="toggle-slider"></span></label>
+        <div class="toggle-label"><strong>Airflow</strong> <span style="color:var(--muted);font-size:10px;">2 vCPU · 4 GB</span></div>
+        <label class="toggle"><input type="checkbox" id="svc_airflow" onchange="recalc()"><span class="toggle-slider"></span></label>
       </div>
-      <div id="svc_vm_controls">
-        <div class="control-row">
-          <div class="ctrl-label"><strong>Services VM vCPUs</strong></div>
-          <input type="range" id="svc_vm_cores" min="4" max="8" step="2" value="8" oninput="recalc()">
-          <div class="ctrl-val" id="svc_vm_cores_val">8</div>
-        </div>
-        <div class="control-row">
-          <div class="ctrl-label"><strong>Services VM RAM (GB)</strong></div>
-          <input type="range" id="svc_vm_ram" min="8" max="24" step="4" value="24" oninput="recalc()">
-          <div class="ctrl-val" id="svc_vm_ram_val">24 GB</div>
-        </div>
+      <div class="toggle-row">
+        <div class="toggle-label"><strong>Spark History Server</strong> <span style="color:var(--muted);font-size:10px;">1 vCPU · 2 GB</span></div>
+        <label class="toggle"><input type="checkbox" id="svc_history" onchange="recalc()"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label"><strong>Jupyter</strong> <span style="color:var(--muted);font-size:10px;">2 vCPU · 4 GB</span></div>
+        <label class="toggle"><input type="checkbox" id="svc_jupyter" onchange="recalc()"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label"><strong>Log Aggregation</strong> <span style="color:var(--muted);font-size:10px;">1 vCPU · 2 GB</span></div>
+        <label class="toggle"><input type="checkbox" id="svc_logs" onchange="recalc()"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label"><strong>Nginx</strong> <span style="color:var(--muted);font-size:10px;">1 vCPU · 1 GB</span></div>
+        <label class="toggle"><input type="checkbox" id="svc_nginx" onchange="recalc()"><span class="toggle-slider"></span></label>
       </div>
     </div>
 
@@ -495,34 +661,87 @@
       <div class="card-title">Spark Executor Parameters</div>
 
       <div class="control-row">
-        <div class="ctrl-label"><strong>spark.executor.cores</strong><br><span style="font-size:10px">5 = S3 sweet spot</span></div>
+        <div class="ctrl-label"><strong>spark.executor.cores</strong><br><span style="font-size:10px"><span id="exec_cores_current">5</span> cores → <span id="exec_cores_pervm">4</span> executors/VM · ceiling <span id="exec_cores_max">10</span></span></div>
         <input type="range" id="exec_cores" min="2" max="10" step="1" value="5" oninput="recalc()">
         <div class="ctrl-val" id="exec_cores_val">5</div>
       </div>
       <div class="control-row">
-        <div class="ctrl-label"><strong>Overhead fraction</strong><br><span style="font-size:10px">Spark JVM overhead %</span></div>
+        <div class="ctrl-label"><strong>YARN overhead fraction</strong><br><span style="font-size:10px">→ <span id="overhead_margin">—</span> GB OOM margin at current settings</span></div>
         <input type="range" id="overhead_pct" min="8" max="20" step="1" value="10" oninput="recalc()">
         <div class="ctrl-val" id="overhead_pct_val">10%</div>
       </div>
       <div class="control-row">
-        <div class="ctrl-label"><strong>Off-heap size (GB)</strong></div>
+        <div class="ctrl-label"><strong>Off-heap size (GB)</strong><br><span style="font-size:10px">capped at <span id="offheap_max">16</span> GB · margin: <span id="offheap_margin">—</span> GB</span></div>
         <input type="range" id="offheap" min="0" max="16" step="2" value="6" oninput="recalc()">
         <div class="ctrl-val" id="offheap_val">6 GB</div>
       </div>
       <div class="control-row">
-        <div class="ctrl-label"><strong>Daily data volume (TB)</strong></div>
+        <div class="ctrl-label"><strong>Daily data volume (TB)</strong><br><span style="font-size:10px">all batches combined · <span id="daily_ceph_days">—</span> days Ceph · <span id="daily_shuffle_tb">—</span> TB shuffle</span></div>
         <input type="range" id="daily_tb" min="1" max="8" step="0.5" value="2" oninput="recalc()">
         <div class="ctrl-val" id="daily_tb_val">2 TB</div>
       </div>
       <div class="control-row">
-        <div class="ctrl-label"><strong>Shuffle amplification</strong><br><span style="font-size:10px">typical 1.5–3×</span></div>
+        <div class="ctrl-label"><strong>CSV dataset size</strong><br><span style="font-size:10px">one batch/dump · 1 GB steps · auto-formats GB / TB · drives Parquet partitioning</span></div>
+        <input type="range" id="csv_size_tb" min="1" max="10000" step="1" value="7" oninput="recalc()">
+        <div class="ctrl-val" id="csv_size_tb_val">7 GB</div>
+      </div>
+      <div class="control-row">
+        <div class="ctrl-label"><strong>Shuffle amplification</strong><br><span style="font-size:10px">→ <span id="shuf_vol_tb">—</span> TB cluster shuffle · <span id="shuf_scratch_pct">—</span>% of cluster scratch</span></div>
         <input type="range" id="shuffle_amp" min="1" max="4" step="0.5" value="2" oninput="recalc()">
         <div class="ctrl-val" id="shuffle_amp_val">2×</div>
       </div>
       <div class="control-row">
-        <div class="ctrl-label"><strong>Target partition size (MB)</strong></div>
+        <div class="ctrl-label"><strong>Shuffle output size (MB)</strong><br><span style="font-size:10px">AQE coalesces shuffle output partitions to this size after joins/aggregations</span></div>
         <input type="range" id="partition_mb" min="64" max="512" step="32" value="200" oninput="recalc()">
         <div class="ctrl-val" id="partition_mb_val">200 MB</div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="control-row">
+        <div class="ctrl-label"><strong>Data skew profile</strong><br><span style="font-size:10px">raises OOM safety threshold</span></div>
+        <select id="skew_profile" class="workload-select" onchange="recalc()">
+          <option value="uniform">Uniform</option>
+          <option value="moderate">Moderate skew</option>
+          <option value="heavy">Heavy skew</option>
+        </select>
+      </div>
+      <div class="control-row" style="margin-top:12px;">
+        <div class="ctrl-label"><strong>Join type</strong><br><span style="font-size:10px">tightens scratch adequacy check</span></div>
+        <select id="join_type" class="workload-select" onchange="recalc()">
+          <option value="broadcast">Broadcast-heavy</option>
+          <option value="mixed">Mixed</option>
+          <option value="wide">Wide shuffle joins</option>
+        </select>
+      </div>
+      <div style="margin-top:10px;background:rgba(78,158,255,0.05);border:1px solid rgba(78,158,255,0.18);border-radius:6px;padding:10px 12px;">
+        <table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:10px;">
+          <thead>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+              <th style="color:var(--muted);text-align:left;padding:0 8px 5px 0;letter-spacing:0.06em;">Setting</th>
+              <th style="color:var(--muted);text-align:center;padding:0 8px 5px;letter-spacing:0.06em;white-space:nowrap;">Scratch factor</th>
+              <th style="color:var(--muted);text-align:left;padding:0 0 5px 8px;letter-spacing:0.06em;">When to use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="color:var(--text);padding:4px 8px 4px 0;white-space:nowrap;">Broadcast-heavy</td>
+              <td style="color:var(--green);text-align:center;padding:4px 8px;">×1.00</td>
+              <td style="color:var(--muted);padding:4px 0 4px 8px;line-height:1.5;">Small dimension tables fit in memory; shuffle volume close to raw amplification estimate</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="color:var(--text);padding:4px 8px 4px 0;white-space:nowrap;">Mixed</td>
+              <td style="color:var(--yellow);text-align:center;padding:4px 8px;">×1.10</td>
+              <td style="color:var(--muted);padding:4px 0 4px 8px;line-height:1.5;">Mix of broadcast and shuffle joins; moderate additional scratch pressure</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text);padding:4px 8px 4px 0;white-space:nowrap;">Wide shuffle joins</td>
+              <td style="color:var(--red);text-align:center;padding:4px 8px;">×1.25</td>
+              <td style="color:var(--muted);padding:4px 0 4px 8px;line-height:1.5;">Large fact-to-fact joins or many-to-many relationships that cannot broadcast</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:7px;font-size:10px;color:var(--muted);font-family:var(--mono);">Factor applied to shuffle volume threshold in scratch adequacy check and operating envelope — does not change computed shuffle volume.</div>
       </div>
     </div>
   </div>
@@ -533,8 +752,7 @@
     <p style="font-size:12px;color:var(--muted);line-height:1.75;margin-bottom:18px;">
       Before any Spark worker VM can be sized, a fixed block of cores and RAM is reserved on every node
       by the hypervisor, Ceph services, and YARN infrastructure. These resources are <strong style="color:var(--text)">not available to worker VMs</strong>.
-      The OSD row scales with the <em>NVMe → Ceph OSDs</em> slider. The YARN services VM (ResourceManager,
-      History Server, Hive Metastore, PostgreSQL, Airflow) runs on one node and replaces one worker VM slot.
+      The OSD row scales with the <em>NVMe → Ceph OSDs</em> slider. The YARN ResourceManager VM is a fixed reservation on one node (2 vCPU / 4 GB, amortized across nodes). Optional services (Airflow, History Server, Jupyter, Log Aggregation, Nginx) add to this only if toggled on-cluster above.
       Inside each worker VM, the YARN NodeManager daemon reserves additional cores and RAM before executor sizing.
       The <strong style="color:var(--green)">Effective max / VM</strong> row is the true ceiling for the vCPU and RAM sliders.
     </p>
@@ -564,10 +782,15 @@
             <td>2c</td><td>6 GB</td>
             <td>Fixed — 1 monitor daemon per node (Paxos quorum member)</td>
           </tr>
-          <tr class="ohd-sep" id="ohd_svc_row">
-            <td>YARN services VM (<span id="ohd_svc_label">amortized ÷3</span>)</td>
-            <td id="ohd_svc_cores">3c</td><td id="ohd_svc_ram">8 GB</td>
-            <td>RM + History Server + Hive Metastore + PostgreSQL + Airflow — runs on 1 node, cost spread across nodes</td>
+          <tr class="ohd-sep">
+            <td>YARN RM service VM (amortized ÷3)</td>
+            <td id="ohd_rm_cores">1c</td><td id="ohd_rm_ram">2 GB</td>
+            <td>ResourceManager — runs on 1 node, cost spread across nodes</td>
+          </tr>
+          <tr>
+            <td>Optional on-cluster services (<span id="ohd_optsvc_label">none — remote host</span>)</td>
+            <td id="ohd_optsvc_cores">0c</td><td id="ohd_optsvc_ram">0 GB</td>
+            <td>Airflow · History Server · Jupyter · Log Aggregation · Nginx</td>
           </tr>
           <tr class="ohd-total ohd-sep">
             <td>Total reserved</td>
@@ -687,7 +910,7 @@
         </div>
       </div>
 
-      <div class="metrics" style="margin-top:16px;">
+      <div class="metrics" style="margin-top:16px;grid-template-columns:repeat(4,1fr);">
         <div class="metric">
           <div class="metric-label">Slot size (GB)</div>
           <div class="metric-val" id="out_slot_gb">—</div>
@@ -703,15 +926,39 @@
           <div class="metric-val" id="out_oom">—</div>
           <div class="metric-sub" id="out_oom_sub">—</div>
         </div>
+        <div class="metric">
+          <div class="metric-label">Blast radius</div>
+          <div class="metric-val" id="out_blast_radius">—</div>
+          <div class="metric-sub" id="out_blast_radius_sub">% cluster capacity lost per executor failure</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Row 2: Storage + Spark params -->
+  <!-- Executor Core Sensitivity -->
+  <div class="card" style="margin-top:20px;">
+    <div class="card-title">Executor Core Sensitivity — ±1</div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:16px;">
+      How key metrics shift when <code style="color:var(--accent2);">spark.executor.cores</code> moves one step up or down from the current setting.
+      Highlighted column is the active configuration. Executor count, slot size, and OOM margin all change simultaneously.
+    </p>
+    <div style="overflow-x:auto;">
+      <table class="cmp-table" id="cores_cmp_table"></table>
+    </div>
+    <div style="display:flex;gap:20px;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--border2);font-size:11px;">
+      <span style="color:var(--muted);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;">Legend</span>
+      <span><span style="color:var(--green);">●</span>&nbsp;Safe</span>
+      <span><span style="color:var(--yellow);">●</span>&nbsp;Marginal</span>
+      <span><span style="color:var(--red);">●</span>&nbsp;Unsafe</span>
+      <span><span style="color:var(--text);">●</span>&nbsp;Informational — no threshold</span>
+    </div>
+  </div>
+
+  <!-- Row 2: Storage (left) | Network + Parquet (right column) -->
   <div class="grid" style="margin-top:20px;">
 
     <!-- Storage layout -->
-    <div class="card">
+    <div class="card" style="height:100%; box-sizing:border-box;">
       <div class="card-title">Storage Layout (per node)</div>
 
       <div class="storage-grid" id="storage_grid"></div>
@@ -738,6 +985,22 @@
 
       <div class="section-divider"></div>
 
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">Shuffle burst profile</div>
+      <div class="metrics" style="grid-template-columns:1fr 1fr;">
+        <div class="metric">
+          <div class="metric-label">Concurrent shuffle writers</div>
+          <div class="metric-val" id="out_concurrent_writers">—</div>
+          <div class="metric-sub">executors at stage boundary</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Shuffle load / drive</div>
+          <div class="metric-val" id="out_shuffle_per_drive">—</div>
+          <div class="metric-sub" id="out_shuffle_per_drive_sub">—</div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
       <div style="display:flex;gap:8px;align-items:center;font-size:11px;color:var(--muted);">
         <div class="osd-chip active" style="width:20px;height:20px;font-size:8px;">OSD</div>
         <span>= Ceph OSD (NVMe)</span>
@@ -749,121 +1012,117 @@
       <div id="ceph_osd_visual" style="margin-top:14px;"></div>
     </div>
 
-    <!-- Spark parameters -->
-    <div class="card">
-      <div class="card-title">Spark Configuration (spark-defaults.conf)</div>
-      <p style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:14px;">
-        Parameters with computed values are derived from your sizing choices above.
-        Static entries reflect best-practice defaults for the Ceph RGW / YARN architecture.
-      </p>
-      <table class="param-table" id="param_table"></table>
+    <!-- Right column: Network Path (top) + Parquet Partitioning (bottom) -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+
+      <!-- Network estimator card -->
+      <div class="card">
+        <div class="card-title">Network Path — Ceph RGW → Snowflake</div>
+
+        <div class="control-row">
+          <div class="ctrl-label"><strong>Node → Switch</strong><br><span style="font-size:10px">northbound per node</span></div>
+          <input type="range" id="net_node_speed" min="10" max="100" step="10" value="10" oninput="recalc()">
+          <div class="ctrl-val" id="net_node_speed_val">10 Gbps</div>
+        </div>
+        <div class="control-row">
+          <div class="ctrl-label"><strong>Switch → Core</strong><br><span style="font-size:10px">switch uplink</span></div>
+          <input type="range" id="net_switch_core" min="10" max="100" step="10" value="10" oninput="recalc()">
+          <div class="ctrl-val" id="net_switch_core_val">10 Gbps</div>
+        </div>
+        <div class="control-row">
+          <div class="ctrl-label"><strong>Core → Snowflake</strong><br><span style="font-size:10px">100 Mbps steps · shows Mbps / Gbps</span></div>
+          <input type="range" id="net_wan_speed" min="100" max="10000" step="100" value="1000" oninput="recalc()">
+          <div class="ctrl-val" id="net_wan_speed_val">1,000 Mbps</div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="net-path" id="net_path_diagram"></div>
+
+        <div class="section-divider"></div>
+
+        <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
+          <div class="metric">
+            <div class="metric-label">Bottleneck</div>
+            <div class="metric-val" id="out_net_bottleneck" style="font-size:12px;">—</div>
+            <div class="metric-sub" id="out_net_bottleneck_sub">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Eff. throughput</div>
+            <div class="metric-val" id="out_net_throughput">—</div>
+            <div class="metric-sub">at 80% utilization</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Transfer time</div>
+            <div class="metric-val" id="out_transfer_time">—</div>
+            <div class="metric-sub" id="out_transfer_time_sub">single run</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Re-run window</div>
+            <div class="metric-val" id="out_rerun_time">—</div>
+            <div class="metric-sub" id="out_rerun_time_sub">4-hr SLA</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;font-size:10px;color:var(--muted);line-height:1.6;">
+          ⚠ Ceph RGW requires a publicly reachable endpoint for Snowflake (Azure) to execute COPY INTO directly.
+        </div>
+      </div>
+
+      <!-- Parquet Partitioning card -->
+      <div class="card">
+        <div class="card-title">Parquet Partitioning</div>
+
+        <div style="font-size:11px;color:var(--muted);padding:2px 0 10px 0;">Modeled against the CSV dataset size set in Workload Sizing above.</div>
+        <div class="control-row">
+          <div class="ctrl-label"><strong>Parquet compression</strong><br><span style="font-size:10px">CSV → Parquet size ratio</span></div>
+          <input type="range" id="parquet_compression" min="2" max="10" step="1" value="5" oninput="recalc()">
+          <div class="ctrl-val" id="parquet_compression_val">5×</div>
+        </div>
+        <div class="control-row">
+          <div class="ctrl-label"><strong>Read chunk size</strong><br><span style="font-size:10px">Spark splits CSV into chunks of at most this size — one read task per chunk · spark.sql.files.maxPartitionBytes</span></div>
+          <input type="range" id="max_partition_bytes" min="64" max="256" step="32" value="128" oninput="recalc()">
+          <div class="ctrl-val" id="max_partition_bytes_val">128 MB</div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
+          <div class="metric">
+            <div class="metric-label">Parquet size (cluster)</div>
+            <div class="metric-val" id="out_parquet_size">—</div>
+            <div class="metric-sub" id="out_parquet_size_sub">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Input partitions</div>
+            <div class="metric-val" id="out_input_parts">—</div>
+            <div class="metric-sub">read chunks from CSV</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Output partitions</div>
+            <div class="metric-val" id="out_output_parts">—</div>
+            <div class="metric-sub" id="out_output_parts_sub">Parquet files to staging</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Output file size</div>
+            <div class="metric-val" id="out_file_size">—</div>
+            <div class="metric-sub" id="out_file_size_sub">per Parquet file</div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </div>
 
-  <!-- Row 3: Partitioning + Network -->
-  <div class="grid" style="margin-top:20px;">
-
-    <!-- Partitioning card -->
-    <div class="card">
-      <div class="card-title">Parquet Partitioning</div>
-
-      <div class="control-row">
-        <div class="ctrl-label"><strong>CSV input size</strong><br><span style="font-size:10px">500 MB steps · shows MB / GB</span></div>
-        <input type="range" id="csv_size_tb" min="500" max="20000" step="500" value="6500" oninput="recalc()">
-        <div class="ctrl-val" id="csv_size_tb_val">6,500 MB</div>
-      </div>
-      <div class="control-row">
-        <div class="ctrl-label"><strong>Parquet compression</strong><br><span style="font-size:10px">CSV → Parquet size ratio</span></div>
-        <input type="range" id="parquet_compression" min="2" max="10" step="1" value="5" oninput="recalc()">
-        <div class="ctrl-val" id="parquet_compression_val">5×</div>
-      </div>
-      <div class="control-row">
-        <div class="ctrl-label"><strong>Max partition bytes</strong><br><span style="font-size:10px">spark.sql.files.maxPartitionBytes</span></div>
-        <input type="range" id="max_partition_bytes" min="64" max="256" step="32" value="128" oninput="recalc()">
-        <div class="ctrl-val" id="max_partition_bytes_val">128 MB</div>
-      </div>
-
-      <div class="section-divider"></div>
-
-      <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
-        <div class="metric">
-          <div class="metric-label">Parquet size</div>
-          <div class="metric-val" id="out_parquet_size">—</div>
-          <div class="metric-sub" id="out_parquet_size_sub">—</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Input partitions</div>
-          <div class="metric-val" id="out_input_parts">—</div>
-          <div class="metric-sub">read chunks from CSV</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Output partitions</div>
-          <div class="metric-val" id="out_output_parts">—</div>
-          <div class="metric-sub" id="out_output_parts_sub">Parquet files to staging</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Output file size</div>
-          <div class="metric-val" id="out_file_size">—</div>
-          <div class="metric-sub" id="out_file_size_sub">per Parquet file</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Network estimator card -->
-    <div class="card">
-      <div class="card-title">Network Path — Ceph RGW → Snowflake</div>
-
-      <div class="control-row">
-        <div class="ctrl-label"><strong>Node → Switch</strong><br><span style="font-size:10px">northbound per node</span></div>
-        <input type="range" id="net_node_speed" min="10" max="100" step="10" value="10" oninput="recalc()">
-        <div class="ctrl-val" id="net_node_speed_val">10 Gbps</div>
-      </div>
-      <div class="control-row">
-        <div class="ctrl-label"><strong>Switch → Core</strong><br><span style="font-size:10px">switch uplink</span></div>
-        <input type="range" id="net_switch_core" min="10" max="100" step="10" value="10" oninput="recalc()">
-        <div class="ctrl-val" id="net_switch_core_val">10 Gbps</div>
-      </div>
-      <div class="control-row">
-        <div class="ctrl-label"><strong>Core → Snowflake</strong><br><span style="font-size:10px">100 Mbps steps · shows Mbps / Gbps</span></div>
-        <input type="range" id="net_wan_speed" min="100" max="10000" step="100" value="1000" oninput="recalc()">
-        <div class="ctrl-val" id="net_wan_speed_val">1,000 Mbps</div>
-      </div>
-
-      <div class="section-divider"></div>
-
-      <div class="net-path" id="net_path_diagram"></div>
-
-      <div class="section-divider"></div>
-
-      <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
-        <div class="metric">
-          <div class="metric-label">Bottleneck</div>
-          <div class="metric-val" id="out_net_bottleneck" style="font-size:12px;">—</div>
-          <div class="metric-sub" id="out_net_bottleneck_sub">—</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Eff. throughput</div>
-          <div class="metric-val" id="out_net_throughput">—</div>
-          <div class="metric-sub">at 80% utilization</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Transfer time</div>
-          <div class="metric-val" id="out_transfer_time">—</div>
-          <div class="metric-sub" id="out_transfer_time_sub">single run</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Re-run window</div>
-          <div class="metric-val" id="out_rerun_time">—</div>
-          <div class="metric-sub" id="out_rerun_time_sub">4-hr SLA</div>
-        </div>
-      </div>
-
-      <div style="margin-top:12px;font-size:10px;color:var(--muted);line-height:1.6;">
-        ⚠ Ceph RGW requires a publicly reachable endpoint for Snowflake (Azure) to execute COPY INTO directly.
-      </div>
-    </div>
-
+  <!-- Spark Configuration (full width) -->
+  <div class="card" style="margin-top:20px;">
+    <div class="card-title">Spark Configuration (spark-defaults.conf)</div>
+    <p style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:14px;">
+      Parameters with computed values are derived from your sizing choices above.
+      Static entries reflect best-practice defaults for the Ceph RGW / YARN architecture.
+    </p>
+    <table class="param-table" id="param_table"></table>
   </div>
 
 
@@ -882,8 +1141,21 @@ const NODES      = 3;
 const CORES_NODE = 64;
 const NVME_COUNT = 9;
 const NVME_TB    = 3.2;
-const SSD_COUNT  = 2;
+const SSD_COUNT  = 3;
 const SSD_GB     = 0.48;
+
+// ─── Executor math helper (for ±1 cores comparison) ─────────────────────────
+function _execMathForCores(cores, execVcpus, execRamVm, ovhPct, offheap, totalVms) {
+  const execPerVm    = Math.max(1, Math.floor(execVcpus / cores));
+  const totalExec    = Math.max(1, execPerVm * totalVms - 1);
+  const totalExecC   = totalExec * cores;
+  const slotGb       = execRamVm / execPerVm;
+  const execMem      = Math.floor((slotGb - offheap) / (1 + ovhPct) * 0.95);
+  const actualTotal  = execMem * (1 + ovhPct) + offheap;
+  const oomMargin    = slotGb - actualTotal;
+  const blastPct     = totalExec > 0 ? 100 / totalExec : 100;
+  return { cores, execPerVm, totalExec, totalExecC, slotGb, execMem, oomMargin, blastPct };
+}
 
 function setVal(id, v) { const e = el(id); if(e) e.textContent = v; }
 function setClass(id, cls) {
@@ -910,7 +1182,12 @@ function recalc() {
     const _oldMax     = +el('ram_per_vm').max || 384;
     const _ramNode    = +el('ram_node').value;
     const _osdNode    = +el('nvme_osd_count').value;
-    const _svcRam     = el('svc_vm_enabled').checked ? +el('svc_vm_ram').value : 0;
+    const _svcRam     = 4 +
+      (el('svc_airflow').checked ? 4 : 0) +
+      (el('svc_history').checked ? 2 : 0) +
+      (el('svc_jupyter').checked ? 4 : 0) +
+      (el('svc_logs').checked    ? 2 : 0) +
+      (el('svc_nginx').checked   ? 1 : 0);
     const _vmsNode    = +el('vms_per_node').value;
     const _reserveRam = 8 + (_osdNode * 3 + 8 + 6) + Math.ceil(_svcRam / 3);
     const _maxRamVM   = Math.max(32, Math.floor((_ramNode - _reserveRam) / _vmsNode / 32) * 32);
@@ -934,28 +1211,57 @@ function recalc() {
   setVal('daily_tb_val',       el('daily_tb').value + ' TB');
   setVal('shuffle_amp_val',    el('shuffle_amp').value + '×');
   setVal('partition_mb_val',   el('partition_mb').value + ' MB');
-  setVal('svc_vm_cores_val',   el('svc_vm_cores').value);
-  setVal('svc_vm_ram_val',     el('svc_vm_ram').value + ' GB');
-  setVal('csv_size_tb_val',        (+el('csv_size_tb').value).toLocaleString() + ' MB');
+  { const csvGb = +el('csv_size_tb').value; setVal('csv_size_tb_val', csvGb >= 1000 ? (csvGb/1000).toFixed(1) + ' TB' : csvGb + ' GB'); }
   setVal('parquet_compression_val',el('parquet_compression').value + '×');
   setVal('max_partition_bytes_val',el('max_partition_bytes').value + ' MB');
   setVal('net_node_speed_val',     el('net_node_speed').value + ' Gbps');
   setVal('net_switch_core_val',    el('net_switch_core').value + ' Gbps');
   setVal('net_wan_speed_val',      (+el('net_wan_speed').value).toLocaleString() + ' Mbps');
 
-  // ── Show/hide services VM controls
-  const svcCtrl = el('svc_vm_controls');
-  const svcRow  = el('ohd_svc_row');
-  if(svcCtrl) svcCtrl.style.display = el('svc_vm_enabled').checked ? '' : 'none';
-  if(svcRow)  svcRow.style.display  = el('svc_vm_enabled').checked ? '' : 'none';
 
   // ── Inputs
   const VMS_NODE   = +el('vms_per_node').value;
+  // ── Pin vCPUs slider max to cores available after infrastructure + services
+  {
+    const _osd   = +el('nvme_osd_count').value;
+    const _svc   = (el('svc_airflow').checked?2:0) + (el('svc_history').checked?1:0)
+                 + (el('svc_jupyter').checked?2:0) + (el('svc_logs').checked?1:0)
+                 + (el('svc_nginx').checked?1:0) + 2; // +2 YARN RM always on-cluster
+    const _infra = 2 + 4 + 2 + _osd + Math.ceil(_svc / NODES); // PROX+RGW+MON+OSD+SVC
+    const _maxVcpu = Math.min(32, Math.floor((CORES_NODE - _infra) / VMS_NODE));
+    el('vcpus_per_vm').max = _maxVcpu;
+    if (+el('vcpus_per_vm').value > _maxVcpu) el('vcpus_per_vm').value = _maxVcpu;
+    setVal('vcpu_max',     _maxVcpu);
+    setVal('vcpu_current', +el('vcpus_per_vm').value);
+    setVal('vcpu_avail',   +el('vcpus_per_vm').value - 2);
+  }
   const VCPU_VM    = +el('vcpus_per_vm').value;
   const RAM_VM     = +el('ram_per_vm').value;
   const OSD_NODE   = +el('nvme_osd_count').value;
   const CEPH_REP   = +el('ceph_rep').value;
+  // ── Pin exec_cores max to vCPUs available after NodeManager reservation
+  {
+    const _maxExecCores = Math.max(1, VCPU_VM - 2); // NM_CORES = 2
+    el('exec_cores').max = _maxExecCores;
+    if (+el('exec_cores').value > _maxExecCores) el('exec_cores').value = _maxExecCores;
+    const _curExecCores = +el('exec_cores').value;
+    const _execPerVm    = Math.max(1, Math.floor((VCPU_VM - 2) / _curExecCores));
+    setVal('exec_cores_max',     _maxExecCores);
+    setVal('exec_cores_current', _curExecCores);
+    setVal('exec_cores_pervm',   _execPerVm);
+  }
   const EXEC_CORES = +el('exec_cores').value;
+  // ── Pin offheap max to slot size minus minimum OOM headroom (4 GB baseline)
+  {
+    const _execRamVm  = RAM_VM - 2;  // NM_RAM = 2 GB
+    const _execVcpus  = VCPU_VM - 2; // NM_CORES = 2
+    const _execPerVm  = Math.max(1, Math.floor(_execVcpus / EXEC_CORES));
+    const _slotGb     = _execRamVm / _execPerVm;
+    const _maxOffheap = Math.max(0, Math.floor((_slotGb - 4) / 2) * 2); // step-2 aligned
+    el('offheap').max = _maxOffheap;
+    if (+el('offheap').value > _maxOffheap) el('offheap').value = _maxOffheap;
+    setVal('offheap_max', _maxOffheap);
+  }
   const OVH_PCT    = +el('overhead_pct').value / 100;
   const OFFHEAP    = +el('offheap').value;
   const DAILY_TB   = +el('daily_tb').value;
@@ -963,9 +1269,27 @@ function recalc() {
   const PART_MB    = +el('partition_mb').value;
   const NUMA_PIN   = el('numa_pin').checked;
   const AQE        = el('aqe').checked;
-  const SVC_VM_ON  = el('svc_vm_enabled').checked;
-  const SVC_CORES  = SVC_VM_ON ? +el('svc_vm_cores').value : 0;
-  const SVC_RAM    = SVC_VM_ON ? +el('svc_vm_ram').value : 0;
+  // YARN RM always on-cluster (fixed reservation)
+  const RM_CORES    = 2;
+  const RM_RAM      = 4;
+  // Optional on-cluster services — default off (remote service host)
+  const SVC_AIRFLOW = el('svc_airflow').checked;
+  const SVC_HISTORY = el('svc_history').checked;
+  const SVC_JUPYTER = el('svc_jupyter').checked;
+  const SVC_LOGS    = el('svc_logs').checked;
+  const SVC_NGINX   = el('svc_nginx').checked;
+  let OPT_SVC_CORES = 0, OPT_SVC_RAM = 0;
+  if (SVC_AIRFLOW) { OPT_SVC_CORES += 2; OPT_SVC_RAM += 4; }
+  if (SVC_HISTORY) { OPT_SVC_CORES += 1; OPT_SVC_RAM += 2; }
+  if (SVC_JUPYTER) { OPT_SVC_CORES += 2; OPT_SVC_RAM += 4; }
+  if (SVC_LOGS)    { OPT_SVC_CORES += 1; OPT_SVC_RAM += 2; }
+  if (SVC_NGINX)   { OPT_SVC_CORES += 1; OPT_SVC_RAM += 1; }
+  const SKEW_PROFILE = el('skew_profile').value;
+  const JOIN_TYPE    = el('join_type').value;
+  const OOM_THRESHOLD = SKEW_PROFILE === 'heavy' ? 6 : SKEW_PROFILE === 'moderate' ? 5 : 4;
+  const JOIN_SCRATCH_FACTOR = JOIN_TYPE === 'wide' ? 1.25 : JOIN_TYPE === 'mixed' ? 1.1 : 1.0;
+  const SVC_CORES  = RM_CORES + OPT_SVC_CORES;
+  const SVC_RAM    = RM_RAM   + OPT_SVC_RAM;
 
   const RAM_NODE   = +el('ram_node').value;
 
@@ -996,9 +1320,17 @@ function recalc() {
   setVal('ohd_osd_count',   OSD_NODE);
   setVal('ohd_osd_cores',   OSD_NODE + 'c');
   setVal('ohd_osd_ram',     (OSD_NODE * 3) + ' GB');
-  setVal('ohd_svc_label',   SVC_VM_ON ? 'amortized ÷' + NODES : 'disabled');
-  setVal('ohd_svc_cores',   SVC_CORES_NODE + 'c');
-  setVal('ohd_svc_ram',     SVC_RAM_NODE + ' GB');
+  setVal('ohd_rm_cores', Math.ceil(RM_CORES / NODES) + 'c');
+  setVal('ohd_rm_ram',   Math.ceil(RM_RAM   / NODES) + ' GB');
+  const optNames = [];
+  if (SVC_AIRFLOW) optNames.push('Airflow');
+  if (SVC_HISTORY) optNames.push('History Server');
+  if (SVC_JUPYTER) optNames.push('Jupyter');
+  if (SVC_LOGS)    optNames.push('Logs');
+  if (SVC_NGINX)   optNames.push('Nginx');
+  setVal('ohd_optsvc_label', optNames.length ? optNames.join(' · ') + ' — amortized ÷' + NODES : 'none — remote host');
+  setVal('ohd_optsvc_cores', Math.ceil(OPT_SVC_CORES / NODES) + 'c');
+  setVal('ohd_optsvc_ram',   Math.ceil(OPT_SVC_RAM   / NODES) + ' GB');
   setVal('ohd_total_cores', RESERVE_CORES + 'c');
   setVal('ohd_total_ram',   RESERVE_RAM + ' GB');
   setVal('ohd_avail_cores', AVAIL_CORES + 'c');
@@ -1025,6 +1357,9 @@ function recalc() {
   const TOTAL_EXEC_RAW = EXEC_PER_VM * TOTAL_VMS;
   const TOTAL_EXEC = Math.max(1, TOTAL_EXEC_RAW - 1); // 1 for driver
   const TOTAL_EXEC_CORES = TOTAL_EXEC * EXEC_CORES;
+  setVal('vms_current',    VMS_NODE);
+  setVal('vms_total',      TOTAL_VMS);
+  setVal('vms_exec_total', TOTAL_EXEC);
 
   // Executor memory math
   const SLOT_GB = EXEC_RAM_VM / EXEC_PER_VM;
@@ -1033,6 +1368,8 @@ function recalc() {
   const EXEC_MEM = Math.floor(MAX_EXEC_MEM * 0.95); // 5% safety margin
   const ACTUAL_TOTAL = EXEC_MEM * (1 + OVH_PCT) + OFFHEAP;
   const OOM_MARGIN = SLOT_GB - ACTUAL_TOTAL;
+  setVal('offheap_margin',  fmt(OOM_MARGIN, 1));
+  setVal('overhead_margin', fmt(OOM_MARGIN, 1));
 
   // ── Spark params
   const DEFAULT_PARALLELISM = TOTAL_EXEC_CORES * 2;
@@ -1045,10 +1382,20 @@ function recalc() {
   const SCRATCH_NVME_PER_NODE = NVME_COUNT - OSD_NODE;
   const SCRATCH_NVME_PER_VM   = VMS_NODE > 0 ? SCRATCH_NVME_PER_NODE / VMS_NODE : 0;
   const SCRATCH_TB_PER_VM = SCRATCH_NVME_PER_VM * NVME_TB;
+  const _totalClusterScratch = SCRATCH_TB_PER_VM * TOTAL_VMS;
+  setVal('shuf_vol_tb',      fmt(SHUFFLE_DATA_TB, 1));
+  setVal('shuf_scratch_pct', _totalClusterScratch > 0 ? Math.round(SHUFFLE_DATA_TB / _totalClusterScratch * 100) : '∞');
 
   const CEPH_RAW_CLUSTER = OSD_NODE * NVME_TB * NODES;
   const CEPH_USABLE      = CEPH_RAW_CLUSTER / CEPH_REP;
   const CEPH_DAYS        = CEPH_USABLE / DAILY_TB;
+  setVal('osd_usable',          fmt(CEPH_USABLE, 1));
+  setVal('osd_scratch_cluster', fmt(_totalClusterScratch, 1));
+  setVal('daily_ceph_days',  Math.floor(CEPH_DAYS));
+  setVal('daily_shuffle_tb', fmt(SHUFFLE_DATA_TB, 1));
+  setVal('ceph_rep_current', CEPH_REP);
+  setVal('ceph_rep_usable',  fmt(CEPH_USABLE, 1));
+  setVal('ceph_rep_days',    Math.floor(CEPH_DAYS));
 
   // ─── Update UI ───────────────────────────────────────────────────────────
 
@@ -1130,11 +1477,16 @@ function recalc() {
 
   setVal('out_slot_gb', fmt(SLOT_GB, 1) + ' GB');
   setVal('out_exec_mem', EXEC_MEM + 'g');
-  const oomClass = OOM_MARGIN < 0 ? 'bad' : OOM_MARGIN < 4 ? 'warn' : 'ok';
+  const oomClass = OOM_MARGIN < 0 ? 'bad' : OOM_MARGIN < OOM_THRESHOLD ? 'warn' : 'ok';
   setVal('out_exec_mem_sub', `total per slot: ${fmt(ACTUAL_TOTAL,1)} GB`);
-  setVal('out_oom', OOM_MARGIN < 0 ? 'HIGH' : OOM_MARGIN < 4 ? 'MARGINAL' : 'LOW');
+  setVal('out_oom', OOM_MARGIN < 0 ? 'HIGH' : OOM_MARGIN < OOM_THRESHOLD ? 'MARGINAL' : 'LOW');
   setClass('out_oom', oomClass);
-  setVal('out_oom_sub', `${fmt(OOM_MARGIN,1)} GB margin`);
+  setVal('out_oom_sub', `${fmt(OOM_MARGIN,1)} GB margin · threshold ${OOM_THRESHOLD} GB (${SKEW_PROFILE})`);
+
+  const BLAST_PCT = TOTAL_EXEC > 0 ? 100 / TOTAL_EXEC : 100;
+  setVal('out_blast_radius', fmt(BLAST_PCT, 1) + '%');
+  setClass('out_blast_radius', BLAST_PCT > 25 ? 'warn' : 'ok');
+  setVal('out_blast_radius_sub', `${TOTAL_EXEC} executors · ${fmt(EXEC_CORES/TOTAL_EXEC_CORES*100,1)}% cluster cores`);
 
   // Storage layout
   buildStorageGrid(OSD_NODE, VMS_NODE, SCRATCH_NVME_PER_NODE);
@@ -1146,16 +1498,25 @@ function recalc() {
   setClass('out_ceph_days', CEPH_DAYS < 3 ? 'bad' : CEPH_DAYS < 7 ? 'warn' : 'ok');
   setVal('out_ceph_days_sub', `at ${DAILY_TB} TB/day`);
   setVal('out_scratch', fmt(SCRATCH_TB_PER_VM, 2) + ' TB');
-  const scratchOk = SCRATCH_TB_PER_VM >= DAILY_TB * SHUF_AMP * 0.75;
+  const scratchOk = SCRATCH_TB_PER_VM >= DAILY_TB * SHUF_AMP * JOIN_SCRATCH_FACTOR * 0.75;
   setClass('out_scratch', scratchOk ? 'ok' : 'warn');
-  setVal('out_scratch_sub', `${SCRATCH_NVME_PER_VM > 0 ? fmt(SCRATCH_NVME_PER_VM,1)+'× NVMe' : 'none'} · worst-case shuffle: ${fmt(DAILY_TB*SHUF_AMP,1)} TB`);
+  const joinFactorLabel = JOIN_TYPE === 'wide' ? ' · ×1.25 wide joins' : JOIN_TYPE === 'mixed' ? ' · ×1.10 mixed joins' : '';
+  setVal('out_scratch_sub', `${SCRATCH_NVME_PER_VM > 0 ? fmt(SCRATCH_NVME_PER_VM,1)+'× NVMe' : 'none'} · shuffle target: ${fmt(DAILY_TB*SHUF_AMP,1)} TB${joinFactorLabel}`);
+
+  // Shuffle burst profile metrics
+  const TOTAL_SCRATCH_DRIVES = SCRATCH_NVME_PER_NODE * NODES;
+  const SHUFFLE_PER_DRIVE_TB = TOTAL_SCRATCH_DRIVES > 0 ? SHUFFLE_DATA_TB / TOTAL_SCRATCH_DRIVES : 0;
+  setVal('out_concurrent_writers', TOTAL_EXEC);
+  setVal('out_shuffle_per_drive', fmt(SHUFFLE_PER_DRIVE_TB, 2) + ' TB');
+  setClass('out_shuffle_per_drive', SHUFFLE_PER_DRIVE_TB > NVME_TB * 0.75 ? 'warn' : 'ok');
+  setVal('out_shuffle_per_drive_sub', `${TOTAL_SCRATCH_DRIVES} drives · ${fmt(NVME_TB,1)} TB ea · NVMe seq ≈ 3 GB/s`);
 
   // Ceph OSD visual
   buildOSDVisual(OSD_NODE, SCRATCH_NVME_PER_NODE, NODES);
 
   // ── Partitioning card calculations
-  const CSV_MB         = +el('csv_size_tb').value;          // slider unit is MB
-  const CSV_TB         = CSV_MB / 1024;                     // for display only
+  const CSV_MB         = +el('csv_size_tb').value * 1024;   // slider unit is GB → convert to MB
+  const CSV_TB         = +el('csv_size_tb').value / 1000;   // for display (SI TB)
   const PARQ_COMP      = +el('parquet_compression').value;
   const MAX_PART_MB    = +el('max_partition_bytes').value;
   const PARQ_MB        = CSV_MB / PARQ_COMP;
@@ -1186,12 +1547,23 @@ function recalc() {
     TOTAL_EXEC_CORES, MAX_PART_MB, OUTPUT_PARTS
   });
 
-  // Warnings
+  // Warnings + envelope + comparison
   buildWarnings({
     FREE_CORES, FREE_RAM, OOM_MARGIN, EXEC_PER_VM,
     SCRATCH_TB_PER_VM, DAILY_TB, SHUF_AMP,
     CEPH_DAYS, NUMA_PIN, AQE, VMS_NODE,
-    CEPH_USABLE, VCPU_VM, TOTAL_EXEC, EXEC_MEM, OFFHEAP
+    CEPH_USABLE, VCPU_VM, TOTAL_EXEC, EXEC_MEM, OFFHEAP,
+    OOM_THRESHOLD, SKEW_PROFILE, JOIN_TYPE, JOIN_SCRATCH_FACTOR
+  });
+
+  buildEnvelope({
+    OOM_MARGIN, EXEC_PER_VM, BLAST_PCT,
+    SCRATCH_TB_PER_VM, DAILY_TB, SHUF_AMP,
+    OOM_THRESHOLD, SKEW_PROFILE, JOIN_TYPE, JOIN_SCRATCH_FACTOR
+  });
+
+  buildCoresComparison({
+    EXEC_CORES, EXEC_VCPUS, EXEC_RAM_VM, OVH_PCT, OFFHEAP, TOTAL_VMS, OOM_THRESHOLD
   });
 
   // Partitioning card
@@ -1210,7 +1582,7 @@ function buildStorageGrid(osdCount, vmsNode, scratchNvme) {
   const g = el('storage_grid');
   if(!g) return;
   const items = [
-    { type:'ssd', label:'Proxmox OS (ZFS mirror)', size:'2× 480 GB SSD', role:'sys' },
+    { type:'ssd', label:'Proxmox OS (ZFS mirror + hot spare)', size:'3× 480 GB SSD', role:'sys' },
   ];
   for(let i=1; i<=osdCount; i++) {
     items.push({ type:'nvme', label:`Ceph OSD-${i} (S3 + RBD)`, size:'3.2 TB NVMe', role:'ceph' });
@@ -1346,6 +1718,101 @@ function buildNetworkCard(p) {
   setVal('out_rerun_time_sub',    'estimate for 2× re-run window');
 }
 
+function buildEnvelope(e) {
+  const tbody = el('envelope_body');
+  if (!tbody) return;
+  const scratchCoverage = (e.DAILY_TB * e.SHUF_AMP) > 0
+    ? (e.SCRATCH_TB_PER_VM / (e.DAILY_TB * e.SHUF_AMP)) * 100
+    : 100;
+  const rows = [
+    {
+      label: `OOM margin · threshold ${e.OOM_THRESHOLD} GB (${e.SKEW_PROFILE})`,
+      safe:  `≥ ${e.OOM_THRESHOLD} GB`,
+      warn:  `${Math.ceil(e.OOM_THRESHOLD/2)}–${e.OOM_THRESHOLD} GB`,
+      bad:   `< ${Math.ceil(e.OOM_THRESHOLD/2)} GB`,
+      val:   fmt(e.OOM_MARGIN, 1) + ' GB',
+      cls:   e.OOM_MARGIN < 0 ? 'bad' : e.OOM_MARGIN < e.OOM_THRESHOLD ? 'warn' : 'ok'
+    },
+    {
+      label: 'Executor density / VM',
+      safe: '≥ 4', warn: '2–3', bad: '1',
+      val: e.EXEC_PER_VM,
+      cls: e.EXEC_PER_VM < 2 ? 'bad' : e.EXEC_PER_VM < 4 ? 'warn' : 'ok'
+    },
+    {
+      label: `Scratch coverage · ${e.JOIN_TYPE === 'wide' ? '×1.25' : e.JOIN_TYPE === 'mixed' ? '×1.10' : '×1.00'} (${e.JOIN_TYPE})`,
+      safe: '≥ 100%', warn: '75–100%', bad: '< 75%',
+      val: fmt(scratchCoverage / e.JOIN_SCRATCH_FACTOR, 0) + '% raw → ' + fmt(scratchCoverage, 0) + '% adj',
+      cls: (scratchCoverage / e.JOIN_SCRATCH_FACTOR) < 75 ? 'warn' : scratchCoverage < 75 ? 'warn' : 'ok'
+    },
+    {
+      label: 'Blast radius (% cluster lost / exec)',
+      safe: '< 10%', warn: '10–25%', bad: '> 25%',
+      val: fmt(e.BLAST_PCT, 1) + '%',
+      cls: e.BLAST_PCT > 25 ? 'warn' : 'ok'
+    },
+  ];
+  tbody.innerHTML = rows.map(r =>
+    `<tr>
+      <td>${r.label}</td>
+      <td class="env-safe">${r.safe}</td>
+      <td class="env-warn">${r.warn}</td>
+      <td class="env-bad">${r.bad}</td>
+      <td class="env-current-${r.cls}">${r.val}</td>
+    </tr>`
+  ).join('');
+}
+
+function buildCoresComparison(p) {
+  const t = el('cores_cmp_table');
+  if (!t) return;
+  const minCores = 2, maxCores = 10;
+  const cur = p.EXEC_CORES;
+  const variants = [Math.max(minCores, cur - 1), cur, Math.min(maxCores, cur + 1)];
+  const configs = variants.map(c =>
+    _execMathForCores(c, p.EXEC_VCPUS, p.EXEC_RAM_VM, p.OVH_PCT, p.OFFHEAP, p.TOTAL_VMS)
+  );
+  const labels = variants.map((c, i) => {
+    if (c === cur && variants[0] === variants[2]) return `${c}c (only option)`;
+    if (c === cur) return `${c}c ★ current`;
+    if (i === 0) return `${c}c (−1)`;
+    return `${c}c (+1)`;
+  });
+  const oomThr = p.OOM_THRESHOLD || 4;
+  function oomCls(m)  { return m < 0 ? 'cmp-val-bad' : m < oomThr ? 'cmp-val-warn' : 'cmp-val-ok'; }
+  function densCls(d) { return d < 2 ? 'cmp-val-bad' : d < 4 ? 'cmp-val-warn' : 'cmp-val-ok'; }
+  function blastCls(b){ return b > 25 ? 'cmp-val-warn' : 'cmp-val-ok'; }
+  const rows = [
+    { label: 'spark.executor.cores',  vals: configs.map(c => c.cores) },
+    { label: 'Executors / VM',        vals: configs.map(c => c.execPerVm),  clsFn: c => densCls(c.execPerVm) },
+    { label: 'Total executors',       vals: configs.map(c => c.totalExec) },
+    { label: 'Slot size (GB)',        vals: configs.map(c => fmt(c.slotGb, 1) + ' GB') },
+    { label: 'executor.memory',       vals: configs.map(c => c.execMem + ' GB') },
+    { label: 'OOM margin (GB)',       vals: configs.map(c => fmt(c.oomMargin, 1) + ' GB'), clsFn: c => oomCls(c.oomMargin) },
+    { label: 'Blast radius',          vals: configs.map(c => fmt(c.blastPct, 1) + '%'),   clsFn: c => blastCls(c.blastPct) },
+  ];
+  let html = '<thead><tr><th>Metric</th>';
+  variants.forEach((c, i) => {
+    html += `<th${c === cur ? ' style="color:var(--accent2);"' : ''}>${labels[i]}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+  rows.forEach(row => {
+    html += '<tr>';
+    html += `<td>${row.label}</td>`;
+    variants.forEach((c, i) => {
+      const isCurrent = c === cur;
+      const cfg = configs[i];
+      const valCls = row.clsFn
+        ? row.clsFn(cfg) + (isCurrent ? ' cmp-val-bold' : '')
+        : (isCurrent ? 'cmp-val-main' : '');
+      html += `<td class="${isCurrent ? 'cmp-col-current' : ''}"><span class="${valCls}">${row.vals[i]}</span></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  t.innerHTML = html;
+}
+
 function buildWarnings(w) {
   const panel = el('warnings_panel');
   if(!panel) return;
@@ -1353,18 +1820,19 @@ function buildWarnings(w) {
 
   if(w.FREE_CORES < 0) {
     warnings.push({ type:'error', icon:'✕', title:'Core overcommit',
-      msg: `VMs claim ${-w.FREE_CORES} more cores than available after reservations. Reduce vCPUs/VM or reduce VMs/node.` });
+      msg: `VMs claim ${-w.FREE_CORES} more cores per node than available after reservations. Reduce vCPUs/VM or reduce VMs/node.` });
   }
   if(w.FREE_RAM < 0) {
     warnings.push({ type:'error', icon:'✕', title:'RAM overcommit',
-      msg: `VMs claim ${Math.abs(w.FREE_RAM)} GB more RAM than available. Reduce RAM/VM.` });
+      msg: `VMs claim ${Math.abs(w.FREE_RAM)} GB more RAM per node than available. Reduce RAM/VM.` });
   }
   if(w.OOM_MARGIN < 0) {
     warnings.push({ type:'error', icon:'✕', title:'Executor OOM — jobs will crash on startup',
       msg: `Total memory per executor slot (executor.memory × (1+overhead) + offheap) exceeds the slot size by ${fmt(Math.abs(w.OOM_MARGIN),1)} GB. Reduce executor.memory, overhead %, or off-heap size.` });
-  } else if(w.OOM_MARGIN < 4) {
-    warnings.push({ type:'warning', icon:'⚠', title:'OOM margin very thin',
-      msg: `Only ${fmt(w.OOM_MARGIN,1)} GB margin per slot. Memory pressure from data skew or large Parquet files could push jobs into OOM. Increase spark.executor.cores to reduce executor count and widen each slot, reduce off-heap size, or increase RAM per worker VM.` });
+  } else if(w.OOM_MARGIN < w.OOM_THRESHOLD) {
+    const skewNote = w.SKEW_PROFILE !== 'uniform' ? ` Threshold raised to ${w.OOM_THRESHOLD} GB for ${w.SKEW_PROFILE} skew profile.` : '';
+    warnings.push({ type:'warning', icon:'⚠', title:'OOM margin thin for current workload profile',
+      msg: `Only ${fmt(w.OOM_MARGIN,1)} GB margin per slot (threshold: ${w.OOM_THRESHOLD} GB).${skewNote} Memory pressure from data skew or large Parquet files could push jobs into OOM. Increase spark.executor.cores to reduce executor count and widen each slot, reduce off-heap size, or increase RAM per worker VM.` });
   }
   if(w.VCPU_VM > 32) {
     const numaMsg = w.NUMA_PIN
@@ -1395,13 +1863,17 @@ function buildWarnings(w) {
     warnings.push({ type:'warning', icon:'⚠', title:'Limited Ceph retention',
       msg: `${fmt(w.CEPH_DAYS,1)} days of data at current volume. Ensure your Snowflake load pipeline runs reliably — a stalled job will fill storage within a week.` });
   }
-  if(w.SCRATCH_TB_PER_VM < w.DAILY_TB * w.SHUF_AMP * 0.75) {
-    warnings.push({ type:'warning', icon:'⚠', title:'Scratch disk may be insufficient',
-      msg: `Estimated shuffle data: ${fmt(w.DAILY_TB*w.SHUF_AMP,1)} TB. Scratch per VM: ${fmt(w.SCRATCH_TB_PER_VM,2)} TB. Increase NVMe drives allocated to scratch, or reduce shuffle amplification via better partitioning.` });
+  if(w.SCRATCH_TB_PER_VM < w.DAILY_TB * w.SHUF_AMP * w.JOIN_SCRATCH_FACTOR * 0.75) {
+    const joinNote = w.JOIN_TYPE === 'wide' ? ' Wide shuffle joins add a ×1.25 scratch multiplier.' : w.JOIN_TYPE === 'mixed' ? ' Mixed joins add a ×1.10 scratch multiplier.' : '';
+    warnings.push({ type:'warning', icon:'⚠', title:'Scratch disk may be insufficient for join profile',
+      msg: `Adjusted shuffle target: ${fmt(w.DAILY_TB * w.SHUF_AMP * w.JOIN_SCRATCH_FACTOR,1)} TB. Scratch per VM: ${fmt(w.SCRATCH_TB_PER_VM,2)} TB.${joinNote} Increase NVMe drives allocated to scratch, or reduce shuffle amplification via better partitioning.` });
   }
-  if(w.TOTAL_EXEC >= 6 && w.OOM_MARGIN >= 4 && w.FREE_CORES >= 0 && w.FREE_RAM >= 0 && w.CEPH_DAYS >= 7) {
+  if(w.TOTAL_EXEC >= 6 && w.OOM_MARGIN >= w.OOM_THRESHOLD && w.FREE_CORES >= 0 && w.FREE_RAM >= 0 && w.CEPH_DAYS >= 7) {
+    const profileNote = w.SKEW_PROFILE !== 'uniform' || w.JOIN_TYPE !== 'broadcast'
+      ? ` (${w.SKEW_PROFILE} skew · ${w.JOIN_TYPE} joins)`
+      : '';
     warnings.push({ type:'ok', icon:'✓', title:'Configuration looks healthy',
-      msg: `Budget within bounds, OOM margin adequate, Ceph retention sufficient for current workload.` });
+      msg: `Budget within bounds, OOM margin adequate for current workload profile${profileNote}, Ceph retention sufficient.` });
   }
 
   panel.innerHTML = warnings.map(w =>
@@ -1423,6 +1895,7 @@ function saveState() {
     const state = {};
     document.querySelectorAll('input[type=range]').forEach(inp => state[inp.id] = inp.value);
     document.querySelectorAll('input[type=checkbox]').forEach(inp => state[inp.id] = inp.checked);
+    document.querySelectorAll('select.workload-select').forEach(sel => state[sel.id] = sel.value);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     const btn = el('btn_save');
     if (btn) { btn.textContent = 'Saved ✓'; setTimeout(() => btn.textContent = 'Save', 1500); }
@@ -1443,6 +1916,9 @@ function loadState() {
     document.querySelectorAll('input[type=checkbox]').forEach(inp => {
       if (state[inp.id] !== undefined) inp.checked = (state[inp.id] === true || state[inp.id] === 'true');
     });
+    document.querySelectorAll('select.workload-select').forEach(sel => {
+      if (state[sel.id] !== undefined) sel.value = state[sel.id];
+    });
   } catch(e) {}
 }
 
@@ -1450,6 +1926,7 @@ function resetState() {
   try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
   document.querySelectorAll('input[type=range]').forEach(inp => inp.value = inp.defaultValue);
   document.querySelectorAll('input[type=checkbox]').forEach(inp => inp.checked = inp.defaultChecked);
+  document.querySelectorAll('select.workload-select').forEach(sel => sel.value = sel.options[0].value);
   recalc();
 }
 
@@ -1480,6 +1957,7 @@ function saveScenario() {
   const state = {};
   document.querySelectorAll('input[type=range]').forEach(inp => state[inp.id] = inp.value);
   document.querySelectorAll('input[type=checkbox]').forEach(inp => state[inp.id] = inp.checked);
+  document.querySelectorAll('select.workload-select').forEach(sel => state[sel.id] = sel.value);
   const scenarios = _getScenarios();
   scenarios[name] = state;
   _putScenarios(scenarios);
@@ -1503,6 +1981,9 @@ function loadScenario() {
   document.querySelectorAll('input[type=checkbox]').forEach(inp => {
     if (state[inp.id] !== undefined) inp.checked = (state[inp.id] === true || state[inp.id] === 'true');
   });
+  document.querySelectorAll('select.workload-select').forEach(sel => {
+    if (state[sel.id] !== undefined) sel.value = state[sel.id];
+  });
   recalc();
   // localStorage intentionally not written — load is explore-only until user clicks Save
   const btn = el('btn_load_scenario');
@@ -1516,11 +1997,12 @@ function viewScenario() {
   if (!state) return;
   const safeName = _escHtml(sel.value);
   const safeJson = _escHtml(JSON.stringify(state, null, 2));
+  const isDark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
   const w = window.open('', '_blank', 'width=540,height=640,resizable=yes,scrollbars=yes');
   w.document.write(`<!DOCTYPE html><html><head><title>Scenario JSON — ${safeName}</title>
 <style>
-  body { margin:0; background:#0f1117; color:#e0e0e0; font-family:monospace; font-size:13px; }
-  h2 { margin:0; padding:16px 20px 10px; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#b482ff; border-bottom:1px solid #2a2a3a; }
+  body { margin:0; background:${isDark ? '#0f1117' : '#f7f2e8'}; color:${isDark ? '#e0e0e0' : '#1e1810'}; font-family:monospace; font-size:13px; }
+  h2 { margin:0; padding:16px 20px 10px; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:${isDark ? '#b482ff' : '#7040b8'}; border-bottom:1px solid ${isDark ? '#2a2a3a' : '#ccc0a8'}; }
   pre { margin:0; padding:20px; white-space:pre-wrap; word-break:break-all; line-height:1.6; }
 </style></head><body>
 <h2>Scenario JSON Object — ${safeName}</h2>
@@ -1544,6 +2026,18 @@ function deleteScenario() {
 loadState();
 renderScenarioList();
 recalc();
+
+// ─── Theme toggle
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('spark_theme', theme);
+  document.getElementById('btn_theme').textContent = theme === 'dark' ? '☀ Light' : '☾ Dark';
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+applyTheme(localStorage.getItem('spark_theme') || 'dark');
 </script>
 </body>
 </html>
