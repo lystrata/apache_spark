@@ -873,8 +873,19 @@
                 </div>
         </div>
       </div>
-      <div style="margin-top:20px;">
-        <div class="card">
+    </div>
+  </details>
+
+  <!-- ══ Section B: Fixed Overhead Reservations ══════════════════════════════ -->
+  <details class="section-details" id="sec_b" open>
+    <summary class="section-summary" id="sec_b_summary">
+      <span class="section-letter">B</span>
+      <span class="section-title">Fixed Overhead Reservations</span>
+      <span class="section-sub">· Per-node infrastructure reservations · Updates with OSD count &amp; optional services</span>
+      <span class="section-badge" id="sec_b_badge" style="display:none">UPDATED</span>
+    </summary>
+    <div class="section-body">
+      <div class="card">
                   <div class="card-title">Fixed Overhead Reservations (per node)</div>
                   <p style="font-size:12px;color:var(--muted);line-height:1.75;margin-bottom:18px;">
                     Before any Spark worker VM can be sized, a fixed block of cores and RAM is reserved on every node
@@ -938,17 +949,16 @@
                     </table>
                   </div>
                 </div>
-      </div>
     </div>
   </details>
 
-  <!-- ══ Section B: Executor Sizing ═══════════════════════════════════════════ -->
-  <details class="section-details" id="sec_b" open>
-    <summary class="section-summary" id="sec_b_summary">
-      <span class="section-letter">B</span>
+  <!-- ══ Section C: Executor Sizing ═══════════════════════════════════════════ -->
+  <details class="section-details" id="sec_c" open>
+    <summary class="section-summary" id="sec_c_summary">
+      <span class="section-letter">C</span>
       <span class="section-title">Executor Sizing</span>
       <span class="section-sub">· Executor configuration · Memory layout · Core sensitivity analysis</span>
-      <span class="section-badge" id="sec_b_badge" style="display:none">UPDATED</span>
+      <span class="section-badge" id="sec_c_badge" style="display:none">UPDATED</span>
     </summary>
     <div class="section-body">
       <div class="two-col">
@@ -1046,13 +1056,13 @@
     </div>
   </details>
 
-  <!-- ══ Section C: Storage & Workload Sizing ═════════════════════════════════ -->
-  <details class="section-details" id="sec_c" open>
-    <summary class="section-summary" id="sec_c_summary">
-      <span class="section-letter">C</span>
+  <!-- ══ Section D: Storage & Workload Sizing ═════════════════════════════════ -->
+  <details class="section-details" id="sec_d" open>
+    <summary class="section-summary" id="sec_d_summary">
+      <span class="section-letter">D</span>
       <span class="section-title">Storage &amp; Workload Sizing</span>
       <span class="section-sub">· Ceph OSD configuration · Workload sizing · Parquet partitioning · Shuffle burst</span>
-      <span class="section-badge" id="sec_c_badge" style="display:none">UPDATED</span>
+      <span class="section-badge" id="sec_d_badge" style="display:none">UPDATED</span>
     </summary>
     <div class="section-body">
       <div class="main-layout">
@@ -1237,13 +1247,13 @@
     </div>
   </details>
 
-  <!-- ══ Section D: Network Path ═══════════════════════════════════════════════ -->
-  <details class="section-details" id="sec_d">
-    <summary class="section-summary" id="sec_d_summary">
-      <span class="section-letter">D</span>
+  <!-- ══ Section E: Network Path ═══════════════════════════════════════════════ -->
+  <details class="section-details" id="sec_e">
+    <summary class="section-summary" id="sec_e_summary">
+      <span class="section-letter">E</span>
       <span class="section-title">Network Path</span>
       <span class="section-sub">· Egress path to Snowflake</span>
-      <span class="section-badge" id="sec_d_badge" style="display:none">UPDATED</span>
+      <span class="section-badge" id="sec_e_badge" style="display:none">UPDATED</span>
     </summary>
     <div class="section-body">
       <div class="card">
@@ -1297,13 +1307,13 @@
     </div>
   </details>
 
-  <!-- ══ Section E: Spark Configuration ═══════════════════════════════════════ -->
-  <details class="section-details" id="sec_e">
-    <summary class="section-summary" id="sec_e_summary">
-      <span class="section-letter">E</span>
+  <!-- ══ Section F: Spark Configuration ═══════════════════════════════════════ -->
+  <details class="section-details" id="sec_f">
+    <summary class="section-summary" id="sec_f_summary">
+      <span class="section-letter">F</span>
       <span class="section-title">Spark Configuration</span>
       <span class="section-sub">· spark-defaults.conf output</span>
-      <span class="section-badge" id="sec_e_badge" style="display:none">UPDATED</span>
+      <span class="section-badge" id="sec_f_badge" style="display:none">UPDATED</span>
     </summary>
     <div class="section-body">
       <div class="card">
@@ -1384,10 +1394,11 @@ document.querySelectorAll('input[type=checkbox]').forEach(inp => inp.addEventLis
 // ─── Section change detection — badge + pulse when closed and values change ──
 const _sectionWatches = {
   sec_a: ['out_total_vms', 'out_free_cores', 'out_free_ram'],
-  sec_b: ['out_exec_per_vm', 'out_total_exec', 'out_exec_mem', 'out_oom', 'out_blast_radius'],
-  sec_c: ['out_ceph_usable', 'out_ceph_days', 'out_scratch', 'out_parquet_size', 'out_concurrent_writers'],
-  sec_d: ['out_net_bottleneck', 'out_transfer_time', 'out_rerun_time'],
-  sec_e: ['out_exec_mem', 'out_total_exec', 'out_exec_per_vm'],
+  sec_b: ['ohd_total_cores', 'ohd_avail_cores', 'ohd_max_vcpu'],
+  sec_c: ['out_exec_per_vm', 'out_total_exec', 'out_exec_mem', 'out_oom', 'out_blast_radius'],
+  sec_d: ['out_ceph_usable', 'out_ceph_days', 'out_scratch', 'out_parquet_size', 'out_concurrent_writers'],
+  sec_e: ['out_net_bottleneck', 'out_transfer_time', 'out_rerun_time'],
+  sec_f: ['out_exec_mem', 'out_total_exec', 'out_exec_per_vm'],
 };
 const _sectionSnaps = {};
 
@@ -1411,7 +1422,7 @@ function _checkSectionChanges() {
 }
 
 // ─── Wire section toggle listeners — clear badge on open ─────────────────────
-['sec_a', 'sec_b', 'sec_c', 'sec_d', 'sec_e'].forEach(secId => {
+['sec_a', 'sec_b', 'sec_c', 'sec_d', 'sec_e', 'sec_f'].forEach(secId => {
   const d = el(secId);
   if (!d) return;
   d.addEventListener('toggle', () => {
