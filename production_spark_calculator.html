@@ -387,6 +387,12 @@
 
   /* Operating envelope */
   .envelope-header { font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin:16px 0 10px; }
+  .envelope-details { margin-top:0; }
+  .envelope-summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin:16px 0 10px; user-select:none; outline:none; transition:color 0.15s; }
+  .envelope-summary::-webkit-details-marker { display:none; }
+  .envelope-summary::before { content:'▶'; font-size:8px; color:var(--muted); transition:transform 0.22s; flex-shrink:0; }
+  .envelope-details[open] > .envelope-summary::before { transform:rotate(90deg); }
+  .envelope-summary:hover { color:var(--text); }
   .envelope-table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11px; }
   .envelope-table th { color:var(--muted); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; padding:6px 10px; border-bottom:1px solid var(--border2); text-align:left; }
   .envelope-table th:not(:first-child) { text-align:center; }
@@ -589,11 +595,13 @@
     <div class="card-title">Diagnostics &amp; Warnings</div>
     <div class="warnings" id="warnings_panel"></div>
     <div style="height:1px;background:var(--border2);margin:18px 0 0;"></div>
-    <div class="envelope-header">Operating Envelope — current configuration</div>
-    <table class="envelope-table" id="envelope_table">
-      <thead><tr><th>Dimension</th><th class="env-safe">Safe</th><th class="env-warn">Marginal</th><th class="env-bad">Unsafe</th><th>Current</th></tr></thead>
-      <tbody id="envelope_body"></tbody>
-    </table>
+    <details class="envelope-details" id="envelope_details" open>
+      <summary class="envelope-summary">Operating Envelope — current configuration</summary>
+      <table class="envelope-table" id="envelope_table">
+        <thead><tr><th>Dimension</th><th class="env-safe">Safe</th><th class="env-warn">Marginal</th><th class="env-bad">Unsafe</th><th>Current</th></tr></thead>
+        <tbody id="envelope_body"></tbody>
+      </table>
+    </details>
   </div>
 
   <!-- ══ Section A: Infrastructure Provisioning ══ -->
