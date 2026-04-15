@@ -18,16 +18,20 @@ Then open `http://localhost:8080/production_spark_calculator.html` or the dev eq
 
 ## Editing Rules
 
-**Always back up before editing any HTML file in this project** — calculators, guides, or any other `.html` file. Do this before making any change, no exceptions:
+This project uses git for version control. **Commit before making significant edits** so any state can be restored.
 
 ```bash
-cp production_spark_calculator.html production_spark_calculator.html.bak
-cp development_spark_calculator.html development_spark_calculator.html.bak
-cp prod_calculator_guide.html prod_calculator_guide.html.bak
-cp dev_calculator_guide.html dev_calculator_guide.html.bak
+git add <file>
+git commit -m "Pre-edit snapshot: <brief description>"
 ```
 
-Back up only the specific file(s) being edited. Never edit `.bak` files. When a change is made to either calculator, the corresponding guide file (`prod_calculator_guide.html`, `dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
+To restore a previous state:
+
+```bash
+git checkout <commit-hash> -- <file>
+```
+
+When a change is made to either calculator, the corresponding guide file (`prod_calculator_guide.html`, `dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
 
 ## Calculator Architecture
 
