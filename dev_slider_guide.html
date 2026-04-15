@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dev Calculator — Slider Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0f12; --bg2:#13171c; --bg3:#1a1f27; --bg4:#222832;
+  --border:#2a3140; --border2:#3a4455;
+  --text:#d4dbe8; --muted:#8f9db5;
+  --accent:#4e9eff; --accent2:#7ec8ff;
+  --green:#3ecf8e; --yellow:#f5a623; --red:#ff5e5e; --purple:#a78bfa;
+  --mono:"IBM Plex Mono",monospace;
+  --sans:"DM Sans",sans-serif;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:var(--sans); background:var(--bg); color:var(--text); line-height:1.75; font-size:15px; }
+.wrap { max-width:960px; margin:0 auto; padding:52px 28px 96px; }
+
+/* Header */
+.doc-tag { font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--accent); text-transform:uppercase; margin-bottom:10px; }
+h1 { font-family:var(--mono); font-size:28px; font-weight:600; color:#fff; letter-spacing:-.02em; margin-bottom:6px; }
+.doc-sub { color:var(--muted); font-size:14px; font-weight:300; margin-bottom:48px; }
+
+/* TOC */
+.toc { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:20px 24px; margin-bottom:48px; }
+.toc-title { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+.toc ol { padding-left:20px; }
+.toc li { margin-bottom:4px; }
+.toc a { color:var(--accent); text-decoration:none; font-size:13px; }
+.toc a:hover { color:var(--accent2); text-decoration:underline; }
+
+/* Section headings */
+h2 { font-family:var(--mono); font-size:12px; font-weight:600; color:var(--accent); letter-spacing:.12em; text-transform:uppercase; margin:56px 0 18px; padding-bottom:10px; border-bottom:1px solid var(--border); scroll-margin-top:24px; }
+h3 { font-family:var(--mono); font-size:13px; font-weight:600; color:#fff; margin:32px 0 10px; }
+h4 { font-family:var(--mono); font-size:12px; font-weight:600; color:var(--accent2); margin:22px 0 8px; }
+p { margin-bottom:14px; }
+p:last-child { margin-bottom:0; }
+strong { color:#fff; font-weight:600; }
+em { color:var(--yellow); font-style:normal; font-weight:500; }
+code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2px 7px; border-radius:3px; color:var(--accent); border:1px solid var(--border); }
+ul, ol { padding-left:20px; margin-bottom:14px; }
+li { margin-bottom:6px; line-height:1.65; }
+
+/* Callouts */
+.callout { border-radius:8px; padding:16px 20px; margin:18px 0; font-size:14px; line-height:1.65; }
+.callout.info  { background:rgba(78,158,255,.06);  border:1px solid rgba(78,158,255,.25); }
+.callout.info strong { color:var(--accent); }
+.callout.green { background:rgba(62,207,142,.05);  border:1px solid rgba(62,207,142,.2); }
+.callout.green strong { color:var(--green); }
+.callout.warn  { background:rgba(245,166,35,.06);  border:1px solid rgba(245,166,35,.22); }
+.callout.warn strong { color:var(--yellow); }
+.callout.red   { background:rgba(255,94,94,.06);   border:1px solid rgba(255,94,94,.25); }
+.callout.red strong { color:var(--red); }
+
+/* Hardware badge */
+.hw-badge {
+  display:inline-block; font-family:var(--mono); font-size:11px;
+  background:var(--bg3); border:1px solid var(--border2);
+  border-radius:4px; padding:2px 8px; color:var(--muted);
+  margin-left:6px; vertical-align:middle;
+}
+.hw-badge.fixed { color:var(--yellow); border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); }
+
+/* Resource stack diagram */
+.stack {
+  display:grid; grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:1px; background:var(--border); border:1px solid var(--border);
+  border-radius:10px; overflow:hidden; margin:22px 0 30px;
+}
+.stack-col { background:var(--bg2); padding:16px 14px; }
+.stack-col-head {
+  font-family:var(--mono); font-size:10px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:10px;
+}
+.stack-col-title { font-family:var(--mono); font-size:13px; font-weight:600; color:#fff; margin-bottom:8px; }
+.stack-item { font-size:12px; color:var(--text); margin-bottom:4px; padding-left:10px; border-left:2px solid var(--border2); }
+.stack-item.fixed { border-left-color:var(--yellow); color:var(--yellow); }
+.stack-item.slider { border-left-color:var(--accent); }
+.stack-item.result { border-left-color:var(--green); color:var(--green); }
+.stack-arrow {
+  display:flex; align-items:center; justify-content:center;
+  background:var(--bg); font-size:18px; color:var(--muted);
+  padding:0 4px;
+}
+
+/* Slider group cards */
+.group-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:10px; margin:28px 0; overflow:hidden;
+}
+.group-card-header {
+  display:flex; align-items:center; gap:12px;
+  padding:14px 20px; border-bottom:1px solid var(--border);
+  background:var(--bg3);
+}
+.group-num {
+  font-family:var(--mono); font-size:11px; font-weight:600;
+  color:var(--bg); background:var(--accent); border-radius:4px;
+  padding:2px 8px; white-space:nowrap;
+}
+.group-title { font-family:var(--mono); font-size:12px; font-weight:600; color:#fff; letter-spacing:.06em; }
+.group-subtitle { font-size:12px; color:var(--muted); margin-left:auto; }
+.group-body { padding:18px 20px; }
+
+/* Slider rows */
+.slider-row { margin-bottom:22px; padding-bottom:22px; border-bottom:1px solid var(--border); }
+.slider-row:last-child { margin-bottom:0; padding-bottom:0; border-bottom:none; }
+.slider-name {
+  font-family:var(--mono); font-size:13px; font-weight:600;
+  color:#fff; margin-bottom:2px;
+  display:flex; align-items:center; gap:10px;
+}
+.slider-range { font-family:var(--mono); font-size:11px; color:var(--muted); font-weight:400; }
+.slider-default { font-family:var(--mono); font-size:11px; color:var(--green); font-weight:400; }
+.slider-desc { font-size:13px; color:var(--text); margin:8px 0 10px; line-height:1.65; }
+.affects {
+  font-family:var(--mono); font-size:11px; color:var(--muted);
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:5px; padding:7px 10px; line-height:1.9;
+}
+.affects-label { color:var(--accent2); margin-right:6px; }
+.dep-up { color:var(--yellow); }
+.dep-down { color:var(--accent); }
+
+/* Fixed hardware table */
+.hw-table { width:100%; border-collapse:collapse; margin:18px 0 28px; border:1px solid var(--border); border-radius:8px; overflow:hidden; font-size:13px; }
+.hw-table thead tr { background:var(--bg3); }
+.hw-table th { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); padding:10px 14px; border-bottom:1px solid var(--border2); text-align:left; }
+.hw-table td { padding:11px 14px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.55; }
+.hw-table tr:last-child td { border-bottom:none; }
+.hw-table td:first-child { font-family:var(--mono); font-size:12px; color:#fff; font-weight:600; width:220px; }
+.hw-table td:nth-child(2) { color:var(--yellow); font-family:var(--mono); font-size:12px; width:160px; }
+.hw-table td:last-child { color:var(--muted); font-size:12px; }
+
+/* Dependency matrix */
+.dep-table { width:100%; border-collapse:collapse; margin:18px 0 28px; border:1px solid var(--border); border-radius:8px; overflow:hidden; font-size:12px; }
+.dep-table thead tr { background:var(--bg3); }
+.dep-table th { font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding:10px 14px; border-bottom:1px solid var(--border2); text-align:left; }
+.dep-table td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.6; }
+.dep-table tr:last-child td { border-bottom:none; }
+.dep-table td:first-child { font-family:var(--mono); font-size:12px; color:#fff; font-weight:600; width:200px; white-space:nowrap; }
+.dep-table td:nth-child(2) { color:var(--yellow); width:200px; }
+.dep-table td:last-child { color:var(--muted); }
+
+/* Failure mode cards */
+.failure { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:20px 24px; margin:18px 0; }
+.failure-title { font-family:var(--mono); font-size:13px; font-weight:600; margin-bottom:10px; display:flex; align-items:center; gap:10px; }
+.failure-body { font-size:13px; color:var(--text); line-height:1.65; }
+.failure-sliders { font-family:var(--mono); font-size:11px; color:var(--accent2); margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="doc-tag">&#9672; Infrastructure Sizing Tool &nbsp;&middot;&nbsp; Development Cluster</div>
+  <h1>What the Sliders Actually Do</h1>
+  <p class="doc-sub">A plain-language guide to the calculator controls &mdash; what each slider adjusts, why it exists, and how moving one affects the others.</p>
+
+  <nav class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#mental-model">The Mental Model</a></li>
+      <li><a href="#fixed">What Is Baked Into the Hardware</a></li>
+      <li><a href="#group1">Group 1 &mdash; Node Memory Budget</a></li>
+      <li><a href="#group2">Group 2 &mdash; Storage Split (Ceph vs Scratch)</a></li>
+      <li><a href="#group3">Group 3 &mdash; VM Shape</a></li>
+      <li><a href="#group4">Group 4 &mdash; Executor Shape</a></li>
+      <li><a href="#group5">Group 5 &mdash; Workload Sizing</a></li>
+      <li><a href="#group6">Group 6 &mdash; Partition Strategy</a></li>
+      <li><a href="#dependencies">Slider Dependencies at a Glance</a></li>
+      <li><a href="#failures">The Three Things That Go Wrong</a></li>
+    </ol>
+  </nav>
+
+
+  <!-- ═══════════════════════════════ SECTION 1 — MENTAL MODEL -->
+  <h2 id="mental-model">1. The Mental Model</h2>
+
+  <p>Every node in the development cluster holds a fixed amount of hardware: cores, RAM, and NVMe drives. Before Apache Spark can use any of it, several infrastructure services must take their share first &mdash; the Proxmox hypervisor, the Ceph storage daemons, and the YARN resource manager. What remains after those reservations is what Spark actually gets to work with.</p>
+
+  <p>The sliders control how those remaining resources are divided. Think of it as a series of nested decisions, each one made inside the constraints set by the previous one:</p>
+
+  <div class="stack">
+    <div class="stack-col">
+      <div class="stack-col-head">Layer 1</div>
+      <div class="stack-col-title">Physical Node</div>
+      <div class="stack-item fixed">32 cores</div>
+      <div class="stack-item fixed">384 GB RAM</div>
+      <div class="stack-item fixed">7&times; NVMe</div>
+      <div class="stack-item fixed">3&times; SSD</div>
+    </div>
+    <div class="stack-col">
+      <div class="stack-col-head">Layer 2</div>
+      <div class="stack-col-title">Infrastructure Cut</div>
+      <div class="stack-item fixed">Proxmox: 2c / 8 GB</div>
+      <div class="stack-item fixed">Ceph RGW: 4c / 8 GB</div>
+      <div class="stack-item fixed">Ceph MON: 2c / 6 GB</div>
+      <div class="stack-item slider">Ceph OSD: 1c / 3 GB &times; N</div>
+    </div>
+    <div class="stack-col">
+      <div class="stack-col-head">Layer 3</div>
+      <div class="stack-col-title">Spark VM</div>
+      <div class="stack-item slider">vCPUs/VM (slider)</div>
+      <div class="stack-item slider">RAM/VM (slider)</div>
+      <div class="stack-item slider">VMs per node (slider)</div>
+      <div class="stack-item result">What YARN manages</div>
+    </div>
+    <div class="stack-col">
+      <div class="stack-col-head">Layer 4</div>
+      <div class="stack-col-title">Executors</div>
+      <div class="stack-item slider">Exec cores (slider)</div>
+      <div class="stack-item slider">Overhead % (slider)</div>
+      <div class="stack-item slider">Off-heap GB (slider)</div>
+      <div class="stack-item result">Spark containers</div>
+    </div>
+  </div>
+
+  <p>The <strong>yellow items are fixed by the hardware and software configuration</strong> &mdash; they cannot be changed through the calculator. The <strong>blue items are sliders</strong>. The <strong>green items are outputs</strong> &mdash; what results from your choices.</p>
+
+  <div class="callout info">
+    <strong>Key insight:</strong> Because the layers are nested, a change at an outer layer ripples inward. Adding more Ceph OSDs (Layer 2) reduces the cores and RAM available for Spark VMs (Layer 3), which reduces how many executors fit (Layer 4) &mdash; all automatically, all immediately.
+  </div>
+
+
+  <!-- ═══════════════════════════════ SECTION 2 — FIXED VALUES -->
+  <h2 id="fixed">2. What Is Baked Into the Hardware</h2>
+
+  <p>Several values in the calculator are not sliders &mdash; they are physical facts about the machines that cannot be changed through software. These are shown in the fixed hardware strip at the top of the calculator and are built into every calculation.</p>
+
+  <table class="hw-table">
+    <thead><tr><th>Fixed value</th><th>Dev cluster</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Nodes</td>
+        <td>3</td>
+        <td>Total executor count and Ceph replication both assume exactly 3 nodes. Ceph requires a minimum of 3 for 3&times; replication.</td>
+      </tr>
+      <tr>
+        <td>Cores per node</td>
+        <td>32</td>
+        <td>Single AMD EPYC socket. Hard ceiling on all core budgets. After infrastructure reservations, roughly 24 cores remain for VMs.</td>
+      </tr>
+      <tr>
+        <td>NUMA domains per node</td>
+        <td>1</td>
+        <td>Single socket means all 32 cores share one memory bus. No NUMA-crossing penalty, but also no ability to pin a VM to a sub-socket domain. Max vCPUs per VM is 32.</td>
+      </tr>
+      <tr>
+        <td>NVMe drives per node</td>
+        <td>7 &times; 3.84 TB</td>
+        <td>All NVMe is shared between Ceph OSDs and Spark scratch. The OSD count slider decides the split. These drives are not interchangeable with the SSDs.</td>
+      </tr>
+      <tr>
+        <td>SSD drives per node</td>
+        <td>3 &times; 480 GB</td>
+        <td>Dedicated to Proxmox OS (ZFS mirror, 2 drives) and hot spare (1 drive). <strong>Never available to Ceph or Spark.</strong> Not a tunable resource.</td>
+      </tr>
+      <tr>
+        <td>Infrastructure reservations</td>
+        <td>Proxmox 2c/8 GB &middot; RGW 4c/8 GB &middot; MON 2c/6 GB</td>
+        <td>Fixed software allocations required to run the platform. These are consumed before any Spark VM is considered. The OSD reservation (1c/3 GB per drive) scales with the OSD count slider.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>The RAM slider is a partial exception.</strong> RAM/node is adjustable because DIMMs can be added or removed. However the step size is fixed at 32 GB (one DIMM), and the ceiling is set by the physical DIMM slots available (384 GB for the dev cluster at full population).
+  </div>
+
+
+  <!-- ═══════════════════════════════ SECTION 3 — GROUP 1 -->
+  <h2 id="group1">3. Group 1 &mdash; Node Memory Budget</h2>
+
+  <p>This slider sets the total RAM available on each node. Everything else &mdash; infrastructure reservations, VM allocations, executor sizing &mdash; is calculated as a fraction of this value.</p>
+
+  <div class="group-card">
+    <div class="group-card-header">
+      <span class="group-num">GROUP 1</span>
+      <span class="group-title">NODE MEMORY BUDGET</span>
+      <span class="group-subtitle">Sets the overall pool before anything is divided</span>
+    </div>
+    <div class="group-body">
+
+      <div class="slider-row">
+        <div class="slider-name">
+          RAM / Node
+          <span class="slider-range">128&ndash;384 GB &middot; step 32 GB</span>
+          <span class="slider-default">default 384 GB</span>
+        </div>
+        <div class="slider-desc">
+          How much physical RAM each node contributes to the pool. One step equals one 32 GB DIMM. The calculator subtracts fixed infrastructure reservations from this value first, then divides what remains across VMs. At 384 GB (full population) the cluster operates at peak memory bandwidth &mdash; fewer DIMMs means less bandwidth as well as less capacity.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">RAM/VM ceiling (auto-adjusts) &middot; total RAM available after reservations &middot; executor slot size</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════ SECTION 4 — GROUP 2 -->
+  <h2 id="group2">4. Group 2 &mdash; Storage Split</h2>
+
+  <p>The 7 NVMe drives per node serve two completely different purposes: <strong>Ceph OSDs</strong> (the distributed object store that provides the S3 endpoint) and <strong>Spark scratch</strong> (local temporary storage for shuffle data during jobs). These two uses compete directly &mdash; every drive you give to Ceph is one fewer drive available for shuffle spill, and vice versa. The sliders in this group control that trade-off.</p>
+
+  <div class="callout info">
+    <strong>Why Spark needs local scratch:</strong> When a Spark job performs a join or group-by across a large dataset, it must physically move data between executors (this is called a shuffle). That intermediate data is written to local disk before being sent across the network. If the local scratch space runs out mid-shuffle, the job fails.
+  </div>
+
+  <div class="group-card">
+    <div class="group-card-header">
+      <span class="group-num">GROUP 2</span>
+      <span class="group-title">STORAGE SPLIT</span>
+      <span class="group-subtitle">NVMe drives: Ceph OSDs vs Spark scratch</span>
+    </div>
+    <div class="group-body">
+
+      <div class="slider-row">
+        <div class="slider-name">
+          NVMe drives &rarr; Ceph OSDs
+          <span class="slider-range">0&ndash;7 &middot; step 1</span>
+          <span class="slider-default">default 5</span>
+        </div>
+        <div class="slider-desc">
+          How many of the 7 NVMe drives per node are dedicated to Ceph storage. Each OSD adds 3.84 TB to the Ceph raw pool (shared across 3 nodes, divided by the replication factor to get usable capacity). Each OSD also consumes <strong>1 core and 3 GB RAM</strong> from the node budget &mdash; those resources are no longer available to Spark VMs. The remaining drives <code>(7 &minus; OSD count)</code> are divided across worker VMs as scratch space.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Ceph usable capacity &middot; scratch TB per VM &middot; core and RAM budgets (via OSD reservation) &middot; RAM/VM ceiling</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          Ceph replication factor
+          <span class="slider-range">2&ndash;3 &middot; step 1</span>
+          <span class="slider-default">default 3</span>
+        </div>
+        <div class="slider-desc">
+          How many copies of every object Ceph maintains across the 3 nodes. At <strong>3&times;</strong> (default), each byte of data is written to all 3 nodes &mdash; the cluster survives one full node failure with no data loss. At <strong>2&times;</strong>, usable capacity increases by 50% but one node failure leaves data at risk. Replication factor directly divides the raw OSD capacity to produce usable storage.
+          <br><br>
+          <em>Reducing below 3 on a 3-node cluster is generally inadvisable unless capacity is critically constrained.</em>
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Ceph usable TB &middot; days of retention warning threshold</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════ SECTION 5 — GROUP 3 -->
+  <h2 id="group3">5. Group 3 &mdash; VM Shape</h2>
+
+  <p>Proxmox runs Spark inside virtual machines (VMs). These sliders control how the resources left over after infrastructure reservations are carved into VMs. The shape of the VM determines the maximum size of the YARN containers (executors) that can run inside it.</p>
+
+  <div class="callout info">
+    <strong>Why VMs and not bare metal?</strong> Proxmox uses KVM virtualisation to isolate workloads, manage resources, and enable live migration. Spark itself runs inside the VM via YARN, which treats the VM&rsquo;s vCPUs and RAM as its total available hardware &mdash; it has no visibility of the physical node underneath.
+  </div>
+
+  <div class="group-card">
+    <div class="group-card-header">
+      <span class="group-num">GROUP 3</span>
+      <span class="group-title">VM SHAPE</span>
+      <span class="group-subtitle">How remaining node resources are carved into worker VMs</span>
+    </div>
+    <div class="group-body">
+
+      <div class="slider-row">
+        <div class="slider-name">
+          VMs per node
+          <span class="slider-range">1&ndash;2 &middot; step 1</span>
+          <span class="slider-default">default 1</span>
+        </div>
+        <div class="slider-desc">
+          How many Spark worker VMs share each physical node. With <strong>1 VM</strong>, a single VM receives all available cores and RAM after infrastructure reservations &mdash; maximum executor density per node. With <strong>2 VMs</strong>, resources are split equally, which allows workload isolation or running two different Spark versions simultaneously, but each VM gets half the cores, half the RAM, and half the scratch NVMe.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">vCPUs/VM ceiling &middot; RAM/VM ceiling &middot; scratch NVMe per VM &middot; total executor count</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          vCPUs per VM
+          <span class="slider-range">8&ndash;32 &middot; step 2</span>
+          <span class="slider-default">default 14</span>
+        </div>
+        <div class="slider-desc">
+          How many virtual CPU cores the VM presents to YARN. YARN treats this as its total core budget. The slider ceiling is <strong>32</strong> &mdash; the single-socket hardware boundary &mdash; but the <strong>practical safe maximum is lower</strong> and changes with your OSD count.
+          <br><br>
+          Infrastructure services consume cores before the VM gets any. With the default of 5 OSDs: Proxmox (2) + Ceph RGW (4) + Ceph MON (2) + 5 OSDs (5) = <strong>13 cores reserved</strong>, leaving a practical ceiling of <strong>19 vCPUs</strong>. Add or remove OSDs and that ceiling shifts by 1 core per OSD.
+          <br><br>
+          Of the vCPUs assigned to the VM, a further <strong>2 are reserved</strong> for the guest OS and YARN NodeManager daemon, so only <code>vCPUs &minus; 2</code> are available to Spark executors.
+          <br><br>
+          <em>Critical difference from RAM/VM:</em> this slider does <strong>not auto-clamp</strong> when the practical ceiling drops. Setting it above the available cores causes the core budget bar to turn red (overcommit), but the slider stays put and no automatic correction occurs. The <strong>Fixed Overhead Reservations</strong> card is the authoritative source for the current safe ceiling &mdash; check it after any OSD count change.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Executors per VM (via exec_cores) &middot; total executor count &middot; core budget bar</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          RAM per VM
+          <span class="slider-range">64&ndash;dynamic max &middot; step 32 GB</span>
+          <span class="slider-default">default 320 GB</span>
+        </div>
+        <div class="slider-desc">
+          How much RAM the VM is allocated. <strong>This slider&rsquo;s maximum is computed dynamically</strong> &mdash; it automatically adjusts whenever you change RAM/node, OSD count, VMs/node, or the services VM toggle. You cannot accidentally set it above what the hardware supports. Of the RAM assigned to the VM, 2 GB is reserved for the YARN NodeManager, and the remainder is divided into executor slots.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9650; Constrained by:</span>
+          <span class="dep-up">RAM/node &middot; OSD count &middot; VMs/node &middot; services VM toggle</span><br>
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Executor slot size (GB) &middot; executor heap &middot; OOM margin</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          NUMA pinning
+          <span class="slider-range">on / off</span>
+          <span class="slider-default">default on</span>
+        </div>
+        <div class="slider-desc">
+          On the dev cluster (single socket), NUMA pinning has no practical effect on memory locality &mdash; there is only one NUMA domain. It is enabled by default for consistency with the production cluster, where pinning a VM to a single socket prevents expensive cross-socket memory accesses. Disabling it on dev is harmless but generates an advisory notice.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Warning state only (dev cluster)</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          AQE (Adaptive Query Execution)
+          <span class="slider-range">on / off</span>
+          <span class="slider-default">default on</span>
+        </div>
+        <div class="slider-desc">
+          When <strong>ON</strong>, Spark dynamically coalesces small shuffle partitions at runtime based on actual data sizes, rather than using a fixed partition count. This is critical for ETL workloads where data volume varies between runs. When <strong>OFF</strong>, the calculated partition count is used as a fixed value &mdash; often too many for small datasets, too few for large ones. Disabling triggers a yellow warning.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">spark.sql.shuffle.partitions behaviour &middot; warning state</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════ SECTION 6 — GROUP 4 -->
+  <h2 id="group4">6. Group 4 &mdash; Executor Shape</h2>
+
+  <p>YARN divides the VM&rsquo;s resources into <strong>executor containers</strong> &mdash; the actual JVM processes that run Spark tasks. These sliders control how large each executor is and how its memory is internally divided. This is where the most consequential tuning decisions happen.</p>
+
+  <div class="callout info">
+    <strong>Why executor shape matters more than count:</strong> More executors means more parallelism but smaller heaps and more GC pressure. Fewer executors means larger heaps (better for wide joins) but less concurrency. There is no universally correct answer &mdash; it depends on the workload.
+  </div>
+
+  <div class="group-card">
+    <div class="group-card-header">
+      <span class="group-num">GROUP 4</span>
+      <span class="group-title">EXECUTOR SHAPE</span>
+      <span class="group-subtitle">How the VM is sliced into Spark executor containers</span>
+    </div>
+    <div class="group-body">
+
+      <div class="slider-row">
+        <div class="slider-name">
+          Executor cores
+          <span class="slider-range">2&ndash;10 &middot; step 1</span>
+          <span class="slider-default">default 4</span>
+        </div>
+        <div class="slider-desc">
+          How many vCPUs each executor uses. This directly determines how many executors fit in the VM: <code>floor((vCPUs &minus; 2) &divide; exec_cores)</code>. Fewer cores per executor = more executors = more task parallelism but smaller memory per executor. More cores = fewer executors = larger memory slots, better for wide joins. <strong>4 is the current default</strong> &mdash; a good balance for this cluster&rsquo;s RAM-to-core ratio.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9650; Constrained by:</span>
+          <span class="dep-up">vCPUs per VM</span><br>
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Executors per VM &middot; total executor count &middot; executor slot size &middot; all memory calculations</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          YARN overhead %
+          <span class="slider-range">8&ndash;20% &middot; step 1%</span>
+          <span class="slider-default">default 10%</span>
+        </div>
+        <div class="slider-desc">
+          YARN adds a memory overhead on top of every executor container to cover JVM process memory, internal buffers, and OS overhead. This is configured via <code>spark.executor.memoryOverheadFactor</code>. The overhead is calculated as a percentage of executor heap size. Setting it too low can cause YARN to kill containers that exceed their allocation; too high wastes RAM that could otherwise go to heap.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Effective container size &middot; OOM margin &middot; max executor memory</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          Off-heap memory
+          <span class="slider-range">0&ndash;16 GB &middot; step 2 GB</span>
+          <span class="slider-default">default 6 GB</span>
+        </div>
+        <div class="slider-desc">
+          Memory allocated outside the JVM heap for Spark&rsquo;s vectorized Parquet reader and Apache Arrow columnar buffers. This memory is <strong>not managed by the Java garbage collector</strong> &mdash; it is allocated directly from the OS and freed immediately when no longer needed. Every GB here reduces the heap available to <code>spark.executor.memory</code>. Setting to 0 disables off-heap entirely, which can cause silent OOM crashes when reading Parquet files (the OS kills the process before the JVM can log an error).
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Executor heap size &middot; OOM margin &middot; spark.memory.offHeap.size config value</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════ SECTION 7 — GROUP 5 -->
+  <h2 id="group5">7. Group 5 &mdash; Workload Sizing</h2>
+
+  <p>These sliders do not change how the hardware is configured &mdash; they tell the calculator <strong>how hard you plan to hit it</strong>. They drive the scratch adequacy check, the Ceph capacity warning, and the partition count recommendations. Getting these right means the warnings are meaningful; leaving them at wrong values means warnings fire (or don&rsquo;t fire) incorrectly.</p>
+
+  <div class="group-card">
+    <div class="group-card-header">
+      <span class="group-num">GROUP 5</span>
+      <span class="group-title">WORKLOAD SIZING</span>
+      <span class="group-subtitle">Describes the data and job characteristics &mdash; not the hardware</span>
+    </div>
+    <div class="group-body">
+
+      <div class="slider-row">
+        <div class="slider-name">
+          Daily ingest volume
+          <span class="slider-range">0.5&ndash;4 TB &middot; step 0.5 TB</span>
+          <span class="slider-default">default 2 TB</span>
+        </div>
+        <div class="slider-desc">
+          How much raw data arrives each day. This drives the Ceph days-of-retention calculation (usable Ceph capacity &divide; daily volume) and sets the baseline for the shuffle scratch warning. If you are running smaller development batches, reduce this to get accurate scratch and retention warnings for your actual workload size.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Ceph retention warning &middot; scratch adequacy warning &middot; shuffle data volume &middot; partition count</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          Shuffle amplification
+          <span class="slider-range">1&ndash;4&times; &middot; step 0.5</span>
+          <span class="slider-default">default 3.5&times;</span>
+        </div>
+        <div class="slider-desc">
+          How much data expands during shuffle operations (joins, group-bys, sorts). A simple filter is ~1&times;. A join between two equal-sized tables approaches 2&times;. Multi-stage pipelines with sort-merge joins and aggregations can reach 3&ndash;4&times;. The calculator uses this to estimate worst-case scratch space required: <code>daily_TB &times; shuffle_amp</code>. If your actual jobs spill more than your scratch can hold, the job fails. The default of <strong>3.5&times;</strong> reflects the development ETL pipeline&rsquo;s mix of join types.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Scratch adequacy warning &middot; CALC_PARTITIONS &middot; spark.sql.shuffle.partitions</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          Data skew profile
+          <span class="slider-range">Uniform / Moderate / Heavy</span>
+          <span class="slider-default">default Uniform</span>
+        </div>
+        <div class="slider-desc">
+          How evenly your data is distributed across partition keys. <strong>Uniform</strong>: tasks finish in similar times &mdash; no straggler problem. <strong>Moderate</strong>: some keys are more common but manageable with AQE. <strong>Heavy</strong>: a small number of keys dominate, causing some executors to process 10&times; more data than others &mdash; the job&rsquo;s runtime is determined by the slowest task. Heavy skew raises the OOM warning threshold because the overloaded executor needs more headroom.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">OOM warning threshold (4 / 5 / 6 GB depending on skew) &middot; warning state</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          Join type
+          <span class="slider-range">Broadcast / Mixed / Wide shuffle</span>
+          <span class="slider-default">default Broadcast</span>
+        </div>
+        <div class="slider-desc">
+          The dominant join strategy your jobs use. <strong>Broadcast joins</strong> send the smaller table to every executor in full &mdash; no shuffle required, very fast, but the small table must fit in executor memory. <strong>Mixed</strong>: a combination of broadcast and sort-merge joins. <strong>Wide shuffle joins</strong>: both tables are large, requiring a full cross-network shuffle before joining. Wide shuffle joins generate significantly more scratch data and network traffic.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Scratch warning multiplier &middot; network estimator</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════ SECTION 8 — GROUP 6 -->
+  <h2 id="group6">8. Group 6 &mdash; Partition Strategy</h2>
+
+  <p>These sliders control how Spark divides its work into parallel tasks &mdash; both when reading input data and when writing shuffle output. They do not affect hardware allocation but they determine whether Spark under- or over-parallelises the job, and they feed directly into the generated <code>spark-defaults.conf</code> values.</p>
+
+  <div class="group-card">
+    <div class="group-card-header">
+      <span class="group-num">GROUP 6</span>
+      <span class="group-title">PARTITION STRATEGY</span>
+      <span class="group-subtitle">Read parallelism and shuffle output sizing</span>
+    </div>
+    <div class="group-body">
+
+      <div class="slider-row">
+        <div class="slider-name">
+          Shuffle output size
+          <span class="slider-range">64&ndash;512 MB &middot; step 32 MB</span>
+          <span class="slider-default">default 192 MB</span>
+        </div>
+        <div class="slider-desc">
+          Maps to <code>spark.sql.adaptive.advisoryPartitionSizeInBytes</code>. After a join or aggregation, AQE coalesces small shuffle output partitions back toward this target size. This is an <strong>output-side / post-shuffle</strong> control &mdash; it has no effect on how input files are read. Larger values produce fewer, bigger output partitions (less scheduling overhead). Smaller values produce more, smaller partitions (more parallelism at the cost of overhead).
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">spark.sql.adaptive.advisoryPartitionSizeInBytes &middot; output file count estimate</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          CSV dataset size
+          <span class="slider-range">1&ndash;10,000 GB &middot; step 1 GB</span>
+          <span class="slider-default">default 3 GB</span>
+        </div>
+        <div class="slider-desc">
+          The total size of the raw CSV batch being read each run. Used in the Parquet Partitioning card to model the CSV &rarr; Parquet transformation and estimate the resulting Parquet file size, output partition count, and Snowflake COPY INTO transfer time. Does not affect executor sizing or scratch calculations &mdash; those use the Daily ingest slider instead.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Parquet output size estimate &middot; Snowflake transfer time &middot; input partition count</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          Parquet compression ratio
+          <span class="slider-range">2&ndash;10&times; &middot; step 1</span>
+          <span class="slider-default">default 5&times;</span>
+        </div>
+        <div class="slider-desc">
+          How much smaller the Parquet output is compared to the CSV input, due to columnar encoding and Snappy compression. Typical business data compresses 4&ndash;6&times;. Highly repetitive data (low-cardinality categoricals, many NULLs) can reach 8&ndash;10&times;. Drives the Parquet size estimate and transfer time calculation.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">Parquet output MB estimate &middot; Snowflake transfer time</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          Read chunk size
+          <span class="slider-range">64&ndash;256 MB &middot; step 32 MB</span>
+          <span class="slider-default">default 128 MB</span>
+        </div>
+        <div class="slider-desc">
+          Maps to <code>spark.sql.files.maxPartitionBytes</code>. When Spark reads your CSV batch it cannot hand the entire file to one executor &mdash; it splits it into chunks so multiple executors can work in parallel. This slider sets the upper bound on each chunk&rsquo;s size. One read task is spawned per chunk. Example: a 2,500 MB CSV at 128 MB gives 20 parallel read tasks. This is an <strong>input-side / read-phase</strong> control only &mdash; it has no effect on shuffle output or post-join partition sizing (that is Shuffle output size). Smaller values = more tasks = more parallelism at the cost of scheduling overhead.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">spark.sql.files.maxPartitionBytes &middot; input task count</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════ SECTION 9 — DEPENDENCIES -->
+  <h2 id="dependencies">9. Slider Dependencies at a Glance</h2>
+
+  <p>Moving one slider can silently change what another slider is allowed to be, or change an output without any visible warning. The table below captures the most important of these relationships.</p>
+
+  <table class="dep-table">
+    <thead><tr><th>When you change&hellip;</th><th>It immediately affects&hellip;</th><th>Because&hellip;</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>RAM / Node</td>
+        <td>RAM/VM ceiling (auto-clamps)</td>
+        <td>The VM cannot be allocated more RAM than the node has after reservations. The slider physically moves.</td>
+      </tr>
+      <tr>
+        <td>OSD count</td>
+        <td>Core &amp; RAM budgets &middot; RAM/VM ceiling &middot; scratch TB/VM</td>
+        <td>Each OSD consumes 1 core + 3 GB RAM. More OSDs = less left for VMs. Also shifts NVMe drives away from scratch.</td>
+      </tr>
+      <tr>
+        <td>VMs per node</td>
+        <td>RAM/VM ceiling &middot; vCPUs/VM ceiling &middot; scratch/VM</td>
+        <td>Resources are divided equally across VMs. Two VMs each get half.</td>
+      </tr>
+      <tr>
+        <td>vCPUs per VM</td>
+        <td>Executors per VM &middot; total executor count</td>
+        <td><code>EXEC_PER_VM = floor((vCPUs &minus; 2) &divide; exec_cores)</code>. Fewer vCPUs = fewer executor slots.</td>
+      </tr>
+      <tr>
+        <td>RAM per VM</td>
+        <td>Slot size &middot; executor heap &middot; OOM margin</td>
+        <td>Slot size = RAM_VM &minus; 2 GB (NodeManager) &divide; executors per VM. All memory metrics flow from this.</td>
+      </tr>
+      <tr>
+        <td>Executor cores</td>
+        <td>Executors per VM &middot; slot size &middot; all memory values</td>
+        <td>More cores per executor = fewer executors = larger slot per executor. Cascades through all of Group 4.</td>
+      </tr>
+      <tr>
+        <td>Off-heap</td>
+        <td>Executor heap &middot; OOM margin</td>
+        <td>Off-heap carves out of the slot before heap is calculated. Every GB added reduces heap by 1 GB.</td>
+      </tr>
+      <tr>
+        <td>Daily ingest + Shuffle amp</td>
+        <td>Scratch adequacy warning &middot; partition count</td>
+        <td>Worst-case scratch = daily_TB &times; shuffle_amp. If this exceeds 75% of scratch/VM, the warning fires.</td>
+      </tr>
+      <tr>
+        <td>Data skew profile</td>
+        <td>OOM warning threshold</td>
+        <td>Heavy skew raises the OOM margin threshold from 4 GB to 6 GB, making the warning fire more easily.</td>
+      </tr>
+    </tbody>
+  </table>
+
+
+  <!-- ═══════════════════════════════ SECTION 10 — FAILURES -->
+  <h2 id="failures">10. The Three Things That Go Wrong</h2>
+
+  <p>Almost every warning in the calculator traces back to one of three underlying problems. Each warning is the <em>end result</em> of a chain of slider decisions &mdash; understanding the chain tells you which slider to move, and in which direction, to resolve it.</p>
+
+  <div class="failure">
+    <div class="failure-title" style="color:var(--red);">&#9888; Out-of-Memory (OOM) Crash</div>
+    <div class="failure-body">
+      <strong>What you see:</strong> The OOM margin row in the Executor Math card turns red. In a live job, an executor disappears from the YARN UI without a logged error, or the job fails with a container-killed message.<br><br>
+      <strong>What is happening:</strong> The memory slot allocated to each executor is too small to hold the data it is processing, plus the JVM&rsquo;s own overhead, plus the off-heap buffers. YARN enforces strict container memory limits &mdash; when an executor exceeds its allocation, YARN kills it immediately.<br><br>
+      <strong>The cause chain:</strong>
+      <ul style="margin:10px 0 10px 16px; font-size:13px; line-height:1.8;">
+        <li>OSD count &uarr; &rarr; cores and RAM reserved for Ceph &uarr; &rarr; RAM available for VMs &darr; &rarr; RAM/VM ceiling &darr; &rarr; slot size &darr; &rarr; OOM margin &darr;</li>
+        <li>Executor cores &uarr; &rarr; fewer executors per VM &rarr; each executor gets a larger slot &rarr; OOM margin improves</li>
+        <li>Executor cores &darr; &rarr; more executors per VM &rarr; each slot is smaller &rarr; OOM margin tightens</li>
+        <li>Off-heap &uarr; &rarr; off-heap carved from slot before heap &rarr; less heap per executor &rarr; OOM margin tightens</li>
+        <li>Overhead % &uarr; &rarr; more YARN container overhead &rarr; less headroom &rarr; OOM margin tightens</li>
+      </ul>
+      <strong>The silent variant:</strong> Setting off-heap to 0 while running Parquet workloads can cause the OS to kill the executor process before the JVM logs anything. The symptom is an executor that simply vanishes from the YARN UI with no stack trace. This is not an OOM warning &mdash; it is a silent crash that is easy to misdiagnose.<br><br>
+      <strong>Warning threshold:</strong> OOM margin &lt; 4 GB (uniform skew) &middot; &lt; 5 GB (moderate skew) &middot; &lt; 6 GB (heavy skew). The skew profile slider raises the threshold because skewed tasks process more data per executor than the average.
+    </div>
+    <div class="failure-sliders">
+      Move to fix: RAM/VM &uarr; &middot; Executor cores &uarr; (fewer, larger slots) &middot; Off-heap &darr; &middot; Overhead % &darr; &middot; OSD count &darr; (frees RAM budget)
+    </div>
+  </div>
+
+  <div class="failure">
+    <div class="failure-title" style="color:var(--yellow);">&#9888; Scratch Space Exhaustion</div>
+    <div class="failure-body">
+      <strong>What you see:</strong> The scratch warning fires in the Diagnostics card. In a live job, a shuffle stage fails with a disk-full or &ldquo;no space left on device&rdquo; error. Unlike OOM, there is no retry &mdash; the job aborts.<br><br>
+      <strong>What is happening:</strong> During shuffle operations (joins, group-bys, sorts), Spark writes intermediate data to the local NVMe scratch drives before sending it across the network. If that intermediate data exceeds the available scratch space, the write fails and the job dies.<br><br>
+      <strong>The cause chain:</strong>
+      <ul style="margin:10px 0 10px 16px; font-size:13px; line-height:1.8;">
+        <li>OSD count &uarr; &rarr; more NVMe drives go to Ceph &rarr; fewer drives left for scratch &rarr; scratch TB/VM &darr;</li>
+        <li>Daily ingest &uarr; &rarr; more data to shuffle &rarr; worst-case scratch requirement &uarr;</li>
+        <li>Shuffle amp &uarr; &rarr; each byte of input produces more shuffle data &rarr; worst-case scratch requirement &uarr;</li>
+        <li>VMs per node &uarr; &rarr; scratch NVMe split across more VMs &rarr; scratch TB/VM &darr;</li>
+        <li>Join type &rarr; wide shuffle joins multiply scratch requirement beyond the basic shuffle_amp estimate</li>
+      </ul>
+      <strong>Warning threshold:</strong> Scratch TB per VM &lt; 75% of worst-case shuffle volume (<code>daily_TB &times; shuffle_amp</code>). The 75% buffer exists because shuffle data is not perfectly distributed &mdash; some VMs will receive more than the average.
+    </div>
+    <div class="failure-sliders">
+      Move to fix: OSD count &darr; (frees NVMe for scratch) &middot; VMs per node &darr; &middot; Daily ingest and Shuffle amp &uarr; to model your real workload accurately
+    </div>
+  </div>
+
+  <div class="failure">
+    <div class="failure-title" style="color:var(--yellow);">&#9888; Insufficient Ceph Retention</div>
+    <div class="failure-body">
+      <strong>What you see:</strong> The Ceph retention warning fires in the Diagnostics card. In a live cluster, this means the S3 object store is filling up faster than data is being archived or deleted &mdash; eventually new ingest jobs cannot write and begin failing.<br><br>
+      <strong>What is happening:</strong> Ceph&rsquo;s usable capacity is fixed by how many NVMe drives you assign to it and the replication factor. If daily ingest consumes capacity faster than you&rsquo;re clearing old data, the store fills up.<br><br>
+      <strong>The cause chain:</strong>
+      <ul style="margin:10px 0 10px 16px; font-size:13px; line-height:1.8;">
+        <li>OSD count &darr; &rarr; fewer NVMe drives in Ceph &rarr; raw Ceph capacity &darr; &rarr; usable capacity &darr; &rarr; fewer days of retention</li>
+        <li>Replication factor &uarr; &rarr; each byte written N times &rarr; usable capacity = raw &divide; N &darr;</li>
+        <li>Daily ingest &uarr; &rarr; more data written per day &rarr; retention days &darr;</li>
+      </ul>
+      <strong>Warning threshold:</strong> Ceph usable capacity &divide; daily ingest &lt; 3 days. Three days is the minimum buffer to survive a weekend without active data management.
+    </div>
+    <div class="failure-sliders">
+      Move to fix: OSD count &uarr; (more Ceph capacity) &middot; Replication factor &darr; to 2&times; (with caution on a 3-node cluster) &middot; Daily ingest &darr; to reflect actual load
+    </div>
+  </div>
+
+  <div class="failure">
+    <div class="failure-title" style="color:var(--red);">&#9888; Core Budget Overcommit</div>
+    <div class="failure-body">
+      <strong>What you see:</strong> The core budget bar turns red. This is the most direct cause-and-effect warning in the calculator: you have allocated more vCPUs to the VM than the node has available after infrastructure services take their share.<br><br>
+      <strong>What is happening:</strong> Physical cores are shared between Proxmox, Ceph daemons, and the Spark VM. If the VM is promised more vCPUs than physically exist after infrastructure reservations, the host CPU is overcommitted. Spark tasks and Ceph OSD processes compete for the same physical cores, causing latency spikes, slow shuffles, and unpredictable job runtimes.<br><br>
+      <strong>The cause chain:</strong>
+      <ul style="margin:10px 0 10px 16px; font-size:13px; line-height:1.8;">
+        <li>OSD count &uarr; &rarr; each OSD consumes 1 physical core &rarr; cores available for VM &darr; &rarr; vCPUs/VM ceiling &darr;</li>
+        <li>vCPUs/VM slider does <strong>not</strong> auto-clamp &rarr; if OSD count increases after vCPUs was set, overcommit occurs silently until you notice the red bar</li>
+      </ul>
+      <strong>Concrete example:</strong> At 5 OSDs (default), infrastructure consumes 13 cores, leaving 19 for the VM. Setting vCPUs to 20 puts 1 core into overcommit. The bar turns red, but the slider stays at 20 &mdash; it will not move itself.<br><br>
+      <strong>Resolution:</strong> Check the Fixed Overhead Reservations card for the current available core count, then reduce vCPUs/VM to fit within it.
+    </div>
+    <div class="failure-sliders">
+      Move to fix: vCPUs/VM &darr; to stay within (32 &minus; infrastructure cores) &middot; OSD count &darr; (each reduction frees 1 core)
+    </div>
+  </div>
+
+  <div class="callout green" style="margin-top:32px;">
+    <strong>The fundamental tension:</strong> OSD count is the slider that touches all four warnings simultaneously. More OSDs &rarr; better Ceph retention, worse scratch, less RAM for executors, fewer available cores for the VM. Less OSDs &rarr; more scratch, more executor RAM, more VM cores, but reduced Ceph capacity. The calculator shows all warnings live so you can find the OSD count that satisfies all constraints at once &mdash; that is its primary purpose.
+  </div>
+
+</div>
+</body>
+</html>
