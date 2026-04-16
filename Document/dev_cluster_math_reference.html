@@ -577,13 +577,13 @@
             <td class="name">SVC_CORES_NODE</td>
             <td class="formula">⌈SVC_CORES / NODES⌉</td>
             <td class="val">1c</td>
-            <td class="note">Amortized per-node cost: ⌈2 / 3⌉ = 1. The service VM runs on one node; the cost is spread across all three nodes.</td>
+            <td class="note">Amortized per-node cost: ⌈2 / 3⌉ = 1, where 2 = SVC_CORES (YARN RM fixed allocation) and 3 = NODES. The service VM runs on one node; the cost is spread across all three nodes.</td>
           </tr>
           <tr>
             <td class="name">SVC_RAM_NODE</td>
             <td class="formula">⌈SVC_RAM / NODES⌉</td>
             <td class="val">2 GB</td>
-            <td class="note">Amortized per-node cost: ⌈4 / 3⌉ = 2 GB.</td>
+            <td class="note">Amortized per-node cost: ⌈4 / 3⌉ = 2 GB, where 4 = SVC_RAM (YARN RM fixed allocation) and 3 = NODES.</td>
           </tr>
           <tr style="border-top: 2px solid var(--border2);">
             <td class="name">RESERVE_CORES</td>
