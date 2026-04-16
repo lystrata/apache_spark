@@ -601,13 +601,13 @@
             <td class="name">AVAIL_CORES</td>
             <td class="formula">CORES_NODE − RESERVE_CORES</td>
             <td class="val">18c</td>
-            <td class="note">32 (CORES_NODE) − 14 = 18. Hard ceiling for all VM vCPU allocations on this node.</td>
+            <td class="note">32 (CORES_NODE) − 14 (RESERVE_CORES) = 18. Hard ceiling for all VM vCPU allocations on this node.</td>
           </tr>
           <tr>
             <td class="name">AVAIL_RAM</td>
             <td class="formula">RAM_NODE − RESERVE_RAM</td>
             <td class="val">345 GB</td>
-            <td class="note">384 GB (RAM_NODE at default) − 39 = 345 GB. Hard ceiling for all VM RAM allocations on this node.</td>
+            <td class="note">384 GB (RAM_NODE at default) − 39 GB (RESERVE_RAM) = 345 GB. Hard ceiling for all VM RAM allocations on this node.</td>
           </tr>
         </tbody>
       </table>
