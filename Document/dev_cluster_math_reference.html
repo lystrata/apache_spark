@@ -275,6 +275,35 @@
     color: var(--muted);
     line-height: 1.5;
   }
+  a.tier-cell {
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  }
+  a.tier-cell:hover {
+    border-color: rgba(78,158,255,0.5);
+    box-shadow: 0 0 0 1px rgba(78,158,255,0.2), 0 4px 16px rgba(0,0,0,0.3);
+    transform: translateY(-2px);
+  }
+  .back-to-top {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 3px 9px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .back-to-top:hover {
+    color: var(--accent);
+    border-color: rgba(78,158,255,0.45);
+  }
 
   /* ── Callout boxes ── */
   .callout {
@@ -322,7 +351,7 @@
 <div class="wrap">
 
   <!-- ── Header ──────────────────────────────────────────────────── -->
-  <header>
+  <header id="top">
     <div class="doc-tag">◈ Technical Reference &nbsp;·&nbsp; Development Cluster Sizing</div>
     <h1>Sizing Calculator — Math Reference</h1>
     <p class="doc-sub">
@@ -335,36 +364,36 @@
 
   <!-- ── Tier overview strip ─────────────────────────────────────── -->
   <div class="tier-strip">
-    <div class="tier-cell">
+    <a href="#tier0" class="tier-cell">
       <div class="tc-badge tier-0" style="background:var(--muted);color:var(--bg)">Tier 0</div>
       <div class="tc-name">Physical Constants</div>
       <div class="tc-desc">Hardware facts — never computed; change only when hardware changes</div>
-    </div>
-    <div class="tier-cell">
+    </a>
+    <a href="#tier1" class="tier-cell">
       <div class="tc-badge tier-1" style="background:var(--yellow);color:var(--bg)">Tier 1</div>
       <div class="tc-name">Service Reservations</div>
       <div class="tc-desc">Fixed overhead per node consumed before VMs are sized</div>
-    </div>
-    <div class="tier-cell">
+    </a>
+    <a href="#tier2" class="tier-cell">
       <div class="tc-badge tier-2" style="background:var(--accent);color:var(--bg)">Tier 2</div>
       <div class="tc-name">User Parameters</div>
       <div class="tc-desc">Sliders and toggles — with dynamic bounds computed from lower tiers</div>
-    </div>
-    <div class="tier-cell">
+    </a>
+    <a href="#tier3" class="tier-cell">
       <div class="tc-badge tier-3" style="background:var(--purple);color:var(--bg)">Tier 3</div>
       <div class="tc-name">First-Order Derived</div>
       <div class="tc-desc">Direct arithmetic on Tiers 0–2; no dependency on other derived values</div>
-    </div>
-    <div class="tier-cell">
+    </a>
+    <a href="#tier4" class="tier-cell">
       <div class="tc-badge tier-4" style="background:var(--green);color:var(--bg)">Tier 4</div>
       <div class="tc-name">Second-Order Derived</div>
       <div class="tc-desc">Computed from Tier 3 results — executor memory, parallelism, network</div>
-    </div>
-    <div class="tier-cell">
+    </a>
+    <a href="#tier5" class="tier-cell">
       <div class="tc-badge tier-5" style="background:var(--red);color:var(--bg)">Tier 5</div>
       <div class="tc-name">Constraint Checks</div>
       <div class="tc-desc">Boolean evaluations against derived values — warnings, errors, thresholds</div>
-    </div>
+    </a>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════
@@ -374,6 +403,7 @@
     <div class="section-header">
       <div class="tier-badge tier-0">Tier 0</div>
       <h2>Physical Constants</h2>
+      <a href="#top" class="back-to-top">↑ Top</a>
     </div>
     <p class="section-desc">
       Hardware facts hard-coded at the top of the calculator script as module-level JavaScript constants.
@@ -443,6 +473,7 @@
     <div class="section-header">
       <div class="tier-badge tier-1">Tier 1</div>
       <h2>Service Reservations</h2>
+      <a href="#top" class="back-to-top">↑ Top</a>
     </div>
     <p class="section-desc">
       Before any Spark worker VM can be sized, a fixed block of cores and RAM is consumed on every node
@@ -590,6 +621,7 @@
     <div class="section-header">
       <div class="tier-badge tier-2">Tier 2</div>
       <h2>User Parameters (Sliders &amp; Toggles)</h2>
+      <a href="#top" class="back-to-top">↑ Top</a>
     </div>
     <p class="section-desc">
       These are the design decisions the user adjusts interactively. Each slider has a static range defined
@@ -992,6 +1024,7 @@
     <div class="section-header">
       <div class="tier-badge tier-3">Tier 3</div>
       <h2>First-Order Derived Values</h2>
+      <a href="#top" class="back-to-top">↑ Top</a>
     </div>
     <p class="section-desc">
       Computed directly from Tiers 0–2 with simple arithmetic. No first-order value depends on another
@@ -1162,6 +1195,7 @@
     <div class="section-header">
       <div class="tier-badge tier-4">Tier 4</div>
       <h2>Second-Order Derived Values</h2>
+      <a href="#top" class="back-to-top">↑ Top</a>
     </div>
     <p class="section-desc">
       These values are computed from Tier 3 results. They represent the sizing outputs that
@@ -1416,6 +1450,7 @@
     <div class="section-header">
       <div class="tier-badge tier-5">Tier 5</div>
       <h2>Constraint Evaluations</h2>
+      <a href="#top" class="back-to-top">↑ Top</a>
     </div>
     <p class="section-desc">
       Boolean checks that run after all derived values are computed. Results are displayed in the
@@ -1584,6 +1619,7 @@
     <div class="section-header">
       <div class="tier-badge" style="background:var(--purple);color:var(--bg)">Appendix</div>
       <h2>Spark Configuration Output</h2>
+      <a href="#top" class="back-to-top">↑ Top</a>
     </div>
     <p class="section-desc">
       The calculator produces a recommended <code>spark-defaults.conf</code> parameter set.
