@@ -499,36 +499,87 @@
     </div>
 
     <h3>Aggregate Reservation Formulas</h3>
-    <div class="formula-block">
-<span class="cmt">// OSD contribution (scales with slider)</span>
-<span class="sym">OSD_CORES_NODE</span> <span class="eq">=</span> <span class="tier2">OSD_NODE</span> × <span class="num">1</span>
-<span class="sym">OSD_RAM_NODE</span>   <span class="eq">=</span> <span class="tier2">OSD_NODE</span> × <span class="num">3</span>
-
-<span class="cmt">// Fixed per-node Ceph services</span>
-<span class="sym">CEPH_CORES_TOTAL</span> <span class="eq">=</span> <span class="sym">OSD_CORES_NODE</span> + <span class="num">4</span> <span class="cmt">(RGW)</span> + <span class="num">2</span> <span class="cmt">(MON)</span>
-<span class="sym">CEPH_RAM_TOTAL</span>   <span class="eq">=</span> <span class="sym">OSD_RAM_NODE</span>   + <span class="num">8</span> <span class="cmt">(RGW)</span> + <span class="num">6</span> <span class="cmt">(MON)</span>
-
-<span class="cmt">// Service VM — amortized</span>
-<span class="sym">SVC_CORES</span>      <span class="eq">=</span> <span class="num">2</span> <span class="cmt">(RM always)</span> + <span class="sym">OPT_SVC_CORES</span> <span class="cmt">(optional toggles)</span>
-<span class="sym">SVC_RAM</span>        <span class="eq">=</span> <span class="num">4</span> <span class="cmt">(RM always)</span> + <span class="sym">OPT_SVC_RAM</span>
-<span class="sym">SVC_CORES_NODE</span> <span class="eq">=</span> <span class="fn">⌈</span>SVC_CORES / <span class="tier0">NODES</span><span class="fn">⌉</span>
-<span class="sym">SVC_RAM_NODE</span>   <span class="eq">=</span> <span class="fn">⌈</span>SVC_RAM   / <span class="tier0">NODES</span><span class="fn">⌉</span>
-
-<span class="cmt">// Total reserved per node (used in all subsequent budget calculations)</span>
-<span class="sym">RESERVE_CORES</span> <span class="eq">=</span> <span class="num">2</span> <span class="cmt">(Proxmox)</span> + <span class="sym">CEPH_CORES_TOTAL</span> + <span class="sym">SVC_CORES_NODE</span>
-<span class="sym">RESERVE_RAM</span>   <span class="eq">=</span> <span class="num">8</span> <span class="cmt">(Proxmox)</span> + <span class="sym">CEPH_RAM_TOTAL</span>   + <span class="sym">SVC_RAM_NODE</span>
-
-<span class="cmt">// Available for VMs (per node)</span>
-<span class="sym">AVAIL_CORES</span>   <span class="eq">=</span> <span class="tier0">CORES_NODE</span> − <span class="sym">RESERVE_CORES</span>
-<span class="sym">AVAIL_RAM</span>     <span class="eq">=</span> <span class="tier2">RAM_NODE</span>   − <span class="sym">RESERVE_RAM</span>
-    </div>
-
-    <div class="callout info">
-      <div class="callout-title">Default Reservation Totals (5 OSDs, no optional services)</div>
-      RESERVE_CORES = 2 + (5+4+2) + 1 = <strong>14c</strong> &nbsp;·&nbsp;
-      RESERVE_RAM = 8 + (15+8+6) + 2 = <strong>39 GB</strong> &nbsp;·&nbsp;
-      AVAIL_CORES = 32 − 14 = <strong>18c</strong> &nbsp;·&nbsp;
-      AVAIL_RAM = 384 − 39 = <strong>345 GB</strong>
+    <div class="card">
+      <div class="card-title">Reservation Variables — Build-Up Order (per node)</div>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Formula</th><th>Default value<br><span style="font-weight:400;text-transform:none;letter-spacing:0">(5 OSDs, no optional services)</span></th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">OSD_CORES_NODE</td>
+            <td class="formula">OSD_NODE × 1</td>
+            <td class="val">5c</td>
+            <td class="note">1 core per OSD drive (BlueStore). Scales with the NVMe → Ceph OSDs slider.</td>
+          </tr>
+          <tr>
+            <td class="name">OSD_RAM_NODE</td>
+            <td class="formula">OSD_NODE × 3 GB</td>
+            <td class="val">15 GB</td>
+            <td class="note">3 GB per OSD for BlueStore WAL cache. Scales with the slider.</td>
+          </tr>
+          <tr>
+            <td class="name">CEPH_CORES_TOTAL</td>
+            <td class="formula">OSD_CORES_NODE + 4c (RGW) + 2c (MON)</td>
+            <td class="val">11c</td>
+            <td class="note">Sum of all per-node Ceph service cores: OSDs + RGW gateway (4c fixed) + MON daemon (2c fixed).</td>
+          </tr>
+          <tr>
+            <td class="name">CEPH_RAM_TOTAL</td>
+            <td class="formula">OSD_RAM_NODE + 8 GB (RGW) + 6 GB (MON)</td>
+            <td class="val">29 GB</td>
+            <td class="note">Sum of all per-node Ceph service RAM: OSDs + RGW (8 GB fixed) + MON (6 GB fixed).</td>
+          </tr>
+          <tr>
+            <td class="name">SVC_CORES</td>
+            <td class="formula">2c (YARN RM, always) + OPT_SVC_CORES</td>
+            <td class="val">2c</td>
+            <td class="note">YARN ResourceManager is always present (2 vCPU). Optional on-cluster services (Airflow, Jupyter, etc.) add to this only when toggled on.</td>
+          </tr>
+          <tr>
+            <td class="name">SVC_RAM</td>
+            <td class="formula">4 GB (YARN RM, always) + OPT_SVC_RAM</td>
+            <td class="val">4 GB</td>
+            <td class="note">Same structure as SVC_CORES — RM is fixed; optional services are additive.</td>
+          </tr>
+          <tr>
+            <td class="name">SVC_CORES_NODE</td>
+            <td class="formula">⌈SVC_CORES / NODES⌉</td>
+            <td class="val">1c</td>
+            <td class="note">Amortized per-node cost: ⌈2 / 3⌉ = 1. The service VM runs on one node; the cost is spread across all three nodes.</td>
+          </tr>
+          <tr>
+            <td class="name">SVC_RAM_NODE</td>
+            <td class="formula">⌈SVC_RAM / NODES⌉</td>
+            <td class="val">2 GB</td>
+            <td class="note">Amortized per-node cost: ⌈4 / 3⌉ = 2 GB.</td>
+          </tr>
+          <tr style="border-top: 2px solid var(--border2);">
+            <td class="name">RESERVE_CORES</td>
+            <td class="formula">2c (Proxmox) + CEPH_CORES_TOTAL + SVC_CORES_NODE</td>
+            <td class="val">14c</td>
+            <td class="note">Total cores unavailable to worker VMs: 2 (Proxmox) + 11 (Ceph) + 1 (YARN RM ÷3) = 14.</td>
+          </tr>
+          <tr>
+            <td class="name">RESERVE_RAM</td>
+            <td class="formula">8 GB (Proxmox) + CEPH_RAM_TOTAL + SVC_RAM_NODE</td>
+            <td class="val">39 GB</td>
+            <td class="note">Total RAM unavailable to worker VMs: 8 (Proxmox) + 29 (Ceph) + 2 (YARN RM ÷3) = 39 GB.</td>
+          </tr>
+          <tr style="border-top: 2px solid var(--border2);">
+            <td class="name">AVAIL_CORES</td>
+            <td class="formula">CORES_NODE − RESERVE_CORES</td>
+            <td class="val">18c</td>
+            <td class="note">32 (CORES_NODE) − 14 = 18. Hard ceiling for all VM vCPU allocations on this node.</td>
+          </tr>
+          <tr>
+            <td class="name">AVAIL_RAM</td>
+            <td class="formula">RAM_NODE − RESERVE_RAM</td>
+            <td class="val">345 GB</td>
+            <td class="note">384 GB (RAM_NODE at default) − 39 = 345 GB. Hard ceiling for all VM RAM allocations on this node.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -552,7 +603,7 @@
       <div class="card-title">Sliders — Infrastructure &amp; Cluster Layout</div>
       <table>
         <thead>
-          <tr><th>Slider</th><th>ID</th><th>Default</th><th>HTML Range</th><th>Step</th><th>Dynamic Bounds</th></tr>
+          <tr><th>Slider</th><th>ID</th><th>Default</th><th>HTML Range</th><th>Step</th><th>Bounds</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -561,7 +612,7 @@
             <td class="val">384 GB</td>
             <td>128–384</td>
             <td>32 GB</td>
-            <td class="note">Fixed in HTML. Range represents 4–12 populated 32 GB DIMMs. Changing this value triggers rescaling of the RAM/VM slider (see Dynamic Bounds below).</td>
+            <td class="note">Static range. Represents 4–12 populated 32 GB DIMMs. Changing this value triggers rescaling of the RAM/VM slider (see Dynamic Bounds below).</td>
           </tr>
           <tr>
             <td>VMs per node</td>
@@ -569,7 +620,7 @@
             <td class="val">1</td>
             <td>1–2</td>
             <td>1</td>
-            <td class="note">Fixed in HTML. Increasing VMs splits the available RAM and core budget, directly shrinking the effective max for the vCPU and RAM/VM sliders.</td>
+            <td class="note">Static range. Increasing VMs splits the available RAM and core budget, directly shrinking the effective max for the vCPU and RAM/VM sliders.</td>
           </tr>
           <tr>
             <td>vCPUs per worker VM</td>
@@ -593,7 +644,7 @@
             <td class="val">5</td>
             <td>0–7</td>
             <td>1</td>
-            <td class="note">Fixed in HTML (0 to NVME_COUNT). Remainder (NVME_COUNT − OSD_NODE) becomes scratch space. Affects Tier 1 reservation math (OSD cores/RAM) and Tier 3 storage calculations.</td>
+            <td class="note">Static range (0 to NVME_COUNT). Remainder (NVME_COUNT − OSD_NODE) becomes scratch space. Affects Tier 1 reservation math (OSD cores/RAM) and Tier 3 storage calculations.</td>
           </tr>
           <tr>
             <td>Ceph replication factor</td>
@@ -601,7 +652,7 @@
             <td class="val">3×</td>
             <td>2–3</td>
             <td>1</td>
-            <td class="note">Fixed in HTML. Divides raw Ceph capacity to yield usable capacity. 3× is standard; 2× recovers ~50% more usable space at the cost of reduced fault tolerance.</td>
+            <td class="note">Static range. Divides raw Ceph capacity to yield usable capacity. 3× is standard; 2× recovers ~50% more usable space at the cost of reduced fault tolerance.</td>
           </tr>
         </tbody>
       </table>
@@ -612,7 +663,7 @@
       <div class="card-title">Sliders — Spark Executor Configuration</div>
       <table>
         <thead>
-          <tr><th>Slider</th><th>ID</th><th>Default</th><th>HTML Range</th><th>Step</th><th>Dynamic Bounds</th></tr>
+          <tr><th>Slider</th><th>ID</th><th>Default</th><th>HTML Range</th><th>Step</th><th>Bounds</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -629,7 +680,7 @@
             <td class="val">10%</td>
             <td>8%–20%</td>
             <td>1%</td>
-            <td class="note">Fixed in HTML. Represents the JVM overhead fraction added on top of executor heap memory by YARN. Stored as integer (10), converted to decimal (0.10) in formulas.</td>
+            <td class="note">Static range. Represents the JVM overhead fraction added on top of executor heap memory by YARN. Stored as integer (10), converted to decimal (0.10) in formulas.</td>
           </tr>
           <tr>
             <td>Off-heap size</td>
@@ -827,18 +878,50 @@
         When the maximum changes, the existing slider <em>value</em> is proportionally rescaled so the
         slider thumb stays at the same relative position — avoiding sudden jumps.
       </p>
-      <div class="formula-block">
-<span class="cmt">// Compute the new maximum</span>
-<span class="sym">_reserveRam</span>  <span class="eq">=</span> <span class="num">8</span> + (<span class="tier2">OSD_NODE</span>×<span class="num">3</span> + <span class="num">8</span> + <span class="num">6</span>) + <span class="fn">⌈</span>SVC_RAM / <span class="num">3</span><span class="fn">⌉</span>  <span class="cmt">// mirrors RESERVE_RAM</span>
-<span class="sym">_maxRamVM</span>     <span class="eq">=</span> <span class="fn">⌊</span>(<span class="tier2">RAM_NODE</span> − _reserveRam) / <span class="tier2">VMS_NODE</span> / <span class="num">32</span><span class="fn">⌋</span> × <span class="num">32</span>
-<span class="sym">_maxRamVM</span>     <span class="eq">=</span> <span class="fn">max</span>(<span class="num">32</span>, _maxRamVM)  <span class="cmt">// floor at 32 GB</span>
-
-<span class="cmt">// Proportional rescale — keeps thumb at same relative position after max changes</span>
-<span class="sym">_min</span>  <span class="eq">=</span> <span class="num">64</span>  <span class="cmt">// slider HTML min</span>
-<span class="sym">_pct</span>  <span class="eq">=</span> (current_value − _min) / (old_max − _min)
-<span class="sym">_new</span>  <span class="eq">=</span> <span class="fn">round</span>(_min + _pct × (_maxRamVM − _min)) <span class="kw">to nearest</span> <span class="num">32</span>
-<span class="sym">new_value</span> <span class="eq">=</span> <span class="fn">clamp</span>(_new, _min, _maxRamVM)
-      </div>
+      <table>
+        <thead>
+          <tr><th>Phase</th><th>Variable</th><th>Formula</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td rowspan="3" style="color:var(--accent2);font-weight:600;font-family:var(--mono);font-size:11px;vertical-align:top;padding-top:12px;white-space:nowrap;">Compute new max</td>
+            <td class="name">_reserveRam</td>
+            <td class="formula">8 + (OSD_NODE×3 + 8 + 6) + ⌈SVC_RAM / 3⌉</td>
+            <td class="note">Mirrors RESERVE_RAM, computed inline: Proxmox (8 GB) + Ceph OSD/RGW/MON + amortized service VM RAM.</td>
+          </tr>
+          <tr>
+            <td class="name">_maxRamVM (raw)</td>
+            <td class="formula">⌊(RAM_NODE − _reserveRam) / VMS_NODE / 32⌋ × 32</td>
+            <td class="note">Largest 32 GB-aligned value that fits after subtracting reservations and dividing by VM count.</td>
+          </tr>
+          <tr>
+            <td class="name">_maxRamVM</td>
+            <td class="formula">max(32, _maxRamVM raw)</td>
+            <td class="note">Floor at 32 GB (one DIMM) — slider cannot go below this even at extreme configurations.</td>
+          </tr>
+          <tr style="border-top: 2px solid var(--border2);">
+            <td rowspan="4" style="color:var(--accent2);font-weight:600;font-family:var(--mono);font-size:11px;vertical-align:top;padding-top:12px;white-space:nowrap;">Rescale value</td>
+            <td class="name">_min</td>
+            <td class="formula">64</td>
+            <td class="note">Slider fixed minimum — 2 DIMMs (64 GB).</td>
+          </tr>
+          <tr>
+            <td class="name">_pct</td>
+            <td class="formula">(current_value − _min) / (old_max − _min)</td>
+            <td class="note">Current slider position as a fraction of the previous range. This fraction is preserved across the max change.</td>
+          </tr>
+          <tr>
+            <td class="name">_new</td>
+            <td class="formula">round(_min + _pct × (_maxRamVM − _min)) to nearest 32</td>
+            <td class="note">Same fractional position mapped onto the new range, snapped to the 32 GB DIMM grid.</td>
+          </tr>
+          <tr>
+            <td class="name">new_value</td>
+            <td class="formula">clamp(_new, _min, _maxRamVM)</td>
+            <td class="note">Final enforced value. If RAM_NODE drops sharply the rescaled result may still exceed the new max — clamp handles this edge case.</td>
+          </tr>
+        </tbody>
+      </table>
       <div class="callout warn">
         <div class="callout-title">Why this runs first</div>
         The RAM/VM pre-scale block runs at the very top of <code>recalc()</code>, before any other values
@@ -850,13 +933,23 @@
 
     <div class="card">
       <div class="card-title">Dynamic Bound 2 — vCPUs per VM</div>
-      <div class="formula-block">
-<span class="cmt">// Infrastructure cores consumed per node (mirrors RESERVE_CORES components)</span>
-<span class="sym">_infra</span>   <span class="eq">=</span> <span class="num">2</span> <span class="cmt">(Proxmox)</span> + <span class="num">4</span> <span class="cmt">(RGW)</span> + <span class="num">2</span> <span class="cmt">(MON)</span> + <span class="tier2">OSD_NODE</span> + <span class="fn">⌈</span>SVC_CORES / <span class="tier0">NODES</span><span class="fn">⌉</span>
-<span class="sym">_maxVcpu</span> <span class="eq">=</span> <span class="fn">min</span>(<span class="num">32</span>, <span class="fn">⌊</span>(<span class="tier0">CORES_NODE</span> − _infra) / <span class="tier2">VMS_NODE</span><span class="fn">⌋</span>)
-
-<span class="cmt">// Slider is clamped: if current value > _maxVcpu, it is set to _maxVcpu</span>
-      </div>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Formula</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">_infra</td>
+            <td class="formula">2c (Proxmox) + 4c (RGW) + 2c (MON) + OSD_NODE + ⌈SVC_CORES / NODES⌉</td>
+            <td class="note">Per-node infrastructure cores; mirrors the components of RESERVE_CORES.</td>
+          </tr>
+          <tr>
+            <td class="name">_maxVcpu</td>
+            <td class="formula">min(32, ⌊(CORES_NODE − _infra) / VMS_NODE⌋)</td>
+            <td class="note">Hard cap of 32 = one NUMA domain (single 32-core socket on dev nodes). Slider is clamped to this value if it exceeds it.</td>
+          </tr>
+        </tbody>
+      </table>
       <p style="font-size:13px;color:var(--muted);line-height:1.7;">
         The hard limit of 32 is the NUMA domain boundary — the development node has a single 32-core CPU
         socket. Exceeding 32 vCPUs means the VM spans beyond the physical socket (impossible on single-socket
@@ -866,13 +959,23 @@
 
     <div class="card">
       <div class="card-title">Dynamic Bound 3 — Off-heap size</div>
-      <div class="formula-block">
-<span class="cmt">// Must be computed after SLOT_GB is known (itself derived from RAM_VM and EXEC_PER_VM)</span>
-<span class="sym">_maxOffheap</span> <span class="eq">=</span> <span class="fn">⌊</span>(<span class="tier3">SLOT_GB</span> − <span class="num">4</span>) / <span class="num">2</span><span class="fn">⌋</span> × <span class="num">2</span>   <span class="cmt">// step-2 aligned; 4 GB = minimum OOM headroom</span>
-<span class="sym">_maxOffheap</span> <span class="eq">=</span> <span class="fn">max</span>(<span class="num">0</span>, _maxOffheap)
-
-<span class="cmt">// Slider is clamped: if current value > _maxOffheap, it is set to _maxOffheap</span>
-      </div>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Formula</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">_maxOffheap (raw)</td>
+            <td class="formula">⌊(SLOT_GB − 4) / 2⌋ × 2</td>
+            <td class="note">Step-2 aligned (slider moves in 2 GB increments). The 4 GB deduction reserves at least 4 GB of OOM headroom before executor overhead is considered. Must be computed after SLOT_GB is known.</td>
+          </tr>
+          <tr>
+            <td class="name">_maxOffheap</td>
+            <td class="formula">max(0, _maxOffheap raw)</td>
+            <td class="note">Cannot be negative. If SLOT_GB ≤ 4, off-heap is forced to 0 — the slot is too small to accommodate any off-heap allocation.</td>
+          </tr>
+        </tbody>
+      </table>
       <p style="font-size:13px;color:var(--muted);line-height:1.7;">
         The 4 GB reserve ensures that even without taking executor overhead into account, at least
         4 GB of headroom remains in the slot. The actual OOM margin after executor overhead will
@@ -896,15 +999,40 @@
     </p>
 
     <h3>Cluster Resource Budget</h3>
-    <div class="formula-block">
-<span class="cmt">// VM counts</span>
-<span class="sym">TOTAL_VMS</span>     <span class="eq">=</span> <span class="tier2">VMS_NODE</span> × <span class="tier0">NODES</span>
-
-<span class="cmt">// Per-node budget after reservation and VM allocation</span>
-<span class="sym">CORES_FOR_VMS</span> <span class="eq">=</span> <span class="tier2">VCPU_VM</span> × <span class="tier2">VMS_NODE</span>
-<span class="sym">RAM_FOR_VMS</span>   <span class="eq">=</span> <span class="tier2">RAM_VM</span>  × <span class="tier2">VMS_NODE</span>
-<span class="sym">FREE_CORES</span>    <span class="eq">=</span> <span class="tier1">AVAIL_CORES</span> − CORES_FOR_VMS    <span class="cmt">// negative = overcommit</span>
-<span class="sym">FREE_RAM</span>      <span class="eq">=</span> <span class="tier1">AVAIL_RAM</span>   − RAM_FOR_VMS      <span class="cmt">// negative = overcommit</span>
+    <div class="card">
+      <div class="card-title">VM Counts &amp; Per-Node Budget</div>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Formula</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">TOTAL_VMS</td>
+            <td class="formula">VMS_NODE × NODES</td>
+            <td class="note">Cluster-wide worker VM count.</td>
+          </tr>
+          <tr>
+            <td class="name">CORES_FOR_VMS</td>
+            <td class="formula">VCPU_VM × VMS_NODE</td>
+            <td class="note">Total vCPUs allocated to worker VMs per node.</td>
+          </tr>
+          <tr>
+            <td class="name">RAM_FOR_VMS</td>
+            <td class="formula">RAM_VM × VMS_NODE</td>
+            <td class="note">Total RAM allocated to worker VMs per node.</td>
+          </tr>
+          <tr>
+            <td class="name">FREE_CORES</td>
+            <td class="formula">AVAIL_CORES − CORES_FOR_VMS</td>
+            <td class="note">Unallocated cores per node. Negative value = overcommit error (Tier 5 check).</td>
+          </tr>
+          <tr>
+            <td class="name">FREE_RAM</td>
+            <td class="formula">AVAIL_RAM − RAM_FOR_VMS</td>
+            <td class="note">Unallocated RAM per node. Negative value = overcommit error (Tier 5 check).</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <h3>YARN NodeManager Overhead (Inside Each Worker VM)</h3>
@@ -915,34 +1043,115 @@
       reserves an additional fixed amount before executors are sized. These are different deductions
       at different levels of the stack.
     </div>
-    <div class="formula-block">
-<span class="cmt">// Fixed per-VM NodeManager + guest OS overhead (inside the VM)</span>
-<span class="sym">NM_CORES</span>     <span class="eq">=</span> <span class="num">2</span>   <span class="cmt">// 1 vCPU for guest OS + ApplicationMaster, 1 for NodeManager daemon</span>
-<span class="sym">NM_RAM</span>       <span class="eq">=</span> <span class="num">2</span>   <span class="cmt">// GB — NodeManager JVM heap</span>
-
-<span class="sym">EXEC_VCPUS</span>   <span class="eq">=</span> <span class="tier2">VCPU_VM</span>  − NM_CORES   <span class="cmt">// vCPUs available to executors within this VM</span>
-<span class="sym">EXEC_RAM_VM</span>  <span class="eq">=</span> <span class="tier2">RAM_VM</span>   − NM_RAM     <span class="cmt">// GB available to executors within this VM</span>
+    <div class="card">
+      <div class="card-title">NodeManager Overhead Constants &amp; VM-Level Available Resources</div>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Value / Formula</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">NM_CORES</td>
+            <td class="val">2</td>
+            <td class="note">Fixed: 1 vCPU for guest OS + YARN ApplicationMaster, 1 for the NodeManager daemon itself.</td>
+          </tr>
+          <tr>
+            <td class="name">NM_RAM</td>
+            <td class="val">2 GB</td>
+            <td class="note">Fixed: NodeManager JVM heap allocation.</td>
+          </tr>
+          <tr>
+            <td class="name">EXEC_VCPUS</td>
+            <td class="formula">VCPU_VM − NM_CORES</td>
+            <td class="note">vCPUs available to executors within this VM after NodeManager reservation.</td>
+          </tr>
+          <tr>
+            <td class="name">EXEC_RAM_VM</td>
+            <td class="formula">RAM_VM − NM_RAM</td>
+            <td class="note">GB available to executors within this VM after NodeManager reservation.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <h3>Executor Counts</h3>
-    <div class="formula-block">
-<span class="sym">EXEC_PER_VM</span>       <span class="eq">=</span> <span class="fn">max</span>(<span class="num">1</span>, <span class="fn">⌊</span>EXEC_VCPUS / <span class="tier2">EXEC_CORES</span><span class="fn">⌋</span>)
-<span class="sym">TOTAL_EXEC_RAW</span>    <span class="eq">=</span> EXEC_PER_VM × TOTAL_VMS
-<span class="sym">TOTAL_EXEC</span>        <span class="eq">=</span> <span class="fn">max</span>(<span class="num">1</span>, TOTAL_EXEC_RAW − <span class="num">1</span>)   <span class="cmt">// −1 reserves one executor slot for YARN cluster-mode driver</span>
-<span class="sym">TOTAL_EXEC_CORES</span>  <span class="eq">=</span> TOTAL_EXEC × <span class="tier2">EXEC_CORES</span>
+    <div class="card">
+      <div class="card-title">Executor Count Chain</div>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Formula</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">EXEC_PER_VM</td>
+            <td class="formula">max(1, ⌊EXEC_VCPUS / EXEC_CORES⌋)</td>
+            <td class="note">Executors per VM. Floor division; max(1,...) ensures at least one executor even if the core allocation is tight.</td>
+          </tr>
+          <tr>
+            <td class="name">TOTAL_EXEC_RAW</td>
+            <td class="formula">EXEC_PER_VM × TOTAL_VMS</td>
+            <td class="note">Raw executor count before driver reservation.</td>
+          </tr>
+          <tr>
+            <td class="name">TOTAL_EXEC</td>
+            <td class="formula">max(1, TOTAL_EXEC_RAW − 1)</td>
+            <td class="note">−1 reserves one executor container slot for the YARN cluster-mode driver. The driver competes for the same container pool as executors.</td>
+          </tr>
+          <tr>
+            <td class="name">TOTAL_EXEC_CORES</td>
+            <td class="formula">TOTAL_EXEC × EXEC_CORES</td>
+            <td class="note">Total productive cores across all executors cluster-wide. Basis for DEFAULT_PARALLELISM in Tier 4.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <h3>Storage — Ceph &amp; Scratch</h3>
-    <div class="formula-block">
-<span class="cmt">// Ceph capacity</span>
-<span class="sym">CEPH_RAW_CLUSTER</span>    <span class="eq">=</span> <span class="tier2">OSD_NODE</span> × <span class="tier0">NVME_TB</span> × <span class="tier0">NODES</span>
-<span class="sym">CEPH_USABLE</span>         <span class="eq">=</span> CEPH_RAW_CLUSTER / <span class="tier2">CEPH_REP</span>
-<span class="sym">CEPH_DAYS</span>           <span class="eq">=</span> CEPH_USABLE / <span class="tier2">DAILY_TB</span>   <span class="cmt">// estimated days of ingest retention</span>
-
-<span class="cmt">// Scratch space (NVMe drives not allocated to Ceph)</span>
-<span class="sym">SCRATCH_NVME_PER_NODE</span> <span class="eq">=</span> <span class="tier0">NVME_COUNT</span> − <span class="tier2">OSD_NODE</span>
-<span class="sym">SCRATCH_NVME_PER_VM</span>   <span class="eq">=</span> SCRATCH_NVME_PER_NODE / <span class="tier2">VMS_NODE</span>   <span class="cmt">// may be fractional</span>
-<span class="sym">SCRATCH_TB_PER_VM</span>     <span class="eq">=</span> SCRATCH_NVME_PER_VM × <span class="tier0">NVME_TB</span>
+    <div class="card">
+      <div class="card-title">Storage Capacity Formulas</div>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Formula</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="3" style="color:var(--accent);font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(78,158,255,0.05);padding:8px 10px;">Ceph Capacity</td>
+          </tr>
+          <tr>
+            <td class="name">CEPH_RAW_CLUSTER</td>
+            <td class="formula">OSD_NODE × NVME_TB × NODES</td>
+            <td class="note">Total raw NVMe capacity committed to Ceph across all nodes.</td>
+          </tr>
+          <tr>
+            <td class="name">CEPH_USABLE</td>
+            <td class="formula">CEPH_RAW_CLUSTER / CEPH_REP</td>
+            <td class="note">Usable capacity after replication. CEPH_REP = 3 retains 1/3 of raw; CEPH_REP = 2 retains 1/2 of raw.</td>
+          </tr>
+          <tr>
+            <td class="name">CEPH_DAYS</td>
+            <td class="formula">CEPH_USABLE / DAILY_TB</td>
+            <td class="note">Estimated days the pool can hold ingest data before the Snowflake pipeline must flush it. Drives Tier 5 retention warnings.</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="color:var(--green);font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(62,207,142,0.05);padding:8px 10px;">Scratch Space</td>
+          </tr>
+          <tr>
+            <td class="name">SCRATCH_NVME_PER_NODE</td>
+            <td class="formula">NVME_COUNT − OSD_NODE</td>
+            <td class="note">NVMe drives per node not allocated to Ceph — the remainder after the OSD slider is set.</td>
+          </tr>
+          <tr>
+            <td class="name">SCRATCH_NVME_PER_VM</td>
+            <td class="formula">SCRATCH_NVME_PER_NODE / VMS_NODE</td>
+            <td class="note">Drives assigned to each VM. May be fractional if drives don't divide evenly across VMs.</td>
+          </tr>
+          <tr>
+            <td class="name">SCRATCH_TB_PER_VM</td>
+            <td class="formula">SCRATCH_NVME_PER_VM × NVME_TB</td>
+            <td class="note">Scratch disk capacity per VM in TB. Used in the Tier 5 scratch adequacy check against shuffle volume.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -966,23 +1175,45 @@
       and check if it fits — instead it computes the maximum memory that fits in the slot, then applies
       a 5% safety discount to produce the recommended <code>spark.executor.memory</code> value.
     </div>
-    <div class="formula-block">
-<span class="cmt">// Step 1: Slot size — RAM available to one executor including all overhead</span>
-<span class="sym">SLOT_GB</span>       <span class="eq">=</span> <span class="tier3">EXEC_RAM_VM</span> / <span class="tier3">EXEC_PER_VM</span>
-
-<span class="cmt">// Step 2: Solve for max executor heap given overhead and off-heap</span>
-<span class="cmt">//   Constraint: exec_mem × (1 + overhead_pct) + offheap ≤ slot_gb</span>
-<span class="cmt">//   Rearranged:  exec_mem ≤ (slot_gb − offheap) / (1 + overhead_pct)</span>
-<span class="sym">MAX_EXEC_MEM</span>  <span class="eq">=</span> (SLOT_GB − <span class="tier2">OFFHEAP</span>) / (<span class="num">1</span> + <span class="tier2">OVH_PCT</span>)
-
-<span class="cmt">// Step 3: Apply 5% safety margin → final recommended value</span>
-<span class="sym">EXEC_MEM</span>      <span class="eq">=</span> <span class="fn">⌊</span>MAX_EXEC_MEM × <span class="num">0.95</span><span class="fn">⌋</span>   <span class="cmt">// rounded down to integer GB</span>
-
-<span class="cmt">// Step 4: Verify — actual total memory consumed per slot</span>
-<span class="sym">ACTUAL_TOTAL</span>  <span class="eq">=</span> EXEC_MEM × (<span class="num">1</span> + <span class="tier2">OVH_PCT</span>) + <span class="tier2">OFFHEAP</span>
-
-<span class="cmt">// Step 5: OOM margin — remaining space in slot after all allocations</span>
-<span class="sym">OOM_MARGIN</span>    <span class="eq">=</span> SLOT_GB − ACTUAL_TOTAL   <span class="cmt">// negative means OOM on launch</span>
+    <div class="card">
+      <div class="card-title">Executor Memory — 5-Step Derivation</div>
+      <table>
+        <thead>
+          <tr><th>Step</th><th>Variable</th><th>Formula</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="val" style="white-space:nowrap;">1</td>
+            <td class="name">SLOT_GB</td>
+            <td class="formula">EXEC_RAM_VM / EXEC_PER_VM</td>
+            <td class="note">RAM available to one executor including all overhead types. Equal division of VM memory across executors.</td>
+          </tr>
+          <tr>
+            <td class="val">2</td>
+            <td class="name">MAX_EXEC_MEM</td>
+            <td class="formula">(SLOT_GB − OFFHEAP) / (1 + OVH_PCT)</td>
+            <td class="note">Constraint rearranged: exec_mem × (1 + overhead) + offheap ≤ slot → exec_mem ≤ (slot − offheap) / (1 + overhead). This is the theoretical maximum before the safety margin.</td>
+          </tr>
+          <tr>
+            <td class="val">3</td>
+            <td class="name">EXEC_MEM</td>
+            <td class="formula">⌊MAX_EXEC_MEM × 0.95⌋</td>
+            <td class="note">5% safety margin applied; rounded down to integer GB. This value is written to <code>spark.executor.memory</code>.</td>
+          </tr>
+          <tr>
+            <td class="val">4</td>
+            <td class="name">ACTUAL_TOTAL</td>
+            <td class="formula">EXEC_MEM × (1 + OVH_PCT) + OFFHEAP</td>
+            <td class="note">Verification: total container memory actually consumed per slot. Should be ≤ SLOT_GB.</td>
+          </tr>
+          <tr>
+            <td class="val">5</td>
+            <td class="name">OOM_MARGIN</td>
+            <td class="formula">SLOT_GB − ACTUAL_TOTAL</td>
+            <td class="note">Remaining headroom in the slot. Negative = executor container exceeds its allocation — OOM on launch. Evaluated against OOM_THRESHOLD in Tier 5.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="card">
@@ -1021,8 +1252,20 @@
     </div>
 
     <h3>Blast Radius</h3>
-    <div class="formula-block">
-<span class="sym">BLAST_PCT</span>  <span class="eq">=</span> <span class="num">100</span> / <span class="tier3">TOTAL_EXEC</span>   <span class="cmt">// % of cluster parallelism lost when one executor fails</span>
+    <div class="card">
+      <div class="card-title">Blast Radius</div>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Formula</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">BLAST_PCT</td>
+            <td class="formula">100 / TOTAL_EXEC</td>
+            <td class="note">Percentage of cluster parallelism lost when one executor fails or is killed. Lower is better — more executors means each one carries less proportional weight.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
     <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-top:10px;">
       A higher executor count lowers blast radius. With 10 executors, losing one costs 10% of cluster capacity.
@@ -1031,47 +1274,138 @@
     </p>
 
     <h3>Shuffle Parallelism</h3>
-    <div class="formula-block">
-<span class="sym">DEFAULT_PARALLELISM</span>  <span class="eq">=</span> <span class="tier3">TOTAL_EXEC_CORES</span> × <span class="num">2</span>   <span class="cmt">// standard Spark guidance</span>
-<span class="sym">SHUFFLE_DATA_TB</span>      <span class="eq">=</span> <span class="tier2">DAILY_TB</span> × <span class="tier2">SHUF_AMP</span>
-<span class="sym">SHUFFLE_DATA_MB</span>      <span class="eq">=</span> SHUFFLE_DATA_TB × <span class="num">1 048 576</span>   <span class="cmt">// TB → MB</span>
-<span class="sym">CALC_PARTITIONS</span>      <span class="eq">=</span> <span class="fn">⌈</span>SHUFFLE_DATA_MB / <span class="tier2">PART_MB</span><span class="fn">⌉</span>
-<span class="sym">SHUFFLE_PARTS</span>        <span class="eq">=</span> <span class="tier2">AQE</span> ? <span class="fn">max</span>(<span class="num">2000</span>, CALC_PARTITIONS) : CALC_PARTITIONS
+    <div class="card">
+      <div class="card-title">Shuffle &amp; Partition Count</div>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Formula</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">DEFAULT_PARALLELISM</td>
+            <td class="formula">TOTAL_EXEC_CORES × 2</td>
+            <td class="note">Standard Spark guidance: 2 tasks per executor core. Written to <code>spark.default.parallelism</code>.</td>
+          </tr>
+          <tr>
+            <td class="name">SHUFFLE_DATA_TB</td>
+            <td class="formula">DAILY_TB × SHUF_AMP</td>
+            <td class="note">Estimated shuffle intermediate volume — daily ingest scaled by the amplification factor.</td>
+          </tr>
+          <tr>
+            <td class="name">SHUFFLE_DATA_MB</td>
+            <td class="formula">SHUFFLE_DATA_TB × 1 048 576</td>
+            <td class="note">TB → MB unit conversion for partition count arithmetic.</td>
+          </tr>
+          <tr>
+            <td class="name">CALC_PARTITIONS</td>
+            <td class="formula">⌈SHUFFLE_DATA_MB / PART_MB⌉</td>
+            <td class="note">Raw partition count: total shuffle volume divided by the target partition size.</td>
+          </tr>
+          <tr>
+            <td class="name">SHUFFLE_PARTS</td>
+            <td class="formula">AQE on: max(2000, CALC_PARTITIONS)<br>AQE off: CALC_PARTITIONS</td>
+            <td class="note">AQE floor of 2000 prevents starting with too few partitions — AQE can coalesce partitions down but cannot split them up. Written to <code>spark.sql.shuffle.partitions</code>.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-top:10px;">
-      The 2000-partition floor when AQE is on prevents Spark from starting with too few partitions
-      and then being unable to split them further during execution. AQE can coalesce down from 2000
-      but cannot split up from a number that is already too small.
-    </p>
 
     <h3>Parquet Partitioning</h3>
-    <div class="formula-block">
-<span class="sym">CSV_MB</span>        <span class="eq">=</span> <span class="tier2">csv_size_tb</span> × <span class="num">1024</span>   <span class="cmt">// slider in GB → MB</span>
-<span class="sym">PARQ_MB</span>       <span class="eq">=</span> CSV_MB / <span class="tier2">parquet_compression</span>
-<span class="sym">INPUT_PARTS</span>   <span class="eq">=</span> <span class="fn">⌈</span>CSV_MB / <span class="tier2">max_partition_bytes</span><span class="fn">⌉</span>   <span class="cmt">// read parallelism</span>
-
-<span class="cmt">// Output targeting ~150 MB files for Snowflake COPY INTO efficiency</span>
-<span class="sym">OUTPUT_PARTS</span>  <span class="eq">=</span> <span class="fn">max</span>(<span class="num">1</span>, <span class="fn">⌈</span>PARQ_MB / <span class="num">150</span><span class="fn">⌉</span>)   <span class="cmt">// 150 MB = fixed Snowflake target</span>
-<span class="sym">FILE_SIZE_MB</span>  <span class="eq">=</span> PARQ_MB / OUTPUT_PARTS        <span class="cmt">// actual file size after repartition</span>
+    <div class="card">
+      <div class="card-title">Input Read &amp; Output File Sizing</div>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Formula</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="3" style="color:var(--accent);font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(78,158,255,0.05);padding:8px 10px;">Input</td>
+          </tr>
+          <tr>
+            <td class="name">CSV_MB</td>
+            <td class="formula">csv_size_tb × 1 024</td>
+            <td class="note">Slider unit is GB (despite the "tb" in the ID); multiplied by 1 024 to convert to MB for partition arithmetic.</td>
+          </tr>
+          <tr>
+            <td class="name">INPUT_PARTS</td>
+            <td class="formula">⌈CSV_MB / max_partition_bytes⌉</td>
+            <td class="note">Number of Spark tasks for reading the input file. Controls read parallelism. Corresponds to <code>spark.sql.files.maxPartitionBytes</code>.</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="color:var(--green);font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;background:rgba(62,207,142,0.05);padding:8px 10px;">Output (Parquet)</td>
+          </tr>
+          <tr>
+            <td class="name">PARQ_MB</td>
+            <td class="formula">CSV_MB / parquet_compression</td>
+            <td class="note">Estimated Parquet output size after compression. Used for output partitioning and Snowflake transfer time estimate.</td>
+          </tr>
+          <tr>
+            <td class="name">OUTPUT_PARTS</td>
+            <td class="formula">max(1, ⌈PARQ_MB / 150⌉)</td>
+            <td class="note">Repartition count before writing. Target file size is 150 MB — the sweet spot for Snowflake COPY INTO efficiency. Applied at code level via <code>df.repartition(OUTPUT_PARTS)</code>.</td>
+          </tr>
+          <tr>
+            <td class="name">FILE_SIZE_MB</td>
+            <td class="formula">PARQ_MB / OUTPUT_PARTS</td>
+            <td class="note">Actual average file size after repartition. Warning if &lt; 64 MB (Snowflake overhead too high) or &gt; 300 MB (reduced parallelism on ingest).</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <h3>Network Transfer</h3>
-    <div class="formula-block">
-<span class="cmt">// Aggregate node uplink (all nodes transmitting simultaneously)</span>
-<span class="sym">AGG_NODE_G</span>   <span class="eq">=</span> <span class="tier2">NET_NODE_G</span> × <span class="tier0">NODES</span>
-<span class="sym">NET_WAN_G</span>    <span class="eq">=</span> <span class="tier2">NET_WAN_MBPS</span> / <span class="num">1000</span>   <span class="cmt">// Mbps → Gbps</span>
-
-<span class="cmt">// Bottleneck is whichever segment has the lowest capacity</span>
-<span class="sym">BOTTLENECK_G</span> <span class="eq">=</span> <span class="fn">min</span>(AGG_NODE_G, <span class="tier2">NET_SWITCH_G</span>, NET_WAN_G)
-
-<span class="cmt">// Effective throughput at 80% utilization</span>
-<span class="sym">EFF_GBPS</span>     <span class="eq">=</span> BOTTLENECK_G × <span class="num">0.80</span>
-<span class="sym">EFF_GBps</span>     <span class="eq">=</span> EFF_GBPS / <span class="num">8</span>   <span class="cmt">// Gbps → GB/s (bytes)</span>
-
-<span class="cmt">// Transfer time estimates</span>
-<span class="sym">PARQ_GB</span>      <span class="eq">=</span> PARQ_MB / <span class="num">1024</span>
-<span class="sym">TRANSFER_SEC</span> <span class="eq">=</span> PARQ_GB / EFF_GBps
-<span class="sym">RERUN_SEC</span>    <span class="eq">=</span> TRANSFER_SEC × <span class="num">2</span>   <span class="cmt">// rough 2× estimate for job failure + re-run</span>
+    <div class="card">
+      <div class="card-title">Bottleneck Detection &amp; Transfer Time</div>
+      <table>
+        <thead>
+          <tr><th>Phase</th><th>Variable</th><th>Formula</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td rowspan="2" style="color:var(--accent2);font-weight:600;font-family:var(--mono);font-size:11px;vertical-align:top;padding-top:12px;white-space:nowrap;">Uplink aggregation</td>
+            <td class="name">AGG_NODE_G</td>
+            <td class="formula">NET_NODE_G × NODES</td>
+            <td class="note">Combined throughput of all node uplinks transmitting simultaneously (Gbps).</td>
+          </tr>
+          <tr>
+            <td class="name">NET_WAN_G</td>
+            <td class="formula">NET_WAN_MBPS / 1 000</td>
+            <td class="note">WAN speed converted from Mbps to Gbps for comparison with other path segments.</td>
+          </tr>
+          <tr style="border-top: 2px solid var(--border2);">
+            <td rowspan="3" style="color:var(--accent2);font-weight:600;font-family:var(--mono);font-size:11px;vertical-align:top;padding-top:12px;white-space:nowrap;">Bottleneck &amp; throughput</td>
+            <td class="name">BOTTLENECK_G</td>
+            <td class="formula">min(AGG_NODE_G, NET_SWITCH_G, NET_WAN_G)</td>
+            <td class="note">The slowest segment in the path limits all transfer. The UI labels which segment is the bottleneck.</td>
+          </tr>
+          <tr>
+            <td class="name">EFF_GBPS</td>
+            <td class="formula">BOTTLENECK_G × 0.80</td>
+            <td class="note">80% utilization allowance for TCP overhead, protocol framing, and congestion avoidance.</td>
+          </tr>
+          <tr>
+            <td class="name">EFF_GBps</td>
+            <td class="formula">EFF_GBPS / 8</td>
+            <td class="note">Gbps (bits) → GB/s (bytes). Used in time calculations below.</td>
+          </tr>
+          <tr style="border-top: 2px solid var(--border2);">
+            <td rowspan="3" style="color:var(--accent2);font-weight:600;font-family:var(--mono);font-size:11px;vertical-align:top;padding-top:12px;white-space:nowrap;">Transfer time</td>
+            <td class="name">PARQ_GB</td>
+            <td class="formula">PARQ_MB / 1 024</td>
+            <td class="note">Parquet output size in GB for time calculation.</td>
+          </tr>
+          <tr>
+            <td class="name">TRANSFER_SEC</td>
+            <td class="formula">PARQ_GB / EFF_GBps</td>
+            <td class="note">Estimated transfer duration for the full Parquet output at effective throughput.</td>
+          </tr>
+          <tr>
+            <td class="name">RERUN_SEC</td>
+            <td class="formula">TRANSFER_SEC × 2</td>
+            <td class="note">Rough 2× estimate for job failure + retry window — useful for pipeline SLA planning.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
