@@ -1332,7 +1332,87 @@
     </div>
   </details>
 
+  <!-- ═══ REVISIONS ══════════════════════════════════════════════════════════════ -->
+  <details class="section-details" id="sec_revisions">
+    <summary class="section-summary" id="sec_revisions_summary">
+      <span class="section-title">Revisions</span>
+      <span class="section-sub">· Formula change history · 2026-04-01 through 2026-04-18</span>
+    </summary>
+    <div class="section-body">
 
+      <div class="card">
+        <div class="card-title">2026-04-01 — Initial Release</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Core executor and Ceph storage formulas established.</p>
+        <table class="param-table">
+          <thead><tr><th>Formula</th><th>Expression</th></tr></thead>
+          <tbody>
+            <tr><td>SLOT_GB</td><td>(RAM_VM − 2) / EXEC_PER_VM</td></tr>
+            <tr><td>MAX_EXEC_MEM</td><td>(SLOT_GB − OFFHEAP) / (1 + OVH_PCT)</td></tr>
+            <tr><td>EXEC_MEM</td><td>floor(MAX_EXEC_MEM × 0.95) — 5% safety margin</td></tr>
+            <tr><td>EXEC_PER_VM</td><td>floor((VCPU_VM − 2) / EXEC_CORES)</td></tr>
+            <tr><td>TOTAL_EXEC</td><td>max(1, EXEC_PER_VM × TOTAL_VMS − 1)</td></tr>
+            <tr><td>CEPH_USABLE</td><td>OSD_NODE × NVME_TB × NODES / CEPH_REP</td></tr>
+            <tr><td>CEPH_DAYS</td><td>CEPH_USABLE / DAILY_TB</td></tr>
+            <tr><td>SCRATCH_TB_PER_VM</td><td>(NVME_COUNT − OSD_NODE) / VMS_NODE × NVME_TB</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">2026-04-03 — Parquet Partitioning &amp; Network Transfer</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Two new calculation sections added. No changes to executor or storage formulas.</p>
+        <table class="param-table">
+          <thead><tr><th>Formula</th><th>Expression</th></tr></thead>
+          <tbody>
+            <tr><td>PARQ_MB</td><td>CSV_MB / PARQ_COMP</td></tr>
+            <tr><td>INPUT_PARTS</td><td>ceil(CSV_MB / MAX_PART_MB)</td></tr>
+            <tr><td>TARGET_OUT_MB</td><td>150 (fixed) — Snowflake COPY INTO optimal range 100–250 MB</td></tr>
+            <tr><td>OUTPUT_PARTS</td><td>max(1, ceil(PARQ_MB / TARGET_OUT_MB))</td></tr>
+            <tr><td>BOTTLENECK_G</td><td>min(AGG_NODE_G, NET_SWITCH_G, NET_WAN_G)</td></tr>
+            <tr><td>EFF_GBPS</td><td>BOTTLENECK_G × 0.80 (80% utilization)</td></tr>
+            <tr><td>TRANSFER_SEC</td><td>PARQ_GB / (EFF_GBPS / 8)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">2026-04-15 — Skew Profile, Join Type, Blast Radius, Dynamic Slider Bounds</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Major additions promoted from sandbox. Simultaneously ported to production calculator.</p>
+        <table class="param-table">
+          <thead><tr><th>Formula</th><th>Expression</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>OOM_THRESHOLD</td><td>heavy→6 / moderate→5 / uniform→4 GB</td><td style="font-size:11px;color:var(--muted)">Minimum executor slot headroom to absorb skew-driven spikes: Parquet read + sort + spill buffers simultaneously in-flight.</td></tr>
+            <tr><td>JOIN_SCRATCH_FACTOR</td><td>wide→1.25 / mixed→1.10 / broadcast→1.00</td><td style="font-size:11px;color:var(--muted)">Multiplier on top of DAILY_TB × SHUF_AMP. Wide: sort-merge materialization. Mixed: repartition/coalesce overhead. Broadcast: no shuffle.</td></tr>
+            <tr><td>BLAST_PCT</td><td>100 / TOTAL_EXEC</td><td style="font-size:11px;color:var(--muted)">% of cluster compute capacity lost on single executor failure.</td></tr>
+            <tr><td>Scratch adequacy</td><td>SCRATCH_TB_PER_VM ≥ DAILY_TB × SHUF_AMP × JOIN_SCRATCH_FACTOR × 0.75</td><td style="font-size:11px;color:var(--muted)">0.75 safety margin on worst-case shuffle volume.</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px;color:var(--muted);margin-top:10px;">Dynamic slider bounds also added: vCPU max and exec_cores max clamped at runtime based on available cores after infrastructure reservation.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">2026-04-17 — Documentation Only</div>
+        <p style="font-size:12px;color:var(--muted);">Inline code comments expanded explaining the 4/5/6 GB OOM threshold basis and the 1.0/1.1/1.25 join scratch multipliers, which had been undocumented. No formula changes. Reviewed against third-party mathematical review — all core formulas confirmed correct.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">2026-04-18 — CEPH_DAYS Formula Revised; n_parquet Slider Added</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Architectural review confirmed: Snowflake has no inbound network access; Parquet is transferred by an outbound batch job and deleted only on confirmed delivery; up to N concurrent Parquet sets may accumulate on local Ceph; VM OS disks (80 GB × VMs, Ceph RBD) were not previously deducted.</p>
+        <table class="param-table">
+          <thead><tr><th>Variable</th><th>Expression</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>VM_OS_USABLE_TB</td><td>VMS_NODE × NODES × 80 / 1024</td><td style="font-size:11px;color:var(--muted)">Logical Ceph usable consumed by worker VM OS disks. Permanent allocation.</td></tr>
+            <tr><td>PARQ_PENDING_TB</td><td>N_PARQUET × (DAILY_TB / PARQ_COMP)</td><td style="font-size:11px;color:var(--muted)">Ceph held by Parquet outputs awaiting outbound batch transfer confirmation.</td></tr>
+            <tr><td>CEPH_RESERVED</td><td>VM_OS_USABLE_TB + PARQ_PENDING_TB</td><td style="font-size:11px;color:var(--muted)">Total Ceph unavailable to new ingest jobs.</td></tr>
+            <tr><td>CEPH_EFFECTIVE</td><td>max(0, CEPH_USABLE − CEPH_RESERVED)</td><td style="font-size:11px;color:var(--muted)">Ceph available for incoming CSV ingest.</td></tr>
+            <tr><td>CEPH_DAYS (revised)</td><td>CEPH_EFFECTIVE / DAILY_TB</td><td style="font-size:11px;color:var(--muted)">Was: CEPH_USABLE / DAILY_TB. Now reflects effective headroom after all reserved allocations.</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px;color:var(--muted);margin-top:10px;">New input: <code>n_parquet</code> slider (range 1–5, default 2, label "Parquet outputs pending transfer"). Warning language updated: "Snowflake flush schedule" → "outbound batch transfer pipeline".</p>
+      </div>
+
+    </div>
+  </details>
 
 </div>
 
