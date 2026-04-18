@@ -33,6 +33,14 @@ git checkout <commit-hash> -- <file>
 
 **Any new HTML file added to the project must be placed under git revision control immediately** — `git add <file>` at creation time, before any edits are made.
 
+**Any HTML file that contains a Revisions section must have that section updated as part of the same edit** whenever a formula, calculation, or content change is made. The Revisions section entry must include the date, a short title, and a description of what changed and why. Documentation-only changes (comments, labels, styling) should be noted briefly rather than given a full entry. Do not update the Revisions section for navigation, layout, or styling changes alone.
+
+Files with Revisions sections:
+- `development_spark_calculator.html` — section id `sec_revisions`
+- `production_spark_calculator.html` — section id `sec_revisions` (once added)
+- `Document/dev_cluster_math_reference.html` — section id `revisions`
+- `Notes/dev-cluster-storage-reference.html` — section id `sec_revisions`
+
 When a change is made to either calculator, the corresponding guide file (`prod_calculator_guide.html`, `dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
 
 ## Calculator Architecture
