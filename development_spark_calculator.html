@@ -1076,9 +1076,14 @@
                     <div class="ctrl-val" id="nvme_osd_count_val">4</div>
                   </div>
                   <div class="control-row">
-                    <div class="ctrl-label"><strong>Ceph replication factor</strong><br><span style="font-size:10px"><span id="ceph_rep_current">3</span>× → <span id="ceph_rep_usable">—</span> TB usable · <span id="ceph_rep_days">—</span> days at current ingest</span></div>
+                    <div class="ctrl-label"><strong>Ceph replication factor</strong><br><span style="font-size:10px"><span id="ceph_rep_current">3</span>× → <span id="ceph_rep_usable">—</span> TB usable · <span id="ceph_rep_days">—</span> days effective</span></div>
                     <input type="range" id="ceph_rep" min="2" max="3" step="1" value="3" oninput="recalc()">
                     <div class="ctrl-val" id="ceph_rep_val">3×</div>
+                  </div>
+                  <div class="control-row">
+                    <div class="ctrl-label"><strong>Parquet outputs pending transfer</strong><br><span style="font-size:10px">max concurrent Parquet sets on Ceph awaiting outbound batch transfer confirmation · reduces effective ingest capacity</span></div>
+                    <input type="range" id="n_parquet" min="1" max="5" step="1" value="2" oninput="recalc()">
+                    <div class="ctrl-val" id="n_parquet_val">2</div>
                   </div>
 
                   <div class="section-divider"></div>
@@ -1547,9 +1552,15 @@ function recalc() {
   if (SVC_NGINX)   { OPT_SVC_CORES += 1; OPT_SVC_RAM += 1; }
   const SKEW_PROFILE = el('skew_profile').value;   // 'uniform' | 'moderate' | 'heavy'
   const JOIN_TYPE    = el('join_type').value;        // 'broadcast' | 'mixed' | 'wide'
-  // OOM threshold rises with skew: uniform=4, moderate=5, heavy=6 GB
+  // OOM threshold: minimum safe executor slot headroom to absorb task-level memory spikes from data skew.
+  // Uniform (4 GB): tasks near average partition size — standard Parquet read buffer + overhead.
+  // Moderate (5 GB): occasional oversized partitions — Parquet read buffer + sort buffer + spill can spike simultaneously.
+  // Heavy (6 GB): frequent outsized partitions — full Parquet stripe + multiple concurrent spill buffers in flight.
   const OOM_THRESHOLD = SKEW_PROFILE === 'heavy' ? 6 : SKEW_PROFILE === 'moderate' ? 5 : 4;
-  // Scratch adequacy factor rises with join width
+  // Join scratch factor: additional scratch multiplier applied on top of base shuffle volume (DAILY_TB × SHUF_AMP).
+  // Broadcast (1.0): small table broadcast to all nodes — no shuffle data materialized on scratch.
+  // Mixed (1.1): blend of broadcast and sort-merge; repartition/coalesce ops add ~10% intermediate data.
+  // Wide (1.25): multi-table sort-merge shuffles materialize intermediate join keys — ~25% additional scratch.
   const JOIN_SCRATCH_FACTOR = JOIN_TYPE === 'wide' ? 1.25 : JOIN_TYPE === 'mixed' ? 1.1 : 1.0;
   const SVC_CORES  = RM_CORES + OPT_SVC_CORES;
   const SVC_RAM    = RM_RAM   + OPT_SVC_RAM;
@@ -1649,9 +1660,16 @@ function recalc() {
   setVal('shuf_vol_tb',      fmt(SHUFFLE_DATA_TB, 1));
   setVal('shuf_scratch_pct', _totalClusterScratch > 0 ? Math.round(SHUFFLE_DATA_TB / _totalClusterScratch * 100) : '∞');
 
+  const PARQ_COMP        = +el('parquet_compression').value;
+  const N_PARQUET        = +el('n_parquet').value;
   const CEPH_RAW_CLUSTER = OSD_NODE * NVME_TB * NODES;
   const CEPH_USABLE      = CEPH_RAW_CLUSTER / CEPH_REP;
-  const CEPH_DAYS        = CEPH_USABLE / DAILY_TB;
+  // Ceph reserved: VM OS disks (80 GB × VMs, logical usable) + pending Parquet outputs awaiting batch transfer
+  const VM_OS_USABLE_TB  = VMS_NODE * NODES * 80 / 1024;
+  const PARQ_PENDING_TB  = N_PARQUET * (DAILY_TB / PARQ_COMP);
+  const CEPH_RESERVED    = VM_OS_USABLE_TB + PARQ_PENDING_TB;
+  const CEPH_EFFECTIVE   = Math.max(0, CEPH_USABLE - CEPH_RESERVED);
+  const CEPH_DAYS        = CEPH_EFFECTIVE / DAILY_TB;
   setVal('osd_usable',          fmt(CEPH_USABLE, 1));
   setVal('osd_scratch_cluster', fmt(_totalClusterScratch, 1));
   setVal('daily_ceph_days',  Math.floor(CEPH_DAYS));
@@ -1659,6 +1677,7 @@ function recalc() {
   setVal('ceph_rep_current', CEPH_REP);
   setVal('ceph_rep_usable',  fmt(CEPH_USABLE, 1));
   setVal('ceph_rep_days',    Math.floor(CEPH_DAYS));
+  setVal('n_parquet_val',    N_PARQUET);
 
   // ─── Update UI ───────────────────────────────────────────────────────────
 
@@ -1757,12 +1776,12 @@ function recalc() {
   // Storage layout
   buildStorageGrid(OSD_NODE, VMS_NODE, SCRATCH_NVME_PER_NODE);
 
-  setVal('out_ceph_usable', fmt(CEPH_USABLE, 1) + ' TB');
-  setClass('out_ceph_usable', CEPH_USABLE < 8 ? 'warn' : 'ok');
-  setVal('out_ceph_usable_sub', `${OSD_NODE * NODES} OSDs · ${CEPH_REP}× rep · ${fmt(CEPH_RAW_CLUSTER,1)} TB raw`);
+  setVal('out_ceph_usable', fmt(CEPH_EFFECTIVE, 1) + ' TB');
+  setClass('out_ceph_usable', CEPH_EFFECTIVE < 4 ? 'warn' : 'ok');
+  setVal('out_ceph_usable_sub', `${fmt(CEPH_USABLE,1)} TB raw usable − ${fmt(CEPH_RESERVED,2)} TB reserved (${N_PARQUET}× Parquet + VM OS)`);
   setVal('out_ceph_days', fmt(CEPH_DAYS, 1));
   setClass('out_ceph_days', CEPH_DAYS < 3 ? 'bad' : CEPH_DAYS < 7 ? 'warn' : 'ok');
-  setVal('out_ceph_days_sub', `at ${DAILY_TB} TB/day`);
+  setVal('out_ceph_days_sub', `effective · after ${N_PARQUET}× pending Parquet + VM disks`);
   setVal('out_scratch', fmt(SCRATCH_TB_PER_VM, 2) + ' TB');
   const scratchOk = SCRATCH_TB_PER_VM >= DAILY_TB * SHUF_AMP * JOIN_SCRATCH_FACTOR * 0.75;
   setClass('out_scratch', scratchOk ? 'ok' : 'warn');
@@ -1783,7 +1802,6 @@ function recalc() {
   // ── Partitioning card calculations
   const CSV_MB         = +el('csv_size_tb').value * 1024;   // slider unit is GB → convert to MB
   const CSV_TB         = +el('csv_size_tb').value / 1000;   // for display (SI TB)
-  const PARQ_COMP      = +el('parquet_compression').value;
   const MAX_PART_MB    = +el('max_partition_bytes').value;
   const PARQ_MB        = CSV_MB / PARQ_COMP;
   const INPUT_PARTS    = Math.ceil(CSV_MB / MAX_PART_MB);
@@ -1816,7 +1834,7 @@ function recalc() {
   buildWarnings({
     FREE_CORES, FREE_RAM, OOM_MARGIN, EXEC_PER_VM,
     SCRATCH_TB_PER_VM, DAILY_TB, SHUF_AMP,
-    CEPH_DAYS, NUMA_PIN, AQE, VMS_NODE,
+    CEPH_DAYS, CEPH_EFFECTIVE, CEPH_RESERVED, N_PARQUET, NUMA_PIN, AQE, VMS_NODE,
     CEPH_USABLE, VCPU_VM, TOTAL_EXEC, EXEC_MEM, OFFHEAP,
     OOM_THRESHOLD, SKEW_PROFILE, JOIN_TYPE, JOIN_SCRATCH_FACTOR
   });
@@ -2240,11 +2258,11 @@ function buildWarnings(w) {
       msg: `Only ${w.EXEC_PER_VM} executors per VM. Low density means a failed executor represents a large fraction of per-VM capacity. Consider fewer cores per executor or more vCPUs per VM.` });
   }
   if(w.CEPH_DAYS < 3) {
-    warnings.push({ type:'error', icon:'✕', title:'Ceph capacity critically low',
-      msg: `Only ${fmt(w.CEPH_DAYS,1)} days of ingest at ${w.DAILY_TB} TB/day. Increase OSD count, reduce replication factor to 2, or reduce daily volume. Your Snowflake flush schedule must run at least ${Math.ceil(1/w.CEPH_DAYS)}× per day.` });
+    warnings.push({ type:'error', icon:'✕', title:'Effective Ceph capacity critically low',
+      msg: `Only ${fmt(w.CEPH_DAYS,1)} effective days of ingest headroom at ${w.DAILY_TB} TB/day (after VM OS disks and ${w.N_PARQUET}× pending Parquet). Increase OSD count, reduce replication factor, or reduce pending Parquet outputs. Outbound batch transfer pipeline must run at least ${Math.ceil(1/w.CEPH_DAYS)}× per day.` });
   } else if(w.CEPH_DAYS < 7) {
-    warnings.push({ type:'warning', icon:'⚠', title:'Limited Ceph retention',
-      msg: `${fmt(w.CEPH_DAYS,1)} days of data at current volume. Ensure your Snowflake load pipeline runs reliably — a stalled job will fill storage within a week.` });
+    warnings.push({ type:'warning', icon:'⚠', title:'Limited effective Ceph headroom',
+      msg: `${fmt(w.CEPH_DAYS,1)} effective days of ingest headroom at current volume and ${w.N_PARQUET}× pending Parquet. Ensure the outbound batch transfer pipeline runs reliably — a stalled transfer will exhaust available capacity within a week.` });
   }
   if(w.SCRATCH_TB_PER_VM < w.DAILY_TB * w.SHUF_AMP * w.JOIN_SCRATCH_FACTOR * 0.75) {
     const joinNote = w.JOIN_TYPE === 'wide' ? ' Wide shuffle joins add a ×1.25 scratch multiplier.' : w.JOIN_TYPE === 'mixed' ? ' Mixed joins add a ×1.10 scratch multiplier.' : '';

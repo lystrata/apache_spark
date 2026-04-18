@@ -347,6 +347,42 @@
   @media (max-width: 500px) {
     .tier-strip { grid-template-columns: repeat(2, 1fr); }
   }
+
+  /* ── Collapsible sections ── */
+  .section-details { margin-top: 32px; border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; }
+  .section-summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: var(--bg3); user-select: none; outline: none; transition: background 0.15s; }
+  .section-summary::-webkit-details-marker { display: none; }
+  .section-summary::before { content: '▶'; font-size: 9px; color: var(--muted); transition: transform 0.22s; flex-shrink: 0; margin-right: 2px; }
+  .section-details[open] > .section-summary::before { transform: rotate(90deg); }
+  .section-summary:hover { background: var(--bg4); }
+  .section-title { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); white-space: nowrap; }
+  .section-sub { font-size: 11px; color: var(--muted); flex: 1; font-family: var(--mono); }
+  .section-body { padding: 24px 24px 28px; background: var(--bg2); }
+  .section-close { display: flex; justify-content: flex-start; margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .section-close a { font-family: var(--mono); font-size: 10px; color: var(--yellow); text-decoration: none; letter-spacing: .06em; padding: 3px 8px; border: 1px solid var(--yellow); border-radius: 4px; transition: color 0.15s, background 0.15s; cursor: pointer; }
+  .section-close a:hover { color: var(--bg); background: var(--yellow); }
+  .section-body a { color: var(--accent2); text-decoration: underline; text-decoration-color: rgba(126,200,255,0.35); text-underline-offset: 3px; transition: color 0.15s; }
+  .section-body a:hover { color: #fff; }
+
+  /* ── Nested sub-sections (Tier 2) ── */
+  .sub-details { margin-top: 16px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .sub-summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
+                 padding: 11px 16px; background: var(--bg4); user-select: none; outline: none;
+                 transition: background 0.15s; }
+  .sub-summary::-webkit-details-marker { display: none; }
+  .sub-summary::before { content: '▶'; font-size: 8px; color: var(--muted); transition: transform 0.22s; flex-shrink: 0; }
+  .sub-details[open] > .sub-summary::before { transform: rotate(90deg); }
+  .sub-summary:hover { background: var(--bg3); }
+  .sub-title { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+               text-transform: uppercase; color: var(--accent2); white-space: nowrap; }
+  .sub-desc  { font-family: var(--mono); font-size: 10px; color: var(--muted); flex: 1; }
+  .sub-body  { padding: 18px 20px 20px; background: var(--bg2); }
+  .sub-close { display: flex; justify-content: flex-start; margin-top: 18px; padding-top: 12px;
+               border-top: 1px solid var(--border); }
+  .sub-close a { font-family: var(--mono); font-size: 10px; color: var(--muted); text-decoration: none;
+                 letter-spacing: .06em; padding: 2px 7px; border: 1px solid var(--border2);
+                 border-radius: 4px; transition: color 0.15s, border-color 0.15s; cursor: pointer; }
+  .sub-close a:hover { color: var(--accent); border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -366,32 +402,32 @@
 
   <!-- ── Tier overview strip ─────────────────────────────────────── -->
   <div class="tier-strip">
-    <a href="#tier0" class="tier-cell">
+    <a href="#tier0" class="tier-cell" onclick="event.preventDefault(); jumpTo('tier0', 'tier0')">
       <div class="tc-badge tier-0" style="background:var(--muted);color:var(--bg)">Tier 0</div>
       <div class="tc-name">Physical Constants</div>
       <div class="tc-desc">Hardware facts — never computed; change only when hardware changes</div>
     </a>
-    <a href="#tier1" class="tier-cell">
+    <a href="#tier1" class="tier-cell" onclick="event.preventDefault(); jumpTo('tier1', 'tier1')">
       <div class="tc-badge tier-1" style="background:var(--yellow);color:var(--bg)">Tier 1</div>
       <div class="tc-name">Service Reservations</div>
       <div class="tc-desc">Fixed overhead per node consumed before VMs are sized</div>
     </a>
-    <a href="#tier2" class="tier-cell">
+    <a href="#tier2" class="tier-cell" onclick="event.preventDefault(); jumpTo('tier2', 'tier2')">
       <div class="tc-badge tier-2" style="background:var(--accent);color:var(--bg)">Tier 2</div>
       <div class="tc-name">User Parameters</div>
       <div class="tc-desc">Sliders and toggles — with dynamic bounds computed from lower tiers</div>
     </a>
-    <a href="#tier3" class="tier-cell">
+    <a href="#tier3" class="tier-cell" onclick="event.preventDefault(); jumpTo('tier3', 'tier3')">
       <div class="tc-badge tier-3" style="background:var(--purple);color:var(--bg)">Tier 3</div>
       <div class="tc-name">First-Order Derived</div>
       <div class="tc-desc">Direct arithmetic on Tiers 0–2; no dependency on other derived values</div>
     </a>
-    <a href="#tier4" class="tier-cell">
+    <a href="#tier4" class="tier-cell" onclick="event.preventDefault(); jumpTo('tier4', 'tier4')">
       <div class="tc-badge tier-4" style="background:var(--green);color:var(--bg)">Tier 4</div>
       <div class="tc-name">Second-Order Derived</div>
       <div class="tc-desc">Computed from Tier 3 results — executor memory, parallelism, network</div>
     </a>
-    <a href="#tier5" class="tier-cell">
+    <a href="#tier5" class="tier-cell" onclick="event.preventDefault(); jumpTo('tier5', 'tier5')">
       <div class="tc-badge tier-5" style="background:var(--red);color:var(--bg)">Tier 5</div>
       <div class="tc-name">Constraint Checks</div>
       <div class="tc-desc">Boolean evaluations against derived values — warnings, errors, thresholds</div>
@@ -401,12 +437,14 @@
   <!-- ═══════════════════════════════════════════════════════════════
        TIER 0 — PHYSICAL CONSTANTS
   ════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="tier0">
-    <div class="section-header">
+  <details class="section-details" id="tier0">
+    <summary class="section-summary">
       <div class="tier-badge tier-0">Tier 0</div>
-      <h2>Physical Constants</h2>
-      <a href="#top" class="back-to-top">↑ Top</a>
-    </div>
+      <span class="section-title">Physical Constants</span>
+      <span class="section-sub">&middot; Hardware facts &middot; never computed &middot; change only when hardware changes</span>
+      <a href="#top" class="back-to-top" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
     <p class="section-desc">
       Hardware facts hard-coded at the top of the calculator script as module-level JavaScript constants.
       These values never change during a session. If hardware changes (e.g., NVMe drives are added or
@@ -466,17 +504,21 @@
       (range 128–384 GB, step 32 GB, default 384 GB). The physical maximum of 384 GB corresponds to 12 populated DIMMs × 32 GB.
       This design allows modelling a partially-populated node without editing the source.
     </div>
-  </div>
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
 
   <!-- ═══════════════════════════════════════════════════════════════
        TIER 1 — SERVICE RESERVATIONS
   ════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="tier1">
-    <div class="section-header">
+  <details class="section-details" id="tier1">
+    <summary class="section-summary">
       <div class="tier-badge tier-1">Tier 1</div>
-      <h2>Service Reservations</h2>
-      <a href="#top" class="back-to-top">↑ Top</a>
-    </div>
+      <span class="section-title">Service Reservations</span>
+      <span class="section-sub">&middot; Fixed overhead per node &middot; consumed before VMs are sized</span>
+      <a href="#top" class="back-to-top" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
     <p class="section-desc">
       Before any Spark worker VM can be sized, a fixed block of cores and RAM is consumed on every node
       by the hypervisor and Ceph services. These are not configurable per-node — they are infrastructure
@@ -614,17 +656,21 @@
         </tbody>
       </table>
     </div>
-  </div>
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
 
   <!-- ═══════════════════════════════════════════════════════════════
        TIER 2 — USER PARAMETERS
   ════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="tier2">
-    <div class="section-header">
+  <details class="section-details" id="tier2">
+    <summary class="section-summary">
       <div class="tier-badge tier-2">Tier 2</div>
-      <h2>User Parameters (Sliders &amp; Toggles)</h2>
-      <a href="#top" class="back-to-top">↑ Top</a>
-    </div>
+      <span class="section-title">User Parameters</span>
+      <span class="section-sub">&middot; Sliders &amp; toggles &middot; dynamic bounds computed from lower tiers</span>
+      <a href="#top" class="back-to-top" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
     <p class="section-desc">
       These are the design decisions the user adjusts interactively. Each slider has a static range defined
       in HTML, but several have <strong>dynamic bounds</strong> — their effective maximum is recomputed on
@@ -632,7 +678,12 @@
       drops below the current slider value, the slider is automatically clamped.
     </p>
 
-    <h3>Infrastructure Parameters</h3>
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Infrastructure Parameters</span>
+        <span class="sub-desc">&middot; RAM &middot; VMs per node &middot; vCPUs &middot; NVMe OSDs &middot; Ceph replication</span>
+      </summary>
+      <div class="sub-body">
     <div class="card">
       <div class="card-title">Sliders — Infrastructure &amp; Cluster Layout</div>
       <table>
@@ -691,8 +742,15 @@
         </tbody>
       </table>
     </div>
-
-    <h3>Executor Parameters</h3>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Executor Parameters</span>
+        <span class="sub-desc">&middot; Executor cores &middot; memory overhead &middot; off-heap</span>
+      </summary>
+      <div class="sub-body">
     <div class="card">
       <div class="card-title">Sliders — Spark Executor Configuration</div>
       <table>
@@ -727,8 +785,15 @@
         </tbody>
       </table>
     </div>
-
-    <h3>Workload &amp; Storage Parameters</h3>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Workload &amp; Storage Parameters</span>
+        <span class="sub-desc">&middot; Daily volume &middot; shuffle &middot; Parquet &middot; skew profile &middot; join type &middot; pending transfer</span>
+      </summary>
+      <div class="sub-body">
     <div class="card">
       <div class="card-title">Sliders — Workload Sizing &amp; Storage</div>
       <table>
@@ -803,8 +868,15 @@
         </tbody>
       </table>
     </div>
-
-    <h3>Network Parameters</h3>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Network Parameters</span>
+        <span class="sub-desc">&middot; Node NIC &middot; switch uplink &middot; WAN circuit</span>
+      </summary>
+      <div class="sub-body">
     <div class="card">
       <div class="card-title">Sliders — Network Path</div>
       <table>
@@ -839,8 +911,15 @@
         </tbody>
       </table>
     </div>
-
-    <h3>Toggles</h3>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Toggles</span>
+        <span class="sub-desc">&middot; NUMA pinning &middot; AQE &middot; optional on-cluster services</span>
+      </summary>
+      <div class="sub-body">
     <div class="card">
       <div class="card-title">Toggle Inputs</div>
       <table>
@@ -895,7 +974,15 @@
     </div>
 
     <!-- Dynamic Bounds subsection -->
-    <h3>Dynamic Slider Bounds — Detail</h3>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Dynamic Slider Bounds — Detail</span>
+        <span class="sub-desc"></span>
+      </summary>
+      <div class="sub-body">
     <p class="section-desc">
       Three sliders have bounds that are recomputed on every <code>recalc()</code> call. When the computed
       maximum drops below the current slider value, the slider is immediately clamped to that maximum and
@@ -1017,17 +1104,24 @@
         is <em>mathematically impossible</em> to satisfy.
       </p>
     </div>
-  </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
 
   <!-- ═══════════════════════════════════════════════════════════════
        TIER 3 — FIRST-ORDER DERIVED
   ════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="tier3">
-    <div class="section-header">
+  <details class="section-details" id="tier3">
+    <summary class="section-summary">
       <div class="tier-badge tier-3">Tier 3</div>
-      <h2>First-Order Derived Values</h2>
-      <a href="#top" class="back-to-top">↑ Top</a>
-    </div>
+      <span class="section-title">First-Order Derived Values</span>
+      <span class="section-sub">&middot; Cluster budget &middot; NodeManager overhead &middot; executor counts &middot; storage</span>
+      <a href="#top" class="back-to-top" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
     <p class="section-desc">
       Computed directly from Tiers 0–2 with simple arithmetic. No first-order value depends on another
       first-order value. These represent the cluster's resource budget and raw executor counts.
@@ -1188,17 +1282,21 @@
         </tbody>
       </table>
     </div>
-  </div>
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
 
   <!-- ═══════════════════════════════════════════════════════════════
        TIER 4 — SECOND-ORDER DERIVED
   ════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="tier4">
-    <div class="section-header">
+  <details class="section-details" id="tier4">
+    <summary class="section-summary">
       <div class="tier-badge tier-4">Tier 4</div>
-      <h2>Second-Order Derived Values</h2>
-      <a href="#top" class="back-to-top">↑ Top</a>
-    </div>
+      <span class="section-title">Second-Order Derived Values</span>
+      <span class="section-sub">&middot; Executor memory chain &middot; blast radius &middot; shuffle parallelism &middot; network transfer</span>
+      <a href="#top" class="back-to-top" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
     <p class="section-desc">
       These values are computed from Tier 3 results. They represent the sizing outputs that
       directly configure Spark — executor memory settings, shuffle parallelism, and network transfer estimates.
@@ -1443,17 +1541,21 @@
         </tbody>
       </table>
     </div>
-  </div>
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
 
   <!-- ═══════════════════════════════════════════════════════════════
        TIER 5 — CONSTRAINT EVALUATIONS
   ════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="tier5">
-    <div class="section-header">
+  <details class="section-details" id="tier5">
+    <summary class="section-summary">
       <div class="tier-badge tier-5">Tier 5</div>
-      <h2>Constraint Evaluations</h2>
-      <a href="#top" class="back-to-top">↑ Top</a>
-    </div>
+      <span class="section-title">Constraint Evaluations</span>
+      <span class="section-sub">&middot; Warning &amp; error conditions &middot; operating envelope</span>
+      <a href="#top" class="back-to-top" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
     <p class="section-desc">
       Boolean checks that run after all derived values are computed. Results are displayed in the
       Diagnostics panel and Operating Envelope table. Constraints are evaluated on every <code>recalc()</code>
@@ -1612,17 +1714,21 @@
         </tbody>
       </table>
     </div>
-  </div>
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
 
   <!-- ═══════════════════════════════════════════════════════════════
        APPENDIX — SPARK CONFIGURATION OUTPUT
   ════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="appendix">
-    <div class="section-header">
+  <details class="section-details" id="appendix">
+    <summary class="section-summary">
       <div class="tier-badge" style="background:var(--purple);color:var(--bg)">Appendix</div>
-      <h2>Spark Configuration Output</h2>
-      <a href="#top" class="back-to-top">↑ Top</a>
-    </div>
+      <span class="section-title">Spark Configuration Output</span>
+      <span class="section-sub">&middot; spark-defaults.conf reference values</span>
+      <a href="#top" class="back-to-top" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
     <p class="section-desc">
       The calculator produces a recommended <code>spark-defaults.conf</code> parameter set.
       The table below maps each parameter to the derived value that supplies it.
@@ -1693,13 +1799,130 @@
         </tbody>
       </table>
     </div>
-  </div>
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       REVISIONS
+  ════════════════════════════════════════════════════════════════════ -->
+  <details class="section-details" id="revisions">
+    <summary class="section-summary">
+      <div class="tier-badge" style="background:var(--muted);color:var(--bg)">Revisions</div>
+      <span class="section-title">Revisions</span>
+      <span class="section-sub">&middot; Formula change history &middot; 2026-04-01 through 2026-04-18</span>
+      <a href="#top" class="back-to-top" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+
+      <div class="callout info"><span class="callout-title">Revision policy</span>Formula changes are recorded here with the original and revised expressions. Documentation-only changes (comments, labels) are noted but not given a full entry. The Revisions section in <code>Notes/chat-2026-04-17-calculator-review.md</code> is the companion prose document.</div>
+
+      <h3>2026-04-01 — Initial Release</h3>
+      <div class="card">
+        <div class="card-title">Core formulas established</div>
+        <table>
+          <thead><tr><th>Formula</th><th>Expression</th></tr></thead>
+          <tbody>
+            <tr><td class="name">SLOT_GB</td><td class="formula">(RAM_VM − 2) / EXEC_PER_VM</td></tr>
+            <tr><td class="name">MAX_EXEC_MEM</td><td class="formula">(SLOT_GB − OFFHEAP) / (1 + OVH_PCT)</td></tr>
+            <tr><td class="name">EXEC_MEM</td><td class="formula">floor(MAX_EXEC_MEM × 0.95) — 5% safety margin</td></tr>
+            <tr><td class="name">EXEC_PER_VM</td><td class="formula">floor((VCPU_VM − 2) / EXEC_CORES)</td></tr>
+            <tr><td class="name">TOTAL_EXEC</td><td class="formula">max(1, EXEC_PER_VM × TOTAL_VMS − 1)</td></tr>
+            <tr><td class="name">CEPH_USABLE</td><td class="formula">OSD_NODE × NVME_TB × NODES / CEPH_REP</td></tr>
+            <tr><td class="name">CEPH_DAYS</td><td class="formula">CEPH_USABLE / DAILY_TB</td></tr>
+            <tr><td class="name">SCRATCH_TB_PER_VM</td><td class="formula">(NVME_COUNT − OSD_NODE) / VMS_NODE × NVME_TB</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>2026-04-03 — Parquet Partitioning and Network Transfer Added</h3>
+      <div class="card">
+        <div class="card-title">New calculation blocks — no changes to executor or storage math</div>
+        <table>
+          <thead><tr><th>Formula</th><th>Expression</th></tr></thead>
+          <tbody>
+            <tr><td class="name">PARQ_MB</td><td class="formula">CSV_MB / PARQ_COMP</td></tr>
+            <tr><td class="name">INPUT_PARTS</td><td class="formula">ceil(CSV_MB / MAX_PART_MB)</td></tr>
+            <tr><td class="name">TARGET_OUT_MB</td><td class="formula">150 (fixed) — Snowflake COPY INTO optimal range 100–250 MB</td></tr>
+            <tr><td class="name">OUTPUT_PARTS</td><td class="formula">max(1, ceil(PARQ_MB / TARGET_OUT_MB))</td></tr>
+            <tr><td class="name">BOTTLENECK_G</td><td class="formula">min(AGG_NODE_G, NET_SWITCH_G, NET_WAN_G)</td></tr>
+            <tr><td class="name">EFF_GBPS</td><td class="formula">BOTTLENECK_G × 0.80 (80% utilization)</td></tr>
+            <tr><td class="name">TRANSFER_SEC</td><td class="formula">PARQ_GB / (EFF_GBPS / 8)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>2026-04-15 — Skew Profile, Join Type, Blast Radius, Dynamic Slider Bounds</h3>
+      <div class="card">
+        <div class="card-title">Major additions from sandbox promotion</div>
+        <table>
+          <thead><tr><th>Formula</th><th>Expression</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="name">OOM_THRESHOLD</td><td class="formula">heavy→6 / moderate→5 / uniform→4 GB</td><td class="note">Minimum executor slot headroom to absorb skew-driven memory spikes. Values reflect Parquet read buffer + sort buffer + spill buffer in-flight simultaneously under each skew profile.</td></tr>
+            <tr><td class="name">JOIN_SCRATCH_FACTOR</td><td class="formula">wide→1.25 / mixed→1.10 / broadcast→1.00</td><td class="note">Applied on top of DAILY_TB × SHUF_AMP. Wide: sort-merge join key materialization. Mixed: repartition/coalesce overhead. Broadcast: no shuffle materialized.</td></tr>
+            <tr><td class="name">BLAST_PCT</td><td class="formula">100 / TOTAL_EXEC</td><td class="note">Percentage of cluster compute capacity lost on single executor failure.</td></tr>
+            <tr><td class="name">Scratch adequacy</td><td class="formula">SCRATCH_TB_PER_VM ≥ DAILY_TB × SHUF_AMP × JOIN_SCRATCH_FACTOR × 0.75</td><td class="note">0.75 safety margin applied to worst-case shuffle volume.</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:12px;">Dynamic slider bounds also added: vCPU max and exec_cores max clamped at runtime based on available cores after infrastructure reservation.</p>
+      </div>
+
+      <h3>2026-04-17 — Documentation Only</h3>
+      <div class="callout info">Inline code comments expanded in both calculators explaining the 4/5/6 GB OOM threshold basis and the 1.0/1.1/1.25 join scratch multipliers. No formula changes.</div>
+
+      <h3>2026-04-18 — CEPH_DAYS Formula Revised</h3>
+      <div class="card">
+        <div class="card-title">Architectural constraints incorporated into Ceph headroom model</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Snowflake has no inbound network access. Parquet is transferred by an outbound batch job and deleted only on confirmed delivery. Up to N concurrent Parquet outputs may accumulate on local Ceph. VM OS disks (80 GB per VM, Ceph RBD) were not previously deducted.</p>
+        <table>
+          <thead><tr><th>Variable</th><th>Expression</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="name">VM_OS_USABLE_TB</td><td class="formula">VMS_NODE × NODES × 80 / 1024</td><td class="note">Logical Ceph usable consumed by worker VM OS disks. Permanent allocation.</td></tr>
+            <tr><td class="name">PARQ_PENDING_TB</td><td class="formula">N_PARQUET × (DAILY_TB / PARQ_COMP)</td><td class="note">Ceph capacity held by Parquet outputs awaiting outbound batch transfer confirmation.</td></tr>
+            <tr><td class="name">CEPH_RESERVED</td><td class="formula">VM_OS_USABLE_TB + PARQ_PENDING_TB</td><td class="note">Total Ceph usable unavailable to new ingest jobs.</td></tr>
+            <tr><td class="name">CEPH_EFFECTIVE</td><td class="formula">max(0, CEPH_USABLE − CEPH_RESERVED)</td><td class="note">Ceph usable available for incoming CSV ingest.</td></tr>
+            <tr><td class="name">CEPH_DAYS <span style="color:var(--red)">(revised)</span></td><td class="formula">CEPH_EFFECTIVE / DAILY_TB</td><td class="note">Was: CEPH_USABLE / DAILY_TB. Now reflects effective headroom after all reserved allocations.</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:12px;">New UI input: <code>n_parquet</code> slider (range 1–5, default 2). Warning language updated: "Snowflake flush schedule" → "outbound batch transfer pipeline".</p>
+      </div>
+
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
 
   <div class="footer">
     Development Cluster Sizing — Math Reference &nbsp;·&nbsp; April 2026 &nbsp;·&nbsp;
-    Source: <code>development_spark_calculator.html</code>
+    Contact: <a href="mailto:rohn.wood@askallegiance.com" style="color:inherit">rohn.wood@askallegiance.com</a> &nbsp;·&nbsp; Source: <code>development_spark_calculator.html</code>
   </div>
 
 </div>
+<script>
+// Force all sections and sub-sections closed on every load — overrides browser session memory
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('details').forEach(function(d) { d.open = false; });
+});
+var _jumpedTo = null;
+function closeSub(el) {
+  var d = el.closest('details');
+  d.open = false;
+  setTimeout(function() { d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+}
+function jumpTo(hash, sectionId) {
+  _jumpedTo = {hash: hash, sectionId: sectionId};
+  history.pushState(null, '', '#' + hash);
+  var d = document.getElementById(sectionId);
+  if (d) d.open = true;
+  setTimeout(function() { var t = document.getElementById(hash); if (t) t.scrollIntoView({behavior:'smooth'}); }, 50);
+}
+window.addEventListener('popstate', function() {
+  if (_jumpedTo && location.hash !== '#' + _jumpedTo.hash) {
+    var sec = document.getElementById(_jumpedTo.sectionId);
+    if (sec) sec.open = false;
+    _jumpedTo = null;
+  }
+});
+</script>
 </body>
 </html>

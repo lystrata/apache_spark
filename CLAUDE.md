@@ -11,10 +11,10 @@ Infrastructure sizing tools for a 3-node Proxmox hyperconverged cluster running 
 Always serve via HTTP, not `file://`. localStorage scoping differs between origins and scenarios saved under one will be invisible to the other.
 
 ```bash
-python3 -m http.server 8080
+python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8080/production_spark_calculator.html` or the dev equivalent.
+Then open `http://localhost:8000/production_spark_calculator.html` or the dev equivalent.
 
 ## Editing Rules
 
@@ -30,6 +30,8 @@ To restore a previous state:
 ```bash
 git checkout <commit-hash> -- <file>
 ```
+
+**Any new HTML file added to the project must be placed under git revision control immediately** — `git add <file>` at creation time, before any edits are made.
 
 When a change is made to either calculator, the corresponding guide file (`prod_calculator_guide.html`, `dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
 
