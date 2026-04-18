@@ -746,7 +746,7 @@
   </div>
 
   <!-- ══ Section A: Infrastructure Provisioning ══════════════════════════════ -->
-  <details class="section-details" id="sec_a" open>
+  <details class="section-details" id="sec_a">
     <summary class="section-summary" id="sec_a_summary">
       <span class="section-letter">A</span>
       <span class="section-title">Infrastructure Provisioning</span>
@@ -877,7 +877,7 @@
   </details>
 
   <!-- ══ Section B: Fixed Overhead Reservations ══════════════════════════════ -->
-  <details class="section-details" id="sec_b" open>
+  <details class="section-details" id="sec_b">
     <summary class="section-summary" id="sec_b_summary">
       <span class="section-letter">B</span>
       <span class="section-title">Fixed Overhead Reservations</span>
@@ -953,7 +953,7 @@
   </details>
 
   <!-- ══ Section C: Executor Sizing ═══════════════════════════════════════════ -->
-  <details class="section-details" id="sec_c" open>
+  <details class="section-details" id="sec_c">
     <summary class="section-summary" id="sec_c_summary">
       <span class="section-letter">C</span>
       <span class="section-title">Executor Sizing</span>
@@ -1057,7 +1057,7 @@
   </details>
 
   <!-- ══ Section D: Storage & Workload Sizing ═════════════════════════════════ -->
-  <details class="section-details" id="sec_d" open>
+  <details class="section-details" id="sec_d">
     <summary class="section-summary" id="sec_d_summary">
       <span class="section-letter">D</span>
       <span class="section-title">Storage &amp; Workload Sizing</span>
@@ -1417,6 +1417,12 @@
 </div>
 
 <script>
+// ─── Section state — force all calculator sections closed on every load ──────
+// Overrides browser session memory. envelope_details is excluded (no section-details class).
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('details.section-details').forEach(function(d) { d.open = false; });
+});
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 const el = id => document.getElementById(id);
 const fmt = (n, dec=1) => n % 1 === 0 ? n.toString() : n.toFixed(dec);
