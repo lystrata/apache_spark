@@ -90,6 +90,24 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
   .ref-table td:first-child { white-space:normal; }
   .section-sub { display:none; }
 }
+  .sub-details { margin-top: 16px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .sub-summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
+                 padding: 11px 16px; background: var(--bg4); user-select: none; outline: none;
+                 transition: background 0.15s; }
+  .sub-summary::-webkit-details-marker { display: none; }
+  .sub-summary::before { content: '▶'; font-size: 8px; color: var(--muted); transition: transform 0.22s; flex-shrink: 0; }
+  .sub-details[open] > .sub-summary::before { transform: rotate(90deg); }
+  .sub-summary:hover { background: var(--bg3); }
+  .sub-title { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+               text-transform: uppercase; color: var(--accent2); white-space: nowrap; }
+  .sub-desc  { font-family: var(--mono); font-size: 10px; color: var(--muted); flex: 1; }
+  .sub-body  { padding: 18px 20px 20px; background: var(--bg2); }
+  .sub-close { display: flex; justify-content: flex-start; margin-top: 18px; padding-top: 12px;
+               border-top: 1px solid var(--border); }
+  .sub-close a { font-family: var(--mono); font-size: 10px; color: var(--muted); text-decoration: none;
+                 letter-spacing: .06em; padding: 2px 7px; border: 1px solid var(--border2);
+                 border-radius: 4px; transition: color 0.15s, border-color 0.15s; cursor: pointer; }
+  .sub-close a:hover { color: var(--accent); border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -442,7 +460,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
 
       <p><strong>Config I is the recommended configuration.</strong> An earlier analysis had recommended Config D (HW RAID-5 on 6 scratch drives, 1 OSD/node). That configuration is eliminated by the revised Ceph requirement documented in Section B. Config I carries the same <a href="#raid-controller" onclick="jumpTo('raid-controller','sec_a')">SR932i-p RAID controller and FBWC</a> advantages, covers the full 4&ndash;5 TB development ingest range at all shuffle amplifications, and provides single-drive fault tolerance with negligible performance impact confirmed in <a href="#table2" onclick="jumpTo('table2','sec_e')">Section E &mdash; Table 2</a>.</p>
 
-      <h3>Config I &mdash; Full Specification</h3>
+      <h3 id="config-i-spec">Config I &mdash; Full Specification</h3>
 
       <table class="ref-table">
         <thead><tr><th>Configuration Item</th><th>Selected Value</th></tr></thead>
@@ -478,12 +496,16 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
     <div class="section-body">
 
       <div class="callout warn">
-        <strong>This section documents a structural concern with Config I.</strong> The recommended configuration passes all modeled scenarios but its margin at the worst-case development ingest (5 TB @ 4&times;) is only <strong>+15%</strong>. A development cluster is, by definition, a place where developers write exploratory and iterative queries. Shuffle amplification of 4&times; is not a safe ceiling for that workload — it is a moderate-complexity threshold. This section assesses the gap frankly and quantifies the hardware change that closes it.
+        <strong>This section documents a structural concern with <a href="#config-i-spec" onclick="jumpTo('config-i-spec','sec_f')">Config I</a>.</strong> The recommended configuration passes all modeled scenarios but its margin at the worst-case development ingest (5 TB @ 4&times;) is only <strong>+15%</strong>. A development cluster is, by definition, a place where developers write exploratory and iterative queries. Shuffle amplification of 4&times; is not a safe ceiling for that workload — it is a moderate-complexity threshold. This section assesses the gap frankly and quantifies the hardware change that closes it.
       </div>
 
-      <h3>Why 4&times; Is Not a Safe Development Ceiling</h3>
-
-      <p>Shuffle amplification is a function of query structure, not ingest volume. A Spark job performing a single filtered aggregation over well-bucketed tables will see 1&times;&ndash;2&times; amplification. A job performing multiple chained sort-merge joins over unbucketed, skewed tables will see 5&times;&ndash;7&times; or higher. Both are normal on a development cluster.</p>
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">WHY 4× IS NOT A SAFE CEILING</span>
+        <span class="sub-desc">Query patterns that push shuffle amplification above 4×</span>
+      </summary>
+      <div class="sub-body">
+        <p>Shuffle amplification is a function of query structure, not ingest volume. A Spark job performing a single filtered aggregation over well-bucketed tables will see 1&times;&ndash;2&times; amplification. A job performing multiple chained sort-merge joins over unbucketed, skewed tables will see 5&times;&ndash;7&times; or higher. Both are normal on a development cluster.</p>
 
       <p>The following query patterns drive shuffle amplification above 4&times; without being exceptional or poorly-written:</p>
 
@@ -497,10 +519,17 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
           <tr><td>Skewed join without broadcast hint</td><td>5&times;&ndash;8&times;</td><td>Skewed partitions spill repeatedly; AQE may insert additional repartition</td></tr>
         </tbody>
       </table>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
 
-      <h3>Config I Ceiling Analysis</h3>
-
-      <p>Config I provides <strong>15.36 TB scratch per node</strong> (5 drives, HW RAID-5). The per-node scratch requirement is <code>ingest_TB &times; shuffle_amp &times; 2 &divide; 3 nodes</code>. Solving for the maximum shuffle amplification Config I can sustain:</p>
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">CONFIG I CEILING ANALYSIS</span>
+        <span class="sub-desc">Maximum shuffle amplification the current hardware can sustain</span>
+      </summary>
+      <div class="sub-body">
+        <p><a href="#config-i-spec" onclick="jumpTo('config-i-spec','sec_f')">Config I</a> provides <strong>15.36 TB scratch per node</strong> (5 drives, HW RAID-5). The per-node scratch requirement is <code>ingest_TB &times; shuffle_amp &times; 2 &divide; 3 nodes</code>. Solving for the maximum shuffle amplification Config I can sustain:</p>
 
       <div class="math-box">max_shuffle_amp = scratch_per_node &divide; (ingest_TB &times; 2 &divide; 3) = 15.36 &divide; (5 &times; 0.667) = <strong>4.61&times;</strong></div>
 
@@ -516,10 +545,17 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
           <tr><td>5 TB</td><td>6&times;</td><td>20.00 TB</td><td><span class="bad">FAIL</span></td><td>&minus;4.64 TB / &minus;23%</td></tr>
         </tbody>
       </table>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
 
-      <h3>Operational Dependency Without Hardware Change</h3>
-
-      <p>Without additional drives, Config I requires the following from the development team:</p>
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">OPERATIONAL DEPENDENCY</span>
+        <span class="sub-desc">What Config I requires from the development team</span>
+      </summary>
+      <div class="sub-body">
+        <p>Without additional drives, <a href="#config-i-spec" onclick="jumpTo('config-i-spec','sec_f')">Config I</a> requires the following from the development team:</p>
       <ul style="font-size:14px;line-height:2;padding-left:22px;">
         <li>Developers must check scratch adequacy in the dev calculator before submitting any job expected to involve multiple joins or window functions at full ingest volume</li>
         <li>Jobs must include broadcast hints for all lookup tables that can fit in executor memory, to avoid unnecessary sort-merge shuffles</li>
@@ -528,10 +564,17 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
       </ul>
 
       <p>These are not unreasonable requirements for a mature team. They are unreasonable to treat as reliable constraints on a <em>development</em> cluster, where the point of the environment is to run queries that have not yet been optimised. The operational dependency is a latent risk, not a mitigated one.</p>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
 
-      <h3 id="nvme-expansion">+1 NVMe/Node Expansion (8 NVMe Total, 3 Drives/Cluster)</h3>
-
-      <p>Adding one 3.84 TB NVMe per node — three drives total across the cluster — and allocating it to scratch gives <strong>6 scratch drives per node</strong> at 2 OSD/node (Ceph allocation unchanged). With HW RAID-5:</p>
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">+1 NVMe/NODE EXPANSION</span>
+        <span class="sub-desc">8 NVMe total · 19.20 TB scratch · ceiling rises to 5.76×</span>
+      </summary>
+      <div class="sub-body">
+        <p>Adding one 3.84 TB NVMe per node — three drives total across the cluster — and allocating it to scratch gives <strong>6 scratch drives per node</strong> at 2 OSD/node (Ceph allocation unchanged). With HW RAID-5:</p>
 
       <div class="math-box">scratch_usable = (6 &minus; 1) &times; 3.84 TB = <strong>19.20 TB / node</strong></div>
       <div class="math-box">max_shuffle_amp @ 5 TB = 19.20 &divide; (5 &times; 0.667) = <strong>5.76&times;</strong></div>
@@ -549,10 +592,17 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
       </table>
 
       <p>Adding one NVMe per node extends the scratch ceiling from <strong>4.61&times; to 5.76&times;</strong> at 5 TB ingest &mdash; a full shuffle-amplification tier recovered. Two chained sort-merge joins on even data (typically 4&times;&ndash;5&times;) no longer require developer intervention. Only genuinely pathological queries (6&times;+, typically involving severe data skew across multiple join stages) still exhaust scratch. Reaching 6&times; with reasonably-written queries requires either deliberate avoidance of broadcast hints on small tables or severely skewed source data that has not been addressed at the ingestion layer.</p>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
 
-      <h3>Why Not Allocate the Extra NVMe to Ceph Instead?</h3>
-
-      <p>The alternative allocation &mdash; adding the extra NVMe as a 3rd OSD per node &mdash; does not help the scratch problem. With 3 OSD and 5 remaining scratch drives, HW RAID-5 scratch usable is identical to Config I at <strong>15.36 TB</strong>. The scratch ceiling is unchanged at 4.61&times;. Ceph usable increases to 17.28 TB, which is well beyond the maximum N=2 Parquet accumulation requirement of 7.24 TB. The extra Ceph capacity is not useful at current ingest scale; the extra scratch capacity is.</p>
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">WHY NOT CEPH INSTEAD?</span>
+        <span class="sub-desc">Adding the extra NVMe as a 3rd OSD does not help scratch</span>
+      </summary>
+      <div class="sub-body">
+        <p>The alternative allocation &mdash; adding the extra NVMe as a 3rd OSD per node &mdash; does not help the scratch problem. With 3 OSD and 5 remaining scratch drives, HW RAID-5 scratch usable is identical to Config I at <strong>15.36 TB</strong>. The scratch ceiling is unchanged at 4.61&times;. Ceph usable increases to 17.28 TB, which is well beyond the maximum N=2 Parquet accumulation requirement of 7.24 TB. The extra Ceph capacity is not useful at current ingest scale; the extra scratch capacity is.</p>
 
       <table class="ref-table">
         <thead><tr><th></th><th>Config I (7 NVMe, 2 OSD)</th><th>+1 as 3rd OSD (8 NVMe, 3 OSD)</th><th>+1 as scratch (8 NVMe, 2 OSD)</th></tr></thead>
@@ -564,14 +614,24 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
           <tr><td>Resolves scratch concern</td><td><span class="bad">No</span></td><td><span class="bad">No</span></td><td><span class="ok">Yes</span></td></tr>
         </tbody>
       </table>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
 
-      <h3>Conclusion</h3>
-
-      <div class="callout warn">
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">CONCLUSION</span>
+        <span class="sub-desc">Hardware procurement decision vs. operational dependency</span>
+      </summary>
+      <div class="sub-body">
+        <div class="callout warn">
         <strong>Config I is adequate on paper but operationally fragile at 5 TB ingest.</strong> Its 15% margin at the modeled worst-case (5 TB @ 4&times;) is consumed by a single two-stage sort-merge join running above 4.61&times;. On a development cluster, that is a normal occurrence, not an exceptional one. The configuration requires the development team to actively avoid a class of queries that the cluster should be able to absorb without intervention.<br><br>
         <strong>Adding one 3.84 TB NVMe drive per node</strong> (3 drives, cluster-wide) and allocating it to scratch removes this operational dependency for all realistic development workloads. The ceiling rises to 5.76&times;, covering complex multi-join queries on even data without monitoring requirements. Only queries involving severe data skew across multiple join stages remain constrained — and those queries should be fixed at the data layer regardless of cluster sizing.<br><br>
         This is a hardware procurement decision, not a configuration decision. It should be evaluated against the cost of developer time lost to scratch-induced job failures and the operational overhead of enforcing per-job shuffle amplification checks on a development team.
       </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
 
       <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
     </div>
@@ -669,6 +729,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (d.id !== 'sec_overview') d.open = false;
   });
 });
+function closeSub(el) {
+  var d = el.closest('details');
+  d.open = false;
+  setTimeout(function() { d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+}
 var _jumpedTo = null;
 function jumpTo(hash, sectionId) {
   event.preventDefault();

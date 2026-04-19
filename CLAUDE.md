@@ -43,6 +43,104 @@ Files with Revisions sections:
 
 When a change is made to either calculator, the corresponding guide file (`prod_calculator_guide.html`, `dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
 
+## HTML Document Conventions
+
+These patterns are established and must be used consistently across all HTML files in this project.
+
+### Section Collapsible Pattern
+
+All content sections use `<details class="section-details">` with `<summary class="section-summary">`. Every section must have:
+- A `<span class="section-letter">` (A, B, C…) or `<span class="section-title">` for untitled sections (e.g. Overview, Revisions)
+- A `<span class="section-sub">` for the subtitle/description line
+- A `<a href="#top" class="btt" onclick="event.stopPropagation()">↑ Top</a>` back-to-top link in the summary
+- A `<div class="section-close">` at the bottom of the section body with a close link
+
+```html
+<details class="section-details" id="sec_x">
+  <summary class="section-summary">
+    <span class="section-letter">X</span>
+    <span class="section-title">Section Title</span>
+    <span class="section-sub">· subtitle · description</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <!-- content -->
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+```
+
+### Section Default State
+
+All sections default **closed** on page load. Enforce with a `DOMContentLoaded` handler that overrides browser session memory:
+
+```js
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('details.section-details').forEach(function(d) { d.open = false; });
+});
+```
+
+Exception: reference documents may have one section open by default (e.g. Overview & Assumptions). Add its `id` to the exclusion condition: `if (d.id !== 'sec_overview') d.open = false;`
+
+### Sub-Section Pattern (within a section)
+
+When a section has multiple named sub-topics, convert them to nested collapsibles using `sub-details`. Sub-sections default closed (the parent `DOMContentLoaded` handler closes `details.section-details` only; sub-details are closed by the browser's default since they have no `open` attribute). The close link uses `closeSub()` to scroll the summary back into view after close.
+
+```html
+<details class="sub-details">
+  <summary class="sub-summary">
+    <span class="sub-title">SUB-SECTION TITLE</span>
+    <span class="sub-desc">short description of contents</span>
+  </summary>
+  <div class="sub-body">
+    <!-- content -->
+    <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+  </div>
+</details>
+```
+
+Required JS (add to script block):
+```js
+function closeSub(el) {
+  var d = el.closest('details');
+  d.open = false;
+  setTimeout(function() { d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+}
+```
+
+Required CSS (add to `<style>` block — copy from `Document/dev_cluster_math_reference.html`):
+`.sub-details`, `.sub-summary`, `.sub-title`, `.sub-desc`, `.sub-body`, `.sub-close`
+
+### Cross-Reference Jump Links
+
+Whenever a section references content in a different section, use `jumpTo()` to open the target section and scroll to the anchor. Never use bare `href="#anchor"` for cross-section links — the target section will be closed and the anchor invisible.
+
+```html
+<a href="#anchor-id" onclick="jumpTo('anchor-id', 'sec_target')">link text</a>
+```
+
+Required JS (add to script block — one copy per file):
+```js
+var _jumpedTo = null;
+function jumpTo(hash, sectionId) {
+  event.preventDefault();
+  _jumpedTo = {hash: hash, sectionId: sectionId};
+  history.pushState(null, '', '#' + hash);
+  var d = document.getElementById(sectionId);
+  if (d) d.open = true;
+  setTimeout(function() { var t = document.getElementById(hash); if (t) t.scrollIntoView({behavior:'smooth'}); }, 50);
+}
+window.addEventListener('popstate', function() {
+  if (_jumpedTo && location.hash !== '#' + _jumpedTo.hash) {
+    var sec = document.getElementById(_jumpedTo.sectionId);
+    if (sec) sec.open = false;
+    _jumpedTo = null;
+  }
+});
+```
+
+Anchor targets must have an `id` on the element being linked to (e.g. `<h3 id="config-i-spec">`). Add `id` attributes to h3/h2 elements when they are likely cross-reference targets.
+
 ## Calculator Architecture
 
 Both calculators are single-file HTML/CSS/JS with no external dependencies and no build step.
