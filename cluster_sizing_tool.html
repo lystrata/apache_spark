@@ -48,6 +48,8 @@
   /* ── Cards ───────────────────────────────────────────────────────────────── */
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 16px; }
   .card-title { font-family: var(--mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  /* ── Sticky warnings ─────────────────────────────────────────────────────── */
+  .warnings-sticky { position: sticky; top: 0; z-index: 100; margin-bottom: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
 
   /* ── Sections ────────────────────────────────────────────────────────────── */
   .section-details { margin-top: 16px; border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; }
@@ -150,6 +152,12 @@
     <div class="header-tag">General Purpose</div>
     <div class="header-title">Spark Cluster Sizing Tool</div>
     <div class="header-sub">All hardware parameters are inputs — model any cluster configuration. For tuning a specific fixed cluster use the dev or production calculator.</div>
+  </div>
+
+  <!-- Warnings — sticky persistent card -->
+  <div class="card warnings-sticky">
+    <div class="card-title">Diagnostics &amp; Warnings</div>
+    <div class="warnings" id="warnings"></div>
   </div>
 
   <!-- Hardware summary strip -->
@@ -310,7 +318,7 @@
     <summary class="section-summary">
       <span class="section-letter">D</span>
       <span class="section-title">Results</span>
-      <span class="section-sub">· Shuffle ceiling · Executor sizing · Scratch adequacy · Ceph headroom · Warnings</span>
+      <span class="section-sub">· Shuffle ceiling · Executor sizing · Scratch adequacy · Ceph headroom</span>
     </summary>
     <div class="section-body">
 
@@ -358,12 +366,6 @@
           <div class="metric"><div class="metric-label">Effective</div><div class="metric-val" id="out_ceph_effective">—</div></div>
           <div class="metric"><div class="metric-label">Days of Ingest</div><div class="metric-val" id="out_ceph_days">—</div><div class="metric-sub">effective headroom</div></div>
         </div>
-      </div>
-
-      <!-- Warnings -->
-      <div class="card">
-        <div class="card-title">Warnings &amp; Diagnostics</div>
-        <div class="warnings" id="warnings"></div>
       </div>
 
       <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
