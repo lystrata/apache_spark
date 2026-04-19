@@ -402,7 +402,9 @@ const fmt = (n, dec=1) => isNaN(n) ? '—' : (n % 1 === 0 ? n.toString() : n.toF
 
 function setVal(inputId, displayId, suffix) {
   const v = +el(inputId).value;
-  el(displayId).textContent = fmt(v, 2).replace(/\.?0+$/, '') + (suffix || '');
+  const s = fmt(v, 2);
+  // Only strip trailing zeros when a decimal point is present — avoids "10" → "1"
+  el(displayId).textContent = (s.includes('.') ? s.replace(/0+$/, '').replace(/\.$/, '') : s) + (suffix || '');
   return v;
 }
 
