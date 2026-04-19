@@ -723,11 +723,17 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
 
 </div>
 <script>
-// Force ALL details closed on every load except sec_overview — covers sections and sub-sections
+// Force ALL details closed on every load except sec_overview — covers sections and sub-sections.
+// setTimeout(0) defers until after the browser processes any hash in the URL; replaceState
+// clears a lingering #anchor (left by a previous jumpTo) that would otherwise cause the
+// browser to auto-open the details element containing that anchor.
 document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('details').forEach(function(d) {
-    if (d.id !== 'sec_overview') d.open = false;
-  });
+  setTimeout(function() {
+    if (location.hash) history.replaceState(null, '', location.pathname);
+    document.querySelectorAll('details').forEach(function(d) {
+      if (d.id !== 'sec_overview') d.open = false;
+    });
+  }, 0);
 });
 function closeSub(el) {
   var d = el.closest('details');
