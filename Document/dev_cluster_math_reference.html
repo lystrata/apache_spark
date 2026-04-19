@@ -241,15 +241,15 @@
   /* ── Tier overview strip ── */
   .tier-strip {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
     margin: 30px 0 40px;
   }
   .tier-cell {
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 14px 14px;
+    padding: 11px 10px;
     text-align: center;
   }
   .tier-cell .tc-badge {
@@ -340,6 +340,9 @@
     color: var(--border2);
   }
 
+  @media (max-width: 1100px) {
+    .tier-strip { grid-template-columns: repeat(4, 1fr); }
+  }
   @media (max-width: 800px) {
     .tier-strip { grid-template-columns: repeat(3, 1fr); }
     .two-col    { grid-template-columns: 1fr; }
@@ -431,6 +434,16 @@
       <div class="tc-badge tier-5" style="background:var(--red);color:var(--bg)">Tier 5</div>
       <div class="tc-name">Constraint Checks</div>
       <div class="tc-desc">Boolean evaluations against derived values — warnings, errors, thresholds</div>
+    </a>
+    <a href="#appendix" class="tier-cell" onclick="event.preventDefault(); jumpTo('appendix', 'appendix')">
+      <div class="tc-badge" style="background:var(--purple);color:var(--bg)">Appendix</div>
+      <div class="tc-name">Appendix</div>
+      <div class="tc-desc">Color coding, formula notation, and output field reference</div>
+    </a>
+    <a href="#revisions" class="tier-cell" onclick="event.preventDefault(); jumpTo('revisions', 'revisions')">
+      <div class="tc-badge" style="background:var(--muted);color:var(--bg)">Revisions</div>
+      <div class="tc-name">Revisions</div>
+      <div class="tc-desc">Formula change history — 2026-04-01 through 2026-04-18</div>
     </a>
   </div>
 
