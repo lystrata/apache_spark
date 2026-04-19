@@ -467,6 +467,116 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
     </div>
   </details>
 
+  <!-- ═══ SECTION G ═══════════════════════════════════════════════════════════ -->
+  <details class="section-details" id="sec_g">
+    <summary class="section-summary">
+      <span class="section-letter">G</span>
+      <span class="section-title">Scratch Space: Adequacy Concern &amp; Expansion Analysis</span>
+      <span class="section-sub">&middot; Config I ceiling · +1 NVMe/node impact · Operational dependency assessment</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+
+      <div class="callout warn">
+        <strong>This section documents a structural concern with Config I.</strong> The recommended configuration passes all modeled scenarios but its margin at the worst-case development ingest (5 TB @ 4&times;) is only <strong>+15%</strong>. A development cluster is, by definition, a place where developers write exploratory and iterative queries. Shuffle amplification of 4&times; is not a safe ceiling for that workload — it is a moderate-complexity threshold. This section assesses the gap frankly and quantifies the hardware change that closes it.
+      </div>
+
+      <h3>Why 4&times; Is Not a Safe Development Ceiling</h3>
+
+      <p>Shuffle amplification is a function of query structure, not ingest volume. A Spark job performing a single filtered aggregation over well-bucketed tables will see 1&times;&ndash;2&times; amplification. A job performing multiple chained sort-merge joins over unbucketed, skewed tables will see 5&times;&ndash;7&times; or higher. Both are normal on a development cluster.</p>
+
+      <p>The following query patterns drive shuffle amplification above 4&times; without being exceptional or poorly-written:</p>
+
+      <table class="ref-table">
+        <thead><tr><th>Query Pattern</th><th>Typical Shuffle Amp</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Single sort-merge join, even data</td><td>3&times;&ndash;4&times;</td><td>Both sides repartitioned; intermediate keys materialized on scratch</td></tr>
+          <tr><td>Two chained sort-merge joins</td><td>4&times;&ndash;6&times;</td><td>Each join stage re-shuffles; intermediate result also materializes</td></tr>
+          <tr><td>GroupBy + sort on large unbucketed table</td><td>3&times;&ndash;5&times;</td><td>Hash aggregate shuffle + sort-merge pass</td></tr>
+          <tr><td>Window function with large partition key</td><td>4&times;&ndash;6&times;</td><td>Full repartition by partition key; frame materialized per executor</td></tr>
+          <tr><td>Skewed join without broadcast hint</td><td>5&times;&ndash;8&times;</td><td>Skewed partitions spill repeatedly; AQE may insert additional repartition</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Config I Ceiling Analysis</h3>
+
+      <p>Config I provides <strong>15.36 TB scratch per node</strong> (5 drives, HW RAID-5). The per-node scratch requirement is <code>ingest_TB &times; shuffle_amp &times; 2 &divide; 3 nodes</code>. Solving for the maximum shuffle amplification Config I can sustain:</p>
+
+      <div class="math-box">max_shuffle_amp = scratch_per_node &divide; (ingest_TB &times; 2 &divide; 3) = 15.36 &divide; (5 &times; 0.667) = <strong>4.61&times;</strong></div>
+
+      <p>This means any job running at 5 TB ingest with a shuffle amplification above <strong>4.61&times; exhausts per-node scratch</strong>. Spark begins spilling to disk beyond local scratch — which on this hardware means spilling to Ceph (the only other storage path), introducing network I/O into what should be local operations and severely degrading job performance. If Ceph is also under pressure, the job fails.</p>
+
+      <table class="ref-table">
+        <thead><tr><th>Ingest</th><th>Shuffle Amp</th><th>Scratch Needed / Node</th><th>Config I (15.36 TB)</th><th>Margin</th></tr></thead>
+        <tbody>
+          <tr><td>5 TB</td><td>3&times;</td><td>10.00 TB</td><td><span class="ok">OK</span></td><td>+5.36 TB / +54%</td></tr>
+          <tr><td>5 TB</td><td>4&times;</td><td>13.33 TB</td><td><span class="ok">OK</span></td><td>+2.03 TB / +15%</td></tr>
+          <tr><td>5 TB</td><td>4.6&times;</td><td>15.33 TB</td><td><span class="warn">edge</span></td><td>+0.03 TB / &lt;1%</td></tr>
+          <tr><td>5 TB</td><td>5&times;</td><td>16.67 TB</td><td><span class="bad">FAIL</span></td><td>&minus;1.31 TB / &minus;8%</td></tr>
+          <tr><td>5 TB</td><td>6&times;</td><td>20.00 TB</td><td><span class="bad">FAIL</span></td><td>&minus;4.64 TB / &minus;23%</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Operational Dependency Without Hardware Change</h3>
+
+      <p>Without additional drives, Config I requires the following from the development team:</p>
+      <ul style="font-size:14px;line-height:2;padding-left:22px;">
+        <li>Developers must check scratch adequacy in the dev calculator before submitting any job expected to involve multiple joins or window functions at full ingest volume</li>
+        <li>Jobs must include broadcast hints for all lookup tables that can fit in executor memory, to avoid unnecessary sort-merge shuffles</li>
+        <li>Shuffle amplification must be actively monitored in the Spark UI; jobs trending above 4&times; should be checkpointed or rewritten before completing at full scale</li>
+        <li>AQE (Adaptive Query Execution) must remain enabled to catch and repartition late-stage skew before it cascades into scratch exhaustion</li>
+      </ul>
+
+      <p>These are not unreasonable requirements for a mature team. They are unreasonable to treat as reliable constraints on a <em>development</em> cluster, where the point of the environment is to run queries that have not yet been optimised. The operational dependency is a latent risk, not a mitigated one.</p>
+
+      <h3 id="nvme-expansion">+1 NVMe/Node Expansion (8 NVMe Total, 3 Drives/Cluster)</h3>
+
+      <p>Adding one 3.84 TB NVMe per node — three drives total across the cluster — and allocating it to scratch gives <strong>6 scratch drives per node</strong> at 2 OSD/node (Ceph allocation unchanged). With HW RAID-5:</p>
+
+      <div class="math-box">scratch_usable = (6 &minus; 1) &times; 3.84 TB = <strong>19.20 TB / node</strong></div>
+      <div class="math-box">max_shuffle_amp @ 5 TB = 19.20 &divide; (5 &times; 0.667) = <strong>5.76&times;</strong></div>
+
+      <table class="ref-table">
+        <thead><tr><th>Ingest</th><th>Shuffle Amp</th><th>Scratch Needed / Node</th><th>Config I (15.36 TB)</th><th>+1 NVMe (19.20 TB)</th><th>Gain</th></tr></thead>
+        <tbody>
+          <tr><td>5 TB</td><td>3&times;</td><td>10.00 TB</td><td><span class="ok">+54%</span></td><td><span class="ok">+92%</span></td><td>+38pp</td></tr>
+          <tr><td>5 TB</td><td>4&times;</td><td>13.33 TB</td><td><span class="ok">+15%</span></td><td><span class="ok">+44%</span></td><td>+29pp</td></tr>
+          <tr><td>5 TB</td><td>5&times;</td><td>16.67 TB</td><td><span class="bad">FAIL</span></td><td><span class="ok">+15%</span></td><td>recovered</td></tr>
+          <tr><td>5 TB</td><td>6&times;</td><td>20.00 TB</td><td><span class="bad">FAIL</span></td><td><span class="bad">FAIL</span></td><td>still fails</td></tr>
+          <tr><td>4 TB</td><td>4&times;</td><td>10.67 TB</td><td><span class="ok">+44%</span></td><td><span class="ok">+80%</span></td><td>+36pp</td></tr>
+          <tr><td>4 TB</td><td>6&times;</td><td>16.00 TB</td><td><span class="bad">FAIL</span></td><td><span class="ok">+20%</span></td><td>recovered</td></tr>
+        </tbody>
+      </table>
+
+      <p>Adding one NVMe per node extends the scratch ceiling from <strong>4.61&times; to 5.76&times;</strong> at 5 TB ingest &mdash; a full shuffle-amplification tier recovered. Two chained sort-merge joins on even data (typically 4&times;&ndash;5&times;) no longer require developer intervention. Only genuinely pathological queries (6&times;+, typically involving severe data skew across multiple join stages) still exhaust scratch. Reaching 6&times; with reasonably-written queries requires either deliberate avoidance of broadcast hints on small tables or severely skewed source data that has not been addressed at the ingestion layer.</p>
+
+      <h3>Why Not Allocate the Extra NVMe to Ceph Instead?</h3>
+
+      <p>The alternative allocation &mdash; adding the extra NVMe as a 3rd OSD per node &mdash; does not help the scratch problem. With 3 OSD and 5 remaining scratch drives, HW RAID-5 scratch usable is identical to Config I at <strong>15.36 TB</strong>. The scratch ceiling is unchanged at 4.61&times;. Ceph usable increases to 17.28 TB, which is well beyond the maximum N=2 Parquet accumulation requirement of 7.24 TB. The extra Ceph capacity is not useful at current ingest scale; the extra scratch capacity is.</p>
+
+      <table class="ref-table">
+        <thead><tr><th></th><th>Config I (7 NVMe, 2 OSD)</th><th>+1 as 3rd OSD (8 NVMe, 3 OSD)</th><th>+1 as scratch (8 NVMe, 2 OSD)</th></tr></thead>
+        <tbody>
+          <tr><td>Scratch drives / node</td><td>5</td><td>5</td><td><strong>6</strong></td></tr>
+          <tr><td>Scratch usable / node (RAID-5)</td><td>15.36 TB</td><td>15.36 TB</td><td><strong>19.20 TB</strong></td></tr>
+          <tr><td>Scratch ceiling @ 5 TB</td><td>4.61&times;</td><td>4.61&times;</td><td><strong>5.76&times;</strong></td></tr>
+          <tr><td>Ceph usable</td><td>7.68 TB</td><td>17.28 TB</td><td>7.68 TB (unchanged)</td></tr>
+          <tr><td>Resolves scratch concern</td><td><span class="bad">No</span></td><td><span class="bad">No</span></td><td><span class="ok">Yes</span></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Conclusion</h3>
+
+      <div class="callout warn">
+        <strong>Config I is adequate on paper but operationally fragile at 5 TB ingest.</strong> Its 15% margin at the modeled worst-case (5 TB @ 4&times;) is consumed by a single two-stage sort-merge join running above 4.61&times;. On a development cluster, that is a normal occurrence, not an exceptional one. The configuration requires the development team to actively avoid a class of queries that the cluster should be able to absorb without intervention.<br><br>
+        <strong>Adding one 3.84 TB NVMe drive per node</strong> (3 drives, cluster-wide) and allocating it to scratch removes this operational dependency for all realistic development workloads. The ceiling rises to 5.76&times;, covering complex multi-join queries on even data without monitoring requirements. Only queries involving severe data skew across multiple join stages remain constrained — and those queries should be fixed at the data layer regardless of cluster sizing.<br><br>
+        This is a hardware procurement decision, not a configuration decision. It should be evaluated against the cost of developer time lost to scratch-induced job failures and the operational overhead of enforcing per-job shuffle amplification checks on a development team.
+      </div>
+
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
   <!-- ═══ REVISIONS ══════════════════════════════════════════════════════════════ -->
   <details class="section-details" id="sec_revisions">
     <summary class="section-summary">
@@ -530,6 +640,21 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
       <div class="card">
         <div class="card-title">Browser session-state fix</div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:0;">A <code>DOMContentLoaded</code> listener was added to force all sections closed on every page load, overriding browser session memory that was reopening previously-expanded sections after reload.</p>
+      </div>
+
+      <h3>2026-04-18 — Section G Added: Scratch Space Adequacy Concern &amp; Expansion Analysis</h3>
+      <div class="card">
+        <div class="card-title">New section documenting Config I scratch ceiling and +1 NVMe/node expansion</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Config I passes all modeled scenarios (up to 5 TB @ 4&times;) but its margin at worst-case is only +15% (2.03 TB). The shuffle amplification ceiling at 5 TB ingest is 4.61&times; — a realistic threshold for a development cluster running multi-join, exploratory queries. Section G documents this concern frankly and quantifies the hardware change that resolves it.</p>
+        <table>
+          <thead><tr><th>Configuration</th><th>Scratch / Node</th><th>Ceiling @ 5 TB</th><th>5 TB @ 5&times;</th></tr></thead>
+          <tbody>
+            <tr><td>Config I (7 NVMe, 2 OSD, 5 scratch)</td><td>15.36 TB</td><td>4.61&times;</td><td><span style="color:var(--red)">FAIL</span></td></tr>
+            <tr><td>+1 NVMe as scratch (8 NVMe, 2 OSD, 6 scratch)</td><td>19.20 TB</td><td>5.76&times;</td><td><span style="color:var(--green,#4caf50)">OK +15%</span></td></tr>
+            <tr><td>+1 NVMe as 3rd OSD (8 NVMe, 3 OSD, 5 scratch)</td><td>15.36 TB</td><td>4.61&times;</td><td><span style="color:var(--red)">FAIL</span></td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;">Conclusion: extra NVMe should go to scratch, not Ceph. Ceph at 17.28 TB (3 OSD) is well beyond N=2 Parquet requirement; additional Ceph headroom is not useful at current ingest scale.</p>
       </div>
 
       <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
