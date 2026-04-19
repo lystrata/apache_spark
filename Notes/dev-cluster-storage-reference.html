@@ -723,9 +723,9 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
 
 </div>
 <script>
-// Force all sections closed on every load except sec_overview — overrides browser session memory
+// Force ALL details closed on every load except sec_overview — covers sections and sub-sections
 document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('details.section-details').forEach(function(d) {
+  document.querySelectorAll('details').forEach(function(d) {
     if (d.id !== 'sec_overview') d.open = false;
   });
 });
@@ -737,7 +737,8 @@ function closeSub(el) {
 var _jumpedTo = null;
 function jumpTo(hash, sectionId) {
   event.preventDefault();
-  _jumpedTo = {hash: hash, sectionId: sectionId};
+  // Store origin scroll position so back button can restore it
+  _jumpedTo = {hash: hash, sectionId: sectionId, originScroll: window.scrollY};
   history.pushState(null, '', '#' + hash);
   var d = document.getElementById(sectionId);
   if (d) d.open = true;
@@ -747,7 +748,10 @@ window.addEventListener('popstate', function() {
   if (_jumpedTo && location.hash !== '#' + _jumpedTo.hash) {
     var sec = document.getElementById(_jumpedTo.sectionId);
     if (sec) sec.open = false;
+    var scroll = _jumpedTo.originScroll;
     _jumpedTo = null;
+    // Scroll back to where the user was before the jump
+    setTimeout(function() { window.scrollTo({top: scroll, behavior: 'smooth'}); }, 30);
   }
 });
 </script>
