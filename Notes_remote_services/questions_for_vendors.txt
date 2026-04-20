@@ -1,0 +1,35 @@
+Questions for Vendors — Remote Services Infrastructure
+Created 2026-04-20 16:30
+Updated 2026-04-20 16:30
+
+===============================================================
+
+[ ] WAITING FOR VENDOR REPLY
+
+Q1 — Airflow Executor Type
+Date asked: 2026-04-20
+
+Airflow has pluggable backends (executors) that control how it runs tasks:
+
+  - LocalExecutor: tasks run as subprocesses on the Airflow VM itself, inside
+    the scheduler process. No extra infrastructure. Simple to operate.
+
+  - CeleryExecutor: tasks are pushed to a message queue (Redis or RabbitMQ)
+    and picked up by separate worker processes. Designed for high task
+    concurrency or distributed workers. Requires Redis as a dependency.
+
+For a daily ETL pipeline submitting Spark jobs to YARN, LocalExecutor is
+likely sufficient — Airflow is just firing spark-submit and watching for
+completion, not running heavy work itself. However, if there are many
+concurrent non-Spark tasks (file sensors, API calls, data quality checks),
+CeleryExecutor may be warranted.
+
+Question to vendor: Which executor type is specified or preferred for this
+deployment? If CeleryExecutor, how many concurrent worker processes and
+what task concurrency level should we plan for?
+
+Impact on sizing: LocalExecutor requires no additional infrastructure.
+CeleryExecutor adds Redis (1 vCPU / 1 GB RAM) plus worker process RAM
+(2-4 vCPU / 4-8 GB RAM per worker).
+
+---------------------------------------------------------------

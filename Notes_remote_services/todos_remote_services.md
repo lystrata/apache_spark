@@ -3,9 +3,15 @@ _Last updated 2026-04-20 16:30_
 
 ---
 
+## Waiting for Vendor Reply
+
+- [ ] Q1 — Airflow executor type (LocalExecutor vs CeleryExecutor) — see `questions_for_vendors.txt`
+
+---
+
 ## Open Questions
 
-- [ ] Airflow executor type — LocalExecutor assumed; confirm before deployment
+- [ ] Airflow executor type — LocalExecutor assumed; pending vendor reply
 - [ ] "Monitoring Apache" — Airflow dashboards, Spark dashboards, or both? Scopes Grafana build-out
 - [ ] Second Proxmox host specs (vCPU, RAM, storage) — sets VM allocation ceiling
 - [ ] Spark event log location — S3 bucket name or HDFS path; required for History Server config
