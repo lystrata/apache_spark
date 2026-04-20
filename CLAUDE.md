@@ -19,6 +19,21 @@ All working HTML documents live in `Document/`. Scripts live in `Scripts/`. Rese
 | `Images/` | Screenshots organized by `Development/` and `Production/` subdirectories |
 | `Incoming/` | Source PDFs and reference material |
 
+## Session TODO Convention
+
+Each chat context maintains a TODO file tracking outstanding tasks, open questions, and next steps. At the end of a session — or when the user signals they are wrapping up — create or update the relevant TODO file with current status.
+
+| Context | TODO file |
+|---|---|
+| Spark calculators and cluster sizing | `Notes/todos_calculator.md` |
+| Remote services (Airflow, monitoring, bastion) | `Notes_remote_services/todos_remote_services.md` |
+
+**"show todos" prompt:** When the user types `show todos`, read and display the contents of both TODO files. If only one context is active in the current session, display that one and note the other exists.
+
+**Format:** Each TODO file uses three sections — `## Open Questions`, `## Pending Tasks`, and `## Next Session`. Use Markdown checklist boxes (`- [ ]` unchecked, `- [x]` checked) for all items. Check items off as they are resolved rather than deleting them, so there is a record of what was completed and when.
+
+---
+
 ## Serving the Calculators
 
 Always serve via HTTP, not `file://`. localStorage scoping differs between origins and scenarios saved under one will be invisible to the other.
