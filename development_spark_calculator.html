@@ -1396,6 +1396,22 @@
       </div>
 
       <div class="card">
+        <div class="card-title">2026-04-19 — Shuffle Tuning Parameters Added to spark-defaults.conf Output</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Based on structured review of 8 published sources on Spark shuffle mechanics. No formula changes. Additions to spark-defaults.conf output table and scratch adequacy annotation:</p>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Value</th><th>Basis</th></tr></thead>
+          <tbody>
+            <tr><td>spark.serializer</td><td>KryoSerializer</td><td>Smaller shuffle records [2][6]</td></tr>
+            <tr><td>spark.io.compression.lz4.blockSize</td><td>524288 (512 KB)</td><td>Up to −20% shuffle file size vs 32 KB default [6]</td></tr>
+            <tr><td>spark.shuffle.file.buffer</td><td>1m</td><td>Revised from 64–128 KB; multiple sources confirm 1 MB on adequate-memory clusters [2][6]</td></tr>
+            <tr><td>spark.shuffle.memoryFraction</td><td>0.30</td><td>Raised from 0.20 default; reduces reduce-side spill to scratch [2]</td></tr>
+            <tr><td>spark.reducer.maxSizeInFlight</td><td>96m</td><td>Raised from 48 MB default; performance only [2][7]</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;">Scratch sub-text updated to note that default shuffle compression makes the effective ceiling ~2× higher than the displayed value. Source documents archived in Incoming/. See Notes/shuffle-research-findings.html for full review.</p>
+      </div>
+
+      <div class="card">
         <div class="card-title">2026-04-18 — CEPH_DAYS Formula Revised; n_parquet Slider Added</div>
         <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Architectural review confirmed: Snowflake has no inbound network access; Parquet is transferred by an outbound batch job and deleted only on confirmed delivery; up to N concurrent Parquet sets may accumulate on local Ceph; VM OS disks (80 GB × VMs, Ceph RBD) were not previously deducted.</p>
         <table class="param-table">
@@ -1872,7 +1888,7 @@ function recalc() {
   const scratchOk = SCRATCH_TB_PER_VM >= DAILY_TB * SHUF_AMP * JOIN_SCRATCH_FACTOR * 0.75;
   setClass('out_scratch', scratchOk ? 'ok' : 'warn');
   const joinFactorLabel = JOIN_TYPE === 'wide' ? ' · ×1.25 wide joins' : JOIN_TYPE === 'mixed' ? ' · ×1.10 mixed joins' : '';
-  setVal('out_scratch_sub', `${SCRATCH_NVME_PER_VM > 0 ? fmt(SCRATCH_NVME_PER_VM,1)+'× NVMe' : 'none'} · shuffle target: ${fmt(DAILY_TB*SHUF_AMP,1)} TB${joinFactorLabel}`);
+  setVal('out_scratch_sub', `${SCRATCH_NVME_PER_VM > 0 ? fmt(SCRATCH_NVME_PER_VM,1)+'× NVMe' : 'none'} · shuffle target: ${fmt(DAILY_TB*SHUF_AMP,1)} TB${joinFactorLabel} · compression active: effective ceiling ~2× higher [2][8]`);
 
   // Shuffle burst profile metrics
   const TOTAL_SCRATCH_DRIVES = SCRATCH_NVME_PER_NODE * NODES;
@@ -2078,6 +2094,12 @@ function buildParamTable(p) {
     ['spark.hadoop.fs.s3a.path.style.access','true',                   'Required for RGW / non-AWS S3'],
     ['spark.sql.files.maxPartitionBytes',   `${p.MAX_PART_MB || 128}m`, 'Input CSV read partition size (from Partitioning card)'],
     ['df.repartition(N) — code level',      `${p.OUTPUT_PARTS || '—'}`, 'Output Parquet partition count → ~150 MB files for Snowflake COPY INTO'],
+    ['— Shuffle Tuning —',                  '—',                         '— parameters below from structured review of 8 sources (2026-04-19) —'],
+    ['spark.serializer',                    'org.apache.spark.serializer.KryoSerializer', 'Smaller shuffle records; reduces scratch consumption [2][6]'],
+    ['spark.io.compression.lz4.blockSize',  '524288',                    'Up to −20% shuffle/spill file size vs 32 KB default [6]'],
+    ['spark.shuffle.file.buffer',           '1m',                        'Revised from 64–128 KB; reduces disk flush frequency on NVMe [2][6]'],
+    ['spark.shuffle.memoryFraction',        '0.30',                      'Raised from 0.20 default; reduces reduce-side spill to scratch [2]'],
+    ['spark.reducer.maxSizeInFlight',       '96m',                       'Raised from 48 MB default; performance only [2][7]'],
   ];
   t.innerHTML = rows.map(([k,v,d]) =>
     `<tr><td>${k}</td><td>${v}</td><td>${d}</td></tr>`

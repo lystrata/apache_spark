@@ -618,6 +618,107 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
       </div>
     </details>
 
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">COMPRESSION HEADROOM</span>
+        <span class="sub-desc">How default shuffle compression affects the effective ceiling</span>
+      </summary>
+      <div class="sub-body">
+        <p>The scratch ceiling formula uses uncompressed daily ingest volume as its input — it is a
+        conservative worst-case model. In practice, <code>spark.shuffle.compress = true</code>
+        (default, snappy codec) compresses map output before writing to scratch, typically achieving
+        2&ndash;3&times; compression on mixed ETL data. <sup>[2]</sup> <code>spark.shuffle.spill.compress = true</code>
+        (default) applies the same compression to reduce-side spill. <sup>[2]</sup></p>
+
+        <p>The practical effect: <strong>actual on-disk scratch usage is approximately 40&ndash;60%
+        of the calculated ceiling value</strong> when default compression is active. At 5 TB/day,
+        Config I&rsquo;s effective ceiling under compression is closer to <strong>9&times;</strong>
+        than the formula&rsquo;s 4.61&times;.</p>
+
+        <p>Additionally, increasing <code>spark.io.compression.lz4.blockSize</code> from the
+        default 32 KB to <strong>512 KB</strong> yields up to a <strong>20% further reduction
+        in shuffle and spill file size</strong>, additive on top of the snappy baseline ratio. <sup>[6]</sup>
+        This is a zero-cost configuration change applied in <code>spark-defaults.conf</code>.</p>
+
+        <div class="callout warn">
+          <strong>Important:</strong> These compression gains are workload-dependent. Parquet data
+          ingested from upstream is already compressed; shuffle data derived from it may compress
+          less than raw CSV intermediates. <sup>[8]</sup> Safe planning sizes scratch against the
+          uncompressed calculation and treats compression as safety margin &mdash; not a provisioning
+          assumption. The formula is intentionally conservative.
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">AQE RUNTIME MITIGATION</span>
+        <span class="sub-desc">How Adaptive Query Execution reduces wide-join scratch pressure at runtime</span>
+      </summary>
+      <div class="sub-body">
+        <p>Adaptive Query Execution (<code>spark.sql.adaptive.enabled = true</code>, default on
+        Spark 3.2+) <sup>[5]</sup> re-optimizes query plans at runtime using actual statistics
+        collected during execution. Two behaviors directly affect scratch pressure:</p>
+
+        <ul style="line-height:2;padding-left:22px;">
+          <li><strong>Auto-broadcast conversion:</strong> AQE monitors actual byte counts during
+          execution. If either side of a join falls below the adaptive broadcast threshold at
+          runtime, AQE converts a planned sort-merge join to a broadcast hash join &mdash;
+          retroactively eliminating the shuffle for that stage. Jobs that appear as
+          &ldquo;wide shuffle joins&rdquo; at plan time may execute with near-zero scratch
+          consumption on those stages.</li>
+          <li><strong>Skew join splitting:</strong> When a shuffle partition is more than 5&times;
+          the median size, AQE automatically splits it into smaller sub-tasks. This prevents a
+          single hot key from accumulating disproportionate scratch on one node and causing
+          localized exhaustion even when the cluster average is within limits.</li>
+        </ul>
+
+        <div class="callout warn">
+          <strong>Caveat:</strong> AQE auto-broadcast requires accurate statistics and only
+          applies when one join side is genuinely small. It is a runtime safety net, not a
+          provisioning substitute. Do not rely on AQE behavior when sizing scratch capacity.
+          The formula and ceiling values in this document remain the correct planning basis.
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">BUCKETING AS STRUCTURAL RELIEF</span>
+        <span class="sub-desc">Eliminating shuffle entirely on hot join paths — no hardware required</span>
+      </summary>
+      <div class="sub-body">
+        <p>Bucketed tables are pre-sorted and pre-partitioned on a join key at write time. When
+        two tables with the same bucket count are joined on their bucket key, Spark eliminates
+        the shuffle <code>Exchange</code> node from the query plan entirely &mdash; the join
+        executes locally on each executor with <strong>zero shuffle data written to scratch</strong>.
+        <sup>[4]</sup></p>
+
+        <p>For ETL pipelines that join the same tables on the same keys repeatedly
+        (e.g., <code>customer_id</code>, <code>account_id</code>, <code>product_id</code>),
+        writing intermediate tables as bucketed Hive-compatible tables eliminates the shuffle
+        cost for every subsequent run after the initial write:</p>
+
+        <pre style="font-size:12px;margin:10px 0;">df_orders.write   .bucketBy(64, "customer_id")   .sortBy("customer_id")   .saveAsTable("etl.orders_bucketed")</pre>
+
+        <div class="callout ok">
+          <strong>Scratch impact:</strong> Shuffle for that join stage drops to zero. A pipeline
+          with two or three hot join keys, once bucketed, can eliminate the majority of its
+          scratch consumption. This is the structural answer to the Config I constraint at
+          5 TB/day &mdash; available without any hardware change, through application-layer
+          schema design.
+        </div>
+
+        <p>This technique requires ETL developers to be aware of the pattern and apply it
+        deliberately. It should be covered in the developer briefing alongside broadcast hints
+        and <code>reduceByKey</code> practices.</p>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
     <details class="sub-details">
       <summary class="sub-summary">
         <span class="sub-title">CONCLUSION</span>
@@ -633,6 +734,19 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
       </div>
     </details>
 
+
+      <hr style="border-color:var(--border);margin:20px 0;">
+      <h3 style="color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">Works Cited — Section G</h3>
+      <ul style="font-size:12px;color:var(--muted);list-style:none;padding:0;line-height:1.8;">
+        <li>[1] M. Shen, Y. Zhou, C. Singh, &ldquo;Magnet: Push-based Shuffle Service for Large-scale Data Processing,&rdquo; <em>VLDB 2020</em>. [<code>Incoming/p3382-shen.pdf</code>]</li>
+        <li>[2] A. Gounar, J. Torres, &ldquo;A Methodology for Spark Parameter Tuning,&rdquo; Barcelona Supercomputing Center, 2017. [<code>Incoming/spark-conf-tuning-revised.pdf</code>]</li>
+        <li>[3] A. Davidson, A. Or, &ldquo;Optimizing Shuffle Performance in Spark,&rdquo; UC Berkeley EECS, ~2014. [<code>Incoming/project16_report.pdf</code>]</li>
+        <li>[4] AWS, &ldquo;Optimize shuffles,&rdquo; <em>AWS Prescriptive Guidance</em>, 2026. [<code>Incoming/docs.aws.amazon.com-Optimize shuffles.pdf</code>]</li>
+        <li>[5] Apache Spark Project, &ldquo;Performance Tuning,&rdquo; <em>Spark Documentation</em>, 2026. [<code>Incoming/spark.apache.org-Performance Tuning.pdf</code>]</li>
+        <li>[6] A. Pandey, &ldquo;A Quick Look at the Optimisation Methods for Apache Spark,&rdquo; <em>Stackademic</em>, 2024. [<code>Incoming/blog.stackademic.com-...pdf</code>]</li>
+        <li>[7] C. Lettieri, &ldquo;Shuffling in Spark,&rdquo; <em>Medium</em>, 2024. [<code>Incoming/Shuffling in Spark_...pdf</code>]</li>
+        <li>[8] A.C. Jadhav, &ldquo;Data Formats and Compression in Data Engineering,&rdquo; <em>LinkedIn Pulse</em>, 2025. [<code>Incoming/linkedin.com-8 Data Formats...pdf</code>]</li>
+      </ul>
       <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
     </div>
   </details>
@@ -700,6 +814,21 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
       <div class="card">
         <div class="card-title">Browser session-state fix</div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:0;">A <code>DOMContentLoaded</code> listener was added to force all sections closed on every page load, overriding browser session memory that was reopening previously-expanded sections after reload.</p>
+      </div>
+
+      <h3>2026-04-19 — Section G: Compression Headroom, AQE Mitigation, Bucketing Sub-Sections Added</h3>
+      <div class="card">
+        <div class="card-title">Three new sub-sections added to Section G based on shuffle research review</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:8px;">A structured review of 8 sources (2 rounds: academic papers + practitioner guides) was conducted to validate the scratch sizing model and identify mitigation strategies. Three new sub-sections were added to Section G:</p>
+        <table>
+          <thead><tr><th>Sub-section</th><th>Key Finding</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Compression Headroom</td><td>Default snappy compression reduces actual on-disk scratch usage 40&ndash;60% vs. the calculated ceiling. LZ4 block size 512 KB adds up to 20% further reduction. Model intentionally uses uncompressed basis (conservative).</td></tr>
+            <tr><td class="name">AQE Runtime Mitigation</td><td>AQE auto-broadcast converts sort-merge joins to broadcast at runtime when one side is small. Skew-join splitting prevents hot-key scratch concentration. Runtime safety net; not a planning substitute.</td></tr>
+            <tr><td class="name">Bucketing as Structural Relief</td><td>Bucketed tables eliminate shuffle Exchange nodes for hot join paths entirely &mdash; zero scratch for those stages. Structural solution available without hardware change through application-layer schema design.</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;">Works Cited block added to Section G. No changes to formula, ceiling values, or hardware recommendations &mdash; the model is validated. Source documents archived in <code>Incoming/</code>.</p>
       </div>
 
       <h3>2026-04-18 — Section G Added: Scratch Space Adequacy Concern &amp; Expansion Analysis</h3>

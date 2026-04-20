@@ -1,0 +1,57 @@
+Subject: Development Cluster Sizing Analysis — Basis for Discussion
+
+
+Over the past several weeks, our team has been conducting a structured self-assessment of the hardware
+and software interactions involved in standing up an Apache Spark cluster on our existing 3-node HPE
+DL385 Gen11 infrastructure. The attached documents represent that work. We are sharing them ahead of
+our technical discussion so that your team has full visibility into our current thinking — and so that
+you can correct, refine, or validate it against your deployment experience.
+
+
+What we set out to answer
+
+We approached this from two practical needs rather than from a theoretical interest in Spark:
+
+First, we need to be able to give our development team realistic, defensible guidelines for how they
+interact with the cluster — specifically around ingest data volume, shuffle complexity, and the job
+patterns that will stay within the hardware envelope versus those that will exhaust it. A developer who
+doesn't understand why their query failed, or who is handed an arbitrary limit without explanation, is a
+friction point we want to avoid from the start.
+
+Second, we need to be able to justify hardware upgrade requests internally with something more rigorous
+than "we need more capacity." The analysis needs to trace from a specific workload characteristic —
+shuffle amplification, concurrent Parquet accumulation, OSD count — through to a concrete impact on
+cluster headroom or job reliability. That traceability is what gives an upgrade request credibility with
+budget stakeholders who are not Spark practitioners.
+
+
+What the documents contain
+
+The four attached documents cover the storage architecture analysis, the development cluster sizing
+calculator, the underlying sizing mathematics, and a general-purpose sizing tool for exploring
+configurations beyond the current hardware. They are not presented as authoritative — they are presented
+as our current best understanding, derived from first principles and the available literature, by a team
+that has not yet deployed Spark in production.
+
+One correction relative to any documents shared prior to this submission: earlier versions of the
+storage reference and sizing calculator assumed worst-case shuffle amplification without accounting for
+Spark's default shuffle write compression (snappy codec, enabled by default). Our subsequent review of
+the shuffle mechanics literature confirmed that this compression is active unless explicitly disabled,
+and typically reduces on-disk shuffle volume by 40–60% relative to the raw data size. The attached
+documents have been updated to reflect this — the scratch sizing model remains intentionally
+conservative (it plans to raw data volume), but the updated materials now annotate that the effective
+scratch headroom is approximately twice what the displayed ceiling suggests when default compression is
+active.
+
+
+What we are looking for from this discussion
+
+Your team has real-world deployment experience that we do not. Where our assumptions are wrong,
+conservative to the point of being impractical, or missing factors that only surface in production, we
+want to know. Specifically, we are interested in whether our shuffle amplification estimates, OSD
+configuration reasoning, and scratch sizing approach reflect what you observe in comparable deployments
+— and where the meaningful gaps are between a sizing model and an actual running cluster.
+
+We are not coming to this conversation to defend a position. We are coming to it to pressure-test an
+analysis against people who have done this before, so that the decisions we make about hardware,
+developer guidelines, and upgrade justification are grounded in something real.

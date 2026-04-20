@@ -1809,9 +1809,67 @@
             <td class="formula">OUTPUT_PARTS (Tier 4)</td>
             <td class="note">Not a conf parameter — a code-level call before writing Parquet. Targets ~150 MB output files for Snowflake COPY INTO efficiency.</td>
           </tr>
+          <tr>
+            <td colspan="3" style="background:rgba(78,158,255,0.05);color:var(--accent);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;padding:8px 10px;">Shuffle Tuning Parameters — Research-Validated Additions (2026-04-19)</td>
+          </tr>
+          <tr>
+            <td><code>spark.serializer</code></td>
+            <td class="formula">org.apache.spark.serializer.KryoSerializer</td>
+            <td class="note">Smaller serialized shuffle records → less scratch and network I/O. Static best-practice. <sup>[2][6]</sup></td>
+          </tr>
+          <tr>
+            <td><code>spark.shuffle.compress</code></td>
+            <td class="formula">true (snappy, default)</td>
+            <td class="note">Compresses map output before writing to scratch. Default on. Typically reduces on-disk shuffle data 40–60%. Calculator input is uncompressed-basis (conservative). <sup>[2][8]</sup></td>
+          </tr>
+          <tr>
+            <td><code>spark.shuffle.spill.compress</code></td>
+            <td class="formula">true (default)</td>
+            <td class="note">Same compression applied to reduce-side spill written to scratch. Default on; keep enabled. <sup>[2]</sup></td>
+          </tr>
+          <tr>
+            <td><code>spark.io.compression.lz4.blockSize</code></td>
+            <td class="formula">524288 (512 KB)</td>
+            <td class="note"><strong>New — 2026-04-19.</strong> Default 32 KB is undersized for large-dataset shuffle. 512 KB yields up to −20% shuffle/spill file size, additive on top of snappy ratio. No performance penalty on NVMe. <sup>[6]</sup></td>
+          </tr>
+          <tr>
+            <td><code>spark.shuffle.file.buffer</code></td>
+            <td class="formula">1m (revised from 64–128 KB)</td>
+            <td class="note"><strong>Revised upward — 2026-04-19.</strong> In-memory write buffer per map output file. 1 MB reduces disk flush frequency on large shuffle stages. Performance only — no capacity impact. <sup>[2][6]</sup></td>
+          </tr>
+          <tr>
+            <td><code>spark.shuffle.memoryFraction</code></td>
+            <td class="formula">0.30 (raised from 0.20 default)</td>
+            <td class="note"><strong>New — 2026-04-19.</strong> Fraction of executor heap for shuffle buffers before spilling to scratch. 30% reduces reduce-side spill for join-heavy workloads. <sup>[2]</sup></td>
+          </tr>
+          <tr>
+            <td><code>spark.reducer.maxSizeInFlight</code></td>
+            <td class="formula">96m (raised from 48 MB default)</td>
+            <td class="note">Max fetch size per reduce request. Larger value → fewer round-trips during shuffle fetch. Performance only — no capacity impact. <sup>[2][7]</sup></td>
+          </tr>
+          <tr>
+            <td><code>spark.sql.adaptive.enabled</code></td>
+            <td class="formula">AQE toggle (Tier 2)</td>
+            <td class="note">AQE: runtime auto-broadcast conversion, skew-join splitting, partition coalescing. When enabled, AQE can convert wide sort-merge joins to broadcast hash joins at runtime — reducing scratch pressure retroactively. Default true on Spark 3.2+. <sup>[5]</sup></td>
+          </tr>
         </tbody>
       </table>
     </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">Works Cited — Shuffle Parameter Sources</div>
+      <ul style="font-size:12px;color:var(--muted);list-style:none;padding:0;line-height:1.9;">
+        <li>[1] M. Shen, Y. Zhou, C. Singh, &ldquo;Magnet: Push-based Shuffle Service for Large-scale Data Processing,&rdquo; <em>VLDB 2020</em>. [<code>Incoming/p3382-shen.pdf</code>]</li>
+        <li>[2] A. Gounar, J. Torres, &ldquo;A Methodology for Spark Parameter Tuning,&rdquo; Barcelona Supercomputing Center, 2017. [<code>Incoming/spark-conf-tuning-revised.pdf</code>]</li>
+        <li>[3] A. Davidson, A. Or, &ldquo;Optimizing Shuffle Performance in Spark,&rdquo; UC Berkeley EECS, ~2014. [<code>Incoming/project16_report.pdf</code>]</li>
+        <li>[4] AWS, &ldquo;Optimize shuffles,&rdquo; <em>AWS Prescriptive Guidance</em>, 2026. [<code>Incoming/docs.aws.amazon.com-Optimize shuffles.pdf</code>]</li>
+        <li>[5] Apache Spark Project, &ldquo;Performance Tuning,&rdquo; <em>Spark Documentation</em>, 2026. [<code>Incoming/spark.apache.org-Performance Tuning.pdf</code>]</li>
+        <li>[6] A. Pandey, &ldquo;A Quick Look at the Optimisation Methods for Apache Spark,&rdquo; <em>Stackademic</em>, 2024. [<code>Incoming/blog.stackademic.com-...pdf</code>]</li>
+        <li>[7] C. Lettieri, &ldquo;Shuffling in Spark,&rdquo; <em>Medium</em>, 2024. [<code>Incoming/Shuffling in Spark_...pdf</code>]</li>
+        <li>[8] A.C. Jadhav, &ldquo;Data Formats and Compression in Data Engineering,&rdquo; <em>LinkedIn Pulse</em>, 2025. [<code>Incoming/linkedin.com-8 Data Formats...pdf</code>]</li>
+      </ul>
+    </div>
+
       <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
     </div>
   </details>
@@ -1830,6 +1888,24 @@
     <div class="section-body">
 
       <div class="callout info"><span class="callout-title">Revision policy</span>Formula changes are recorded here with the original and revised expressions. Documentation-only changes (comments, labels) are noted but not given a full entry. The Revisions section in <code>Notes/chat-2026-04-17-calculator-review.md</code> is the companion prose document.</div>
+
+      <h3>2026-04-19 — Shuffle Tuning Parameters Added; Works Cited Added</h3>
+      <div class="card">
+        <div class="card-title">spark-defaults.conf parameter table extended — shuffle research integration</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Based on structured review of 8 published sources (2 rounds: academic + practitioner). No formula changes. Parameter table additions:</p>
+        <table>
+          <thead><tr><th>Parameter</th><th>Value</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td class="name">spark.serializer</td><td class="formula">KryoSerializer</td><td>New entry</td></tr>
+            <tr><td class="name">spark.io.compression.lz4.blockSize</td><td class="formula">524288 (512 KB)</td><td>New entry — up to −20% shuffle file size [6]</td></tr>
+            <tr><td class="name">spark.shuffle.file.buffer</td><td class="formula">1m</td><td>Revised from 64–128 KB recommendation [2][6]</td></tr>
+            <tr><td class="name">spark.shuffle.memoryFraction</td><td class="formula">0.30</td><td>New entry — raised from 0.20 default [2]</td></tr>
+            <tr><td class="name">spark.reducer.maxSizeInFlight</td><td class="formula">96m</td><td>New entry — raised from 48 MB default [2][7]</td></tr>
+            <tr><td class="name">spark.sql.adaptive.enabled</td><td class="formula">AQE toggle</td><td>Note added on runtime auto-broadcast behavior [5]</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;">Works Cited block added to spark-defaults.conf section. Source documents archived in <code>Incoming/</code>.</p>
+      </div>
 
       <h3>2026-04-01 — Initial Release</h3>
       <div class="card">
