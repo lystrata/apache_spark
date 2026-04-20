@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spark Shuffle Amplification — Research Summary</title>
+<style>
+  :root {
+    --bg: #1a1a2e; --surface: #16213e; --border: #2a2a4a;
+    --text: #e0e0e0; --muted: #888; --accent: #4e9eff;
+    --accent2: #3ecf8e; --warn: #f0a500; --bad: #e05c5c;
+    --mono: 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif;
+    font-size: 14px; line-height: 1.6; padding: 24px; max-width: 980px; margin: 0 auto; }
+  h1 { color: var(--accent); font-size: 22px; margin-bottom: 4px; }
+  .doc-meta { color: var(--muted); font-size: 12px; margin-bottom: 28px; }
+  details.section-details { border: 1px solid var(--border); border-radius: 6px;
+    margin-bottom: 12px; background: var(--surface); }
+  summary.section-summary { padding: 14px 16px; cursor: pointer; list-style: none;
+    display: flex; align-items: baseline; gap: 10px; user-select: none; }
+  summary.section-summary::-webkit-details-marker { display: none; }
+  .section-letter { background: var(--accent); color: var(--bg); border-radius: 3px;
+    padding: 1px 7px; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+  .section-title { font-weight: 600; font-size: 15px; }
+  .section-sub { color: var(--muted); font-size: 12px; flex: 1; }
+  .btt { margin-left: auto; font-size: 11px; color: var(--muted); text-decoration: none; flex-shrink: 0; }
+  .btt:hover { color: var(--accent); }
+  .section-body { padding: 20px; border-top: 1px solid var(--border); }
+  .section-close { text-align: right; margin-top: 16px; }
+  .section-close a { color: var(--muted); font-size: 12px; cursor: pointer; }
+  .section-close a:hover { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: rgba(78,158,255,0.1); color: var(--accent); padding: 8px 10px;
+    text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  code { font-family: var(--mono); background: rgba(255,255,255,0.06);
+    padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  pre { font-family: var(--mono); background: rgba(0,0,0,0.3); padding: 14px;
+    border-radius: 4px; font-size: 12px; overflow-x: auto; margin: 10px 0; line-height: 1.5; }
+  sup { font-size: 10px; color: var(--accent); }
+  .note { background: rgba(240,165,0,0.08); border-left: 3px solid var(--warn);
+    padding: 10px 14px; margin: 10px 0; border-radius: 0 4px 4px 0; font-size: 13px; color: var(--muted); }
+  .note strong { color: var(--warn); }
+  .finding { background: rgba(78,158,255,0.05); border-left: 3px solid var(--accent);
+    padding: 12px 16px; margin: 10px 0; border-radius: 0 4px 4px 0; }
+  .finding-title { font-weight: 700; font-size: 13px; color: var(--accent); margin-bottom: 6px; }
+  h3 { color: var(--accent); font-size: 14px; margin: 16px 0 8px; }
+  h3:first-child { margin-top: 0; }
+  p { margin: 8px 0; }
+  ul { margin: 8px 0 8px 20px; }
+  li { margin: 4px 0; }
+  .works-cited { list-style: none; margin-left: 0; }
+  .works-cited li { font-size: 12px; color: var(--muted); margin: 8px 0; padding-left: 28px;
+    text-indent: -28px; }
+  .works-cited li span { color: var(--text); }
+  .tag-validated { color: var(--accent2); font-weight: 600; }
+  .tag-new { color: var(--warn); font-weight: 600; }
+  .tag-confirmed { color: var(--accent2); font-weight: 600; }
+</style>
+</head>
+<body>
+<h1 id="top">Spark Shuffle Amplification — Research Summary</h1>
+<div class="doc-meta">
+  Research conducted: 2026-04-19 &nbsp;·&nbsp; 8 sources &nbsp;·&nbsp; Two rounds: academic papers + practitioner guides
+  &nbsp;·&nbsp; Author: Rohn Wood / AskAllegiance &nbsp;·&nbsp; Distribution: IT administration, vendor contacts
+</div>
+
+<!-- SECTION A: Overview & Motivation -->
+<details class="section-details" id="sec_a">
+  <summary class="section-summary">
+    <span class="section-letter">A</span>
+    <span class="section-title">Overview &amp; Motivation</span>
+    <span class="section-sub">· Why this research was conducted · The hardware constraint driving the question</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <h3>Purpose</h3>
+    <p>This document summarizes research conducted on 2026-04-19 to validate and extend the scratch
+    storage sizing model used in the development and production cluster infrastructure calculators.
+    The research reviewed 8 sources across academic literature and practitioner guides. It is written
+    for IT administrators and vendor contacts with Spark deployment experience who did not participate
+    in the review sessions.</p>
+
+    <h3>The Hardware Constraint</h3>
+    <p>The immediate trigger was a specific constraint in the development cluster sizing. Config I
+    allocates 4 NVMe drives per node to scratch (RAID-5 with one hot spare), yielding
+    <strong>15.36 TB usable per node</strong>. The project's scratch sizing model computes
+    a <em>ceiling</em> — the shuffle amplification factor at which scratch fills up under
+    worst-case conditions:</p>
+
+    <pre>scratch_needed_per_node = daily_TB &times; shuffle_amp &times; 2 / nodes
+ceiling                 = scratch_per_node / (daily_TB &times; 2 / nodes)</pre>
+
+    <p>At the baseline ingest target of 2 TB/day, Config I yields a ceiling of
+    <strong>4.61&times;</strong>. At a higher ingest rate of 5 TB/day the ceiling falls to
+    <strong>1.84&times;</strong> — uncomfortably close to the assumed worst-case shuffle
+    amplification for unoptimized ETL workloads.</p>
+
+    <h3>Questions the Research Was Designed to Answer</h3>
+    <ul>
+      <li>Is the <strong>&times;2 factor</strong> in the scratch formula technically justified?</li>
+      <li>Does default shuffle compression make the model materially conservative, and by how much?</li>
+      <li>What configuration parameters or application-level practices reduce effective scratch
+          consumption, and what is the evidence for each?</li>
+      <li>Is the scratch adequacy concern for Config I at higher ingest rates valid or
+          overstated?</li>
+    </ul>
+
+    <h3>Scope</h3>
+    <p>The research covers Spark shuffle mechanics, compression behavior, Adaptive Query Execution
+    (AQE), bucketing, and the NVMe operating regime relative to the HDD assumptions underlying
+    some published Spark tuning guidance. It does not cover Spark Streaming, Delta Lake internals,
+    or Ceph storage allocation — those are addressed in separate project documents.</p>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- SECTION B: Sources Reviewed -->
+<details class="section-details" id="sec_b">
+  <summary class="section-summary">
+    <span class="section-letter">B</span>
+    <span class="section-title">Sources Reviewed</span>
+    <span class="section-sub">· 8 sources &nbsp;· Round 1: academic papers &nbsp;· Round 2: practitioner guides and official documentation</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <h3>Round 1 — Academic Papers</h3>
+    <table>
+      <tr>
+        <th style="width:36px">#</th>
+        <th>Authors</th>
+        <th>Organization / Venue</th>
+        <th style="width:52px">Year</th>
+        <th>Relevance to This Project</th>
+      </tr>
+      <tr>
+        <td>[1]</td>
+        <td>Zaharia, Chowdhury, Das, Dave, Ma, McCauley, Franklin, Shenker, Stoica</td>
+        <td>UC Berkeley / NSDI 2012</td>
+        <td>2012</td>
+        <td>Foundational RDD paper; establishes lineage of Spark shuffle as a stage boundary operation</td>
+      </tr>
+      <tr>
+        <td>[2]</td>
+        <td>Shen, Zhou, Singh</td>
+        <td>LinkedIn / VLDB 2020 (Magnet paper)</td>
+        <td>2020</td>
+        <td>Shuffle service architecture, HDD IOPS problem at scale, compression defaults, memory fraction tuning</td>
+      </tr>
+      <tr>
+        <td>[3]</td>
+        <td>Davidson, Or</td>
+        <td>UC Berkeley EECS Technical Report</td>
+        <td>~2014</td>
+        <td>Two-phase disk model (map output + reduce spill); directly validates the &times;2 factor</td>
+      </tr>
+      <tr>
+        <td>[4]</td>
+        <td>Gounar, Torres</td>
+        <td>Aristotle Univ. / Barcelona Supercomputing Center</td>
+        <td>2017</td>
+        <td>Empirical parameter tuning methodology; aggregation operator impact on amplification; reduceByKey vs. groupByKey</td>
+      </tr>
+    </table>
+
+    <h3>Round 2 — Practitioner Guides and Official Documentation</h3>
+    <table>
+      <tr>
+        <th style="width:36px">#</th>
+        <th>Authors / Source</th>
+        <th>Publication</th>
+        <th style="width:52px">Year</th>
+        <th>Relevance to This Project</th>
+      </tr>
+      <tr>
+        <td>[5]</td>
+        <td>AWS Prescriptive Guidance</td>
+        <td>AWS Documentation — "Optimize Apache Spark Shuffles"</td>
+        <td>2026</td>
+        <td>Bucketing to eliminate shuffle on hot join paths; practitioner-grade parameter recommendations</td>
+      </tr>
+      <tr>
+        <td>[6]</td>
+        <td>Pandey, A.</td>
+        <td>Stackademic — "Apache Spark Performance Tuning"</td>
+        <td>2024</td>
+        <td>LZ4 block size empirical benchmark with graph; KryoSerializer; confirms file.buffer target</td>
+      </tr>
+      <tr>
+        <td>[7]</td>
+        <td>Lettieri, C.</td>
+        <td>Medium — "Shuffling in Spark: How to Balance Performance With Getting It Done"</td>
+        <td>2024</td>
+        <td>Shuffle internals deep-dive; reducer.maxSizeInFlight; compression codec tradeoffs</td>
+      </tr>
+      <tr>
+        <td>[8]</td>
+        <td>Apache Spark Project</td>
+        <td>Official Spark Documentation — Performance Tuning</td>
+        <td>2026</td>
+        <td>AQE auto-broadcast join threshold; skew join splitting; authoritative defaults for Spark 3.x</td>
+      </tr>
+    </table>
+
+    <p>Sources [1]–[4] were reviewed in Round 1 (academic papers). Sources [5]–[8] were reviewed in
+    Round 2 (practitioner guides and official documentation). All source files are archived in
+    <code>Incoming/</code> and are listed in full in Section F.</p>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- SECTION C: Key Findings -->
+<details class="section-details" id="sec_c">
+  <summary class="section-summary">
+    <span class="section-letter">C</span>
+    <span class="section-title">Key Findings</span>
+    <span class="section-sub">· 8 findings with citations · Model validation · Compression headroom · AQE · Bucketing · NVMe regime</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <div class="finding" id="finding-1">
+      <div class="finding-title">Finding 1 — The &times;2 Scratch Factor Is Validated</div>
+      <p>The &times;2 multiplier in the scratch sizing formula is technically correct.
+      Davidson &amp; Or<sup>[3]</sup> document the two-phase disk lifecycle: map tasks write
+      sorted shuffle output to local disk, where it persists until all reducers for that shuffle
+      stage have completed; reducers then fetch that data into memory and may themselves spill to
+      disk when their in-memory buffer fills. These two phases can co-exist on disk simultaneously.
+      The &times;2 factor correctly models the worst-case scenario in which both phases are
+      fully materialized at the same time.</p>
+      <p>This finding confirms the formula's structural assumption. No change to the ceiling
+      calculation is required.</p>
+    </div>
+
+    <div class="finding" id="finding-2">
+      <div class="finding-title">Finding 2 — Default Shuffle Compression Makes the Model Conservative by 40–60%</div>
+      <p><code>spark.shuffle.compress = true</code> is the Spark default, using the snappy codec.
+      On mixed ETL data, snappy typically achieves 2–3&times; compression.<sup>[2]</sup>
+      <code>spark.shuffle.spill.compress = true</code> (also default) applies the same compression
+      to reduce-side spill files.<sup>[2][8]</sup> The combined effect is that actual on-disk scratch
+      usage is approximately 40–60% of the value the ceiling formula calculates against raw input volume.</p>
+      <p>Put differently: the displayed ceiling is roughly half the effective ceiling when compression
+      is active. This is the correct direction — the model is conservative, not optimistic — and this
+      is intentional. Shuffle compression ratios vary significantly by workload: jobs processing
+      already-compressed Parquet files see lower ratios; jobs producing string-heavy output see higher
+      ones. Safe infrastructure planning does not bank on compression ratios that vary by job.
+      The compression headroom should be understood as a safety buffer, not as justification to
+      reduce scratch provisioning.</p>
+    </div>
+
+    <div class="finding" id="finding-3">
+      <div class="finding-title">Finding 3 — LZ4 Block Size 512 KB Yields Up to &minus;20% Shuffle File Size</div>
+      <p>The default <code>spark.io.compression.lz4.blockSize = 32 KB</code> is undersized for
+      large-scale ETL datasets. Pandey<sup>[6]</sup> shows empirically (with benchmark graph) that
+      increasing this to <strong>512 KB</strong> produces up to a <strong>20% reduction in
+      shuffle and spill file size</strong>. This gain is additive on top of the baseline snappy
+      compression ratio and applies to both shuffle output and reduce-side spill files.</p>
+      <p>This is the single most actionable configuration change for reducing scratch consumption.
+      The setting is a direct addition to <code>spark-defaults.conf</code> with no application
+      code changes required.</p>
+    </div>
+
+    <div class="finding" id="finding-4">
+      <div class="finding-title">Finding 4 — NVMe Hardware Operates Beyond the Problem Class That Motivated LinkedIn's Magnet</div>
+      <p>Shen et al.<sup>[2]</sup> built the Magnet push-based shuffle service because LinkedIn's
+      HDD-backed shuffle — average shuffle block size in the tens of kilobytes, billions of
+      fetch requests per day — was consuming 15% of total Spark compute resources to fetch latency.
+      The root cause was HDD IOPS throughput: ~150 IOPS at ~5 ms per operation.</p>
+      <p>NVMe drives in this cluster operate at 500,000–1,000,000 IOPS at ~100 microseconds
+      per operation — three to four orders of magnitude different. Standard YARN External Shuffle
+      Service running on NVMe already operates well beyond the performance regime that motivated
+      Magnet. The small-block IOPS bottleneck that drove LinkedIn's custom shuffle architecture
+      does not apply to this hardware configuration. Standard YARN ESS is the appropriate
+      shuffle service choice.</p>
+    </div>
+
+    <div class="finding" id="finding-5">
+      <div class="finding-title">Finding 5 — AQE Auto-Broadcast Converts Wide Joins to Broadcast at Runtime</div>
+      <p><code>spark.sql.adaptive.enabled = true</code> has been the default since Spark 3.2.<sup>[8]</sup>
+      With AQE active, the runtime can convert a sort-merge join (which produces full shuffle exchange
+      nodes on both sides) to a broadcast hash join when one side is determined at runtime to be
+      smaller than <code>spark.sql.adaptive.autoBroadcastJoinThreshold</code>. A job whose query
+      plan shows a wide shuffle join may execute at runtime as a broadcast join with near-zero
+      scratch consumption for that stage.</p>
+      <p>Additionally, <code>spark.sql.adaptive.skewJoin.enabled = true</code> (also default)
+      automatically splits partitions more than 5&times; the median partition size, reducing the
+      worst-case scratch tail for jobs with skewed key distributions.<sup>[8]</sup></p>
+      <p>Planning implication: the JOIN_SCRATCH_FACTOR tiers (wide=1.25&times;, mixed=1.10&times;,
+      broadcast=1.0&times;) remain the correct provisioning ceiling. AQE can shift runtime behavior
+      toward the lower tier but is not guaranteed for all join patterns and should not be relied
+      upon for scratch provisioning decisions.</p>
+    </div>
+
+    <div class="finding" id="finding-6">
+      <div class="finding-title">Finding 6 — AQE Skew Join Splitting Handles Partitions &gt;5&times; Median Automatically</div>
+      <p>Skewed key distributions — where one partition receives a disproportionate share of rows —
+      produce worst-case scratch behavior because the oversized partition must be fully materialized.
+      AQE's skew join handler detects partitions that exceed 5&times; the median partition size
+      and splits them automatically.<sup>[8]</sup> This blunts the tail case without any query
+      rewrite. Like auto-broadcast, this is on by default in Spark 3.2+ and should be verified
+      explicitly rather than assumed.</p>
+    </div>
+
+    <div class="finding" id="finding-7">
+      <div class="finding-title">Finding 7 — Bucketing Eliminates the Shuffle Exchange Node Entirely for Hot Join Keys</div>
+      <p>When intermediate tables are written with <code>.write.bucketBy(N, "join_key")</code>,
+      Spark pre-shuffles and pre-sorts the data on that key at write time.<sup>[5][8]</sup> For
+      ETL jobs that join on the same key repeatedly — common examples are
+      <code>account_id</code> and <code>customer_id</code> in financial or operational data —
+      bucketed reads eliminate the shuffle Exchange node for those join stages entirely.
+      Scratch consumption for a bucketed join is zero at the join stage itself.</p>
+      <p>This is the highest-leverage application-level practice for reducing scratch pressure
+      on repeated joins. It requires schema design decisions and is most valuable for
+      frequently re-joined dimension tables or hot fact-table joins. It is not a configuration
+      parameter; it requires intentional table design at the application layer.</p>
+    </div>
+
+    <div class="finding" id="finding-8">
+      <div class="finding-title">Finding 8 — spark.shuffle.memoryFraction 0.30 Reduces Reduce-Side Spill to Scratch</div>
+      <p>The default <code>spark.shuffle.memoryFraction = 0.20</code> allocates 20% of executor
+      memory to in-memory shuffle buffers. When this buffer fills during the reduce phase, Spark
+      spills the excess to disk. Increasing this to <strong>0.30</strong> on clusters with
+      adequate RAM per executor provides 50% more in-memory shuffle space, directly reducing
+      the frequency and volume of reduce-side spill to scratch.<sup>[2]</sup></p>
+      <p>This is the most direct configuration lever for reducing the reduce-side contribution
+      to scratch usage. It trades executor memory for reduced disk I/O and reduced scratch
+      consumption. On this cluster, with 384 GB (development) or 768 GB (production) RAM per
+      node, the trade is favorable for join-heavy ETL workloads.</p>
+    </div>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- SECTION D: Impact on Project Assumptions -->
+<details class="section-details" id="sec_d">
+  <summary class="section-summary">
+    <span class="section-letter">D</span>
+    <span class="section-title">Impact on Project Assumptions</span>
+    <span class="section-sub">· What was assumed · What was confirmed · What changed · Net effect on provisioning guidance</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <table>
+      <tr>
+        <th>Assumption / Area</th>
+        <th>Was</th>
+        <th>Now</th>
+        <th>Impact on Guidance</th>
+      </tr>
+      <tr>
+        <td><strong>&times;2 scratch model</strong><br>
+            Map output + reduce spill simultaneous</td>
+        <td>Assumed based on Spark stage model</td>
+        <td class="tag-validated">Validated — confirmed by Davidson &amp; Or <sup>[3]</sup></td>
+        <td>No change to formula. Ceiling calculation stands.</td>
+      </tr>
+      <tr>
+        <td><strong>Effective scratch headroom</strong><br>
+            Compression effect on on-disk usage</td>
+        <td>Model computed against raw data volume; compression effect undocumented</td>
+        <td class="tag-confirmed">Confirmed conservative — actual usage ~40–60% of formula output when default compression is active <sup>[2][8]</sup></td>
+        <td>Document as safety buffer. Do not use as justification to reduce scratch allocation.
+            Compression ratios vary by workload and cannot be relied upon for provisioning.</td>
+      </tr>
+      <tr>
+        <td><strong>Config I constraint at 5 TB/day</strong><br>
+            4 NVMe scratch drives, 15.36 TB usable/node, ceiling 1.84&times; at 5 TB/day</td>
+        <td>Identified as a real concern in Section G of storage reference</td>
+        <td class="tag-confirmed">Constraint stands — effective ceiling with default compression is closer to 3–4&times;,
+            but this depends on workload compressibility and cannot be planned against</td>
+        <td>The +1 NVMe/node recommendation in Config II remains valid. AQE provides runtime
+            mitigation but is not a substitute for adequate scratch provisioning.</td>
+      </tr>
+      <tr>
+        <td><strong>LZ4 block size</strong><br>
+            Default 32 KB</td>
+        <td>Not previously documented as a sizing lever</td>
+        <td class="tag-new">New finding — 512 KB yields up to &minus;20% shuffle/spill file size <sup>[6]</sup></td>
+        <td>Add to spark-defaults.conf output in both calculators. Cite source.
+            Most actionable single configuration change for reducing scratch consumption.</td>
+      </tr>
+      <tr>
+        <td><strong>spark.shuffle.file.buffer</strong><br>
+            File write buffer during map output</td>
+        <td>Recommended at 64–128 KB based on Round 1 sources</td>
+        <td class="tag-new">Revised upward — 1 MB is the correct target for memory-adequate clusters <sup>[2][6]</sup></td>
+        <td>Update parameter table in all documents. Performance impact only; does not affect capacity.</td>
+      </tr>
+      <tr>
+        <td><strong>AQE and wide join scratch</strong><br>
+            Runtime query plan adaptation</td>
+        <td>Not previously documented in sizing context</td>
+        <td class="tag-new">New finding — AQE auto-broadcast can shift wide-join workloads to near-zero scratch at runtime <sup>[8]</sup></td>
+        <td>Note in calculators and developer guide. Explicitly not a substitute for provisioning — not guaranteed for all join patterns.</td>
+      </tr>
+      <tr>
+        <td><strong>Bucketing for repeated joins</strong><br>
+            Application-level schema design</td>
+        <td>Not previously documented</td>
+        <td class="tag-new">New finding — bucketing eliminates shuffle Exchange node entirely for hot join keys <sup>[5][8]</sup></td>
+        <td>Include in developer guide as highest-leverage practice for reducing scratch on repeated joins. Requires intentional table design.</td>
+      </tr>
+      <tr>
+        <td><strong>Recommended parameters documented</strong></td>
+        <td>Partial — 5 parameters in earlier guidance; file.buffer value understated</td>
+        <td class="tag-new">Complete — 8 parameters now specified in spark-defaults.conf output with sources and impact classification</td>
+        <td>See Section E for the full revised parameter table.</td>
+      </tr>
+    </table>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- SECTION E: Revised Parameter Recommendations -->
+<details class="section-details" id="sec_e">
+  <summary class="section-summary">
+    <span class="section-letter">E</span>
+    <span class="section-title">Revised Parameter Recommendations</span>
+    <span class="section-sub">· Complete spark-defaults.conf table · Impact classification · Source citations</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <p>The following parameters are recommended for inclusion in <code>spark-defaults.conf</code>
+    on all nodes. Parameters are listed in priority order for reducing scratch pressure. Impact
+    classification indicates whether a change affects scratch <em>capacity</em> usage or
+    <em>performance</em> only.</p>
+
+    <table>
+      <tr>
+        <th>Parameter</th>
+        <th>Default</th>
+        <th>Recommended Value</th>
+        <th>Impact</th>
+        <th>Source</th>
+      </tr>
+      <tr>
+        <td><code>spark.serializer</code></td>
+        <td><code>JavaSerializer</code></td>
+        <td><code>org.apache.spark.serializer.KryoSerializer</code></td>
+        <td>Reduces raw shuffle data size upstream of compression — less scratch consumed</td>
+        <td><sup>[2][6][7]</sup></td>
+      </tr>
+      <tr>
+        <td><code>spark.io.compression.lz4.blockSize</code></td>
+        <td><code>32k</code></td>
+        <td><strong><code>524288</code></strong> (512 KB)</td>
+        <td><strong>Up to &minus;20% shuffle and spill file size</strong> — directly reduces scratch</td>
+        <td><sup>[6]</sup></td>
+      </tr>
+      <tr>
+        <td><code>spark.shuffle.memoryFraction</code></td>
+        <td><code>0.2</code></td>
+        <td><strong><code>0.30</code></strong> (join-heavy workloads)</td>
+        <td>More in-memory reduce buffer → less spill to scratch</td>
+        <td><sup>[2]</sup></td>
+      </tr>
+      <tr>
+        <td><code>spark.shuffle.compress</code></td>
+        <td><code>true</code> (snappy)</td>
+        <td>Keep <code>true</code></td>
+        <td>~40–60% on-disk reduction vs. uncompressed — already active by default</td>
+        <td><sup>[2][8]</sup></td>
+      </tr>
+      <tr>
+        <td><code>spark.shuffle.spill.compress</code></td>
+        <td><code>true</code></td>
+        <td>Keep <code>true</code></td>
+        <td>Same compression benefit applied to reduce-side spill files</td>
+        <td><sup>[2]</sup></td>
+      </tr>
+      <tr>
+        <td><code>spark.shuffle.file.buffer</code></td>
+        <td><code>32k</code></td>
+        <td><strong><code>1m</code></strong></td>
+        <td>Performance only — fewer disk flushes during map output write; does not affect capacity</td>
+        <td><sup>[2][6]</sup></td>
+      </tr>
+      <tr>
+        <td><code>spark.reducer.maxSizeInFlight</code></td>
+        <td><code>48m</code></td>
+        <td><strong><code>96m</code></strong></td>
+        <td>Performance only — larger fetch batches, fewer round-trips; does not affect capacity</td>
+        <td><sup>[2][7]</sup></td>
+      </tr>
+      <tr>
+        <td><code>spark.sql.adaptive.enabled</code></td>
+        <td><code>true</code> (Spark 3.2+)</td>
+        <td>Keep <code>true</code> — verify explicitly in cluster config</td>
+        <td>Runtime auto-broadcast conversion and skew join splitting reduce wide-join scratch pressure</td>
+        <td><sup>[8]</sup></td>
+      </tr>
+    </table>
+
+    <div class="note">
+      <strong>Note on spark-defaults.conf output:</strong> Parameters marked "keep true" or
+      "keep default" are included here for visibility. They should be explicitly set in
+      spark-defaults.conf rather than relied upon as implicit defaults, to prevent regression
+      if a future deployment or version change alters the default value.
+    </div>
+
+    <h3>Application-Level Practice (Not a Configuration Parameter)</h3>
+    <p>Bucketing on hot join keys — using <code>.write.bucketBy(N, "join_key")</code> when writing
+    intermediate tables — eliminates the shuffle Exchange node for those join stages at runtime.
+    This is the highest-leverage practice for jobs that join on the same key repeatedly. It
+    requires intentional schema design at the application layer and is not set in
+    spark-defaults.conf.</p>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- SECTION F: Works Cited -->
+<details class="section-details" id="sec_f">
+  <summary class="section-summary">
+    <span class="section-letter">F</span>
+    <span class="section-title">Works Cited</span>
+    <span class="section-sub">· All 8 sources · Archived in Incoming/</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <ul class="works-cited">
+      <li>[1] <span>M. Zaharia, M. Chowdhury, T. Das, A. Dave, J. Ma, M. McCauley, M.J. Franklin,
+          S. Shenker, I. Stoica, "Resilient Distributed Datasets: A Fault-Tolerant Abstraction for
+          In-Memory Cluster Computing," <em>Proceedings of the 9th USENIX Symposium on Networked
+          Systems Design and Implementation (NSDI '12)</em>, San Jose, CA, 2012.</span></li>
+
+      <li>[2] <span>M. Shen, Y. Zhou, C. Singh, "Magnet: Push-based Shuffle Service for Large-scale
+          Data Processing," <em>Proceedings of the VLDB Endowment</em>, Vol. 13, No. 12,
+          pp. 3382–3395, 2020. DOI: 10.14778/3415478.3415558.</span>
+          [archived: <code>Incoming/p3382-shen.pdf</code>]</li>
+
+      <li>[3] <span>A. Davidson, A. Or, "Optimizing Shuffle Performance in Spark," UC Berkeley
+          EECS Technical Report, ~2014.</span>
+          [archived: <code>Incoming/project16_report.pdf</code>]</li>
+
+      <li>[4] <span>A. Gounar, J. Torres, "A Methodology for Spark Parameter Tuning,"
+          <em>Big Data Research</em>, Aristotle University of Thessaloniki / Barcelona
+          Supercomputing Center, 2017.</span>
+          [archived: <code>Incoming/spark-conf-tuning-revised.pdf</code>]</li>
+
+      <li>[5] <span>AWS, "Optimize shuffles," <em>AWS Prescriptive Guidance — Tuning AWS Glue
+          for Apache Spark</em>, Amazon Web Services, 2026.</span>
+          [archived: <code>Incoming/docs.aws.amazon.com-Optimize shuffles.pdf</code>]</li>
+
+      <li>[6] <span>A. Pandey, "A Quick Look at the Optimisation Methods for Apache Spark,"
+          <em>Stackademic</em>, 2024.</span>
+          [archived: <code>Incoming/blog.stackademic.com-A Quick Look at the Optimisation Methods for Apache Spark.pdf</code>]</li>
+
+      <li>[7] <span>C. Lettieri, "Shuffling in Spark: How to Balance Performance With Getting
+          It Done," <em>Medium</em>, October 2024.</span>
+          [archived: <code>Incoming/Shuffling in Spark_ How to Balance Performance With Getting It Done _ by Chris Lettieri _ Medium.pdf</code>]</li>
+
+      <li>[8] <span>Apache Spark Project, "Performance Tuning," <em>Apache Spark Documentation</em>,
+          spark.apache.org, 2026.</span>
+          [archived: <code>Incoming/spark.apache.org-Performance Tuning.pdf</code>]</li>
+    </ul>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('details.section-details').forEach(function(d) { d.open = false; });
+});
+</script>
+</body>
+</html>
