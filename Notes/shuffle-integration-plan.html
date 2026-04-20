@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shuffle Research Integration Plan — 2026-04-19</title>
+<style>
+  :root {
+    --bg: #1a1a2e; --surface: #16213e; --border: #2a2a4a;
+    --text: #e0e0e0; --muted: #888; --accent: #4e9eff;
+    --accent2: #3ecf8e; --warn: #f0a500; --bad: #e05c5c;
+    --mono: 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif;
+    font-size: 14px; line-height: 1.6; padding: 24px; max-width: 960px; margin: 0 auto; }
+  h1 { color: var(--accent); font-size: 22px; margin-bottom: 4px; }
+  .doc-meta { color: var(--muted); font-size: 12px; margin-bottom: 28px; }
+  details.section-details { border: 1px solid var(--border); border-radius: 6px;
+    margin-bottom: 12px; background: var(--surface); }
+  summary.section-summary { padding: 14px 16px; cursor: pointer; list-style: none;
+    display: flex; align-items: baseline; gap: 10px; user-select: none; }
+  summary.section-summary::-webkit-details-marker { display: none; }
+  .section-letter { background: var(--accent); color: var(--bg); border-radius: 3px;
+    padding: 1px 7px; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+  .section-title { font-weight: 600; font-size: 15px; }
+  .section-sub { color: var(--muted); font-size: 12px; }
+  .section-body { padding: 20px; border-top: 1px solid var(--border); }
+  .section-close { text-align: right; margin-top: 16px; }
+  .section-close a { color: var(--muted); font-size: 12px; cursor: pointer; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: rgba(78,158,255,0.1); color: var(--accent); padding: 8px 10px;
+    text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  code { font-family: var(--mono); background: rgba(255,255,255,0.06);
+    padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  .step { background: rgba(78,158,255,0.05); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 16px; margin: 10px 0; }
+  .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .step-num { background: var(--accent); color: var(--bg); border-radius: 50%;
+    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px; flex-shrink: 0; }
+  .step-num.new { background: var(--accent2); }
+  .step-file { font-family: var(--mono); font-size: 12px; color: var(--accent2); font-weight: 600; }
+  .step-type { font-size: 11px; color: var(--muted); border: 1px solid var(--border);
+    border-radius: 3px; padding: 1px 6px; }
+  .step-type.create { color: var(--accent2); border-color: var(--accent2); }
+  .step-type.edit { color: var(--warn); border-color: var(--warn); }
+  ul { margin: 6px 0 6px 20px; }
+  li { margin: 3px 0; }
+  h3 { color: var(--accent); font-size: 13px; margin: 14px 0 6px; text-transform: uppercase;
+    letter-spacing: 0.04em; }
+  .cite-entry { font-size: 12px; color: var(--muted); margin: 5px 0; }
+  .cite-entry span { color: var(--text); }
+  .status { display: inline-block; font-size: 11px; border-radius: 3px;
+    padding: 1px 7px; font-weight: 600; }
+  .status.pending { background: rgba(240,165,0,0.15); color: var(--warn); }
+  p { margin: 8px 0; }
+</style>
+</head>
+<body>
+<h1 id="top">Shuffle Research Integration Plan</h1>
+<div class="doc-meta">Created: 2026-04-19 &nbsp;·&nbsp; Status: <span class="status pending">Pending Approval</span> &nbsp;·&nbsp; 7 files · 2 new · 5 edited</div>
+
+<!-- SECTION A: Scope -->
+<details class="section-details" id="sec_a">
+  <summary class="section-summary">
+    <span class="section-letter">A</span>
+    <span class="section-title">Scope &amp; Objectives</span>
+    <span class="section-sub">· What this plan covers · What it does not change</span>
+  </summary>
+  <div class="section-body">
+    <p>This plan integrates the findings from the 2026-04-19 shuffle amplification research
+    (8 sources, 2 rounds) into the project's calculators and documentation. Objectives:</p>
+    <ul>
+      <li>Create a <strong>Developer Guide</strong> on shuffle optimization practices specific to our hardware and scratch constraint</li>
+      <li>Create a <strong>Research Summary</strong> for IT admin / vendor distribution</li>
+      <li>Update existing documents with new findings, compression notes, and parameter corrections</li>
+      <li>Add footnotes with works cited where research findings are asserted</li>
+      <li>Add compression context and updated parameter output to all three calculators</li>
+    </ul>
+    <p><strong>What does not change:</strong> The core scratch formula (2× factor is validated). No
+    hardware recommendations change. No calculator slider ranges change. This is a documentation and
+    annotation pass, plus targeted parameter updates in the spark-defaults.conf output sections.</p>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- SECTION B: Citation Standard -->
+<details class="section-details" id="sec_b">
+  <summary class="section-summary">
+    <span class="section-letter">B</span>
+    <span class="section-title">Citation Standard</span>
+    <span class="section-sub">· Footnote format · Works cited format · 8 sources</span>
+  </summary>
+  <div class="section-body">
+    <p>Inline footnotes use numbered superscripts: <code>&lt;sup&gt;[N]&lt;/sup&gt;</code>.
+    Each document carries its own Works Cited section with entries in the format:</p>
+    <code>[N] Authors, "Title," Source/Venue, Year. [archived: Incoming/filename.pdf]</code>
+    <p style="margin-top:12px;">Numbering is per-document, not global.</p>
+
+    <h3>The 8 Sources</h3>
+    <div class="cite-entry">[1] <span>M. Shen, Y. Zhou, C. Singh — "Magnet: Push-based Shuffle Service for Large-scale Data Processing," VLDB 2020</span></div>
+    <div class="cite-entry">[2] <span>A. Gounar, J. Torres — "A Methodology for Spark Parameter Tuning," Barcelona SC, 2017</span></div>
+    <div class="cite-entry">[3] <span>A. Davidson, A. Or — "Optimizing Shuffle Performance in Spark," UC Berkeley, ~2014</span></div>
+    <div class="cite-entry">[4] <span>AWS Prescriptive Guidance — "Optimize shuffles," AWS Documentation, 2026</span></div>
+    <div class="cite-entry">[5] <span>Apache Spark Project — "Performance Tuning," Official Spark Docs, 2026</span></div>
+    <div class="cite-entry">[6] <span>A. Pandey — "A Quick Look at the Optimisation Methods for Apache Spark," Stackademic, 2024</span></div>
+    <div class="cite-entry">[7] <span>C. Lettieri — "Shuffling in Spark: How to Balance Performance With Getting It Done," Medium, 2024</span></div>
+    <div class="cite-entry">[8] <span>A.C. Jadhav — "Data Formats and Compression in Data Engineering," LinkedIn Pulse, 2025</span></div>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- SECTION C: Work Items -->
+<details class="section-details" id="sec_c">
+  <summary class="section-summary">
+    <span class="section-letter">C</span>
+    <span class="section-title">Work Items — Sequence</span>
+    <span class="section-sub">· 7 steps in order · 2 new files · 5 edits</span>
+  </summary>
+  <div class="section-body">
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num new">1</div>
+        <div class="step-file">Notes/spark-shuffle-developer-guide.html</div>
+        <span class="step-type create">CREATE</span>
+      </div>
+      <p><strong>Audience:</strong> ETL developers writing jobs on the cluster.</p>
+      <p><strong>Sections:</strong></p>
+      <ul>
+        <li>Why Shuffle Matters Here — the 4-drive RAID-5 scratch constraint, what the ceiling means at 2 TB/day vs. 5 TB/day</li>
+        <li>What You Can Control — developer practices that reduce amplification:
+          <ul>
+            <li><code>reduceByKey</code> over <code>groupByKey</code> (with amplification impact) <sup>[4][6]</sup></li>
+            <li>Broadcast hints for small dimension tables, threshold guidance <sup>[4][5][7]</sup></li>
+            <li>Filter / predicate pushdown before joins <sup>[4]</sup></li>
+            <li>Repartition on join key before multi-join pipelines <sup>[7]</sup></li>
+            <li>Bucketing for hot join paths — eliminate shuffle entirely <sup>[4]</sup></li>
+            <li>Avoiding unnecessary <code>collect()</code>, <code>count()</code>, <code>distinct()</code> <sup>[4]</sup></li>
+          </ul>
+        </li>
+        <li>What the Cluster Does For You — AQE auto-broadcast, skew splitting, partition coalescing <sup>[5]</sup></li>
+        <li>Reading the Spark UI — Shuffle Read/Write, Spill (Disk) columns; identifying skew <sup>[4][7]</sup></li>
+        <li>Configuration Reference — recommended spark-defaults.conf parameters with explanations <sup>[2][5][6]</sup></li>
+        <li>Works Cited</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num new">2</div>
+        <div class="step-file">Document/shuffle-research-summary.html</div>
+        <span class="step-type create">CREATE</span>
+      </div>
+      <p><strong>Audience:</strong> IT admin team + vendor technical contacts.</p>
+      <p><strong>Sections:</strong></p>
+      <ul>
+        <li>Purpose &amp; Scope — the hardware constraint that motivated the review</li>
+        <li>Sources Reviewed — table of all 8 sources</li>
+        <li>Our Shuffle Scratch Model — the formula and what the 2× factor represents</li>
+        <li>Findings 1–8 — each with inline citations and impact statement</li>
+        <li>Impacts on Assumptions &amp; Resource Allocation — old assumption → new understanding → action table</li>
+        <li>Recommended spark-defaults.conf — full parameter table with citations</li>
+        <li>Conclusion</li>
+        <li>Works Cited</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-file">Notes/dev-cluster-storage-reference.html</div>
+        <span class="step-type edit">EDIT</span>
+      </div>
+      <p><strong>Target:</strong> Section G (Scratch Space Adequacy). Add three new sub-sections:</p>
+      <ul>
+        <li><strong>G.x — Compression Headroom</strong>: default shuffle compression makes the calculated ceiling conservative by ~40–60%; LZ4 block size 512KB adds ~20%; footnotes <sup>[2][6][8]</sup></li>
+        <li><strong>G.x — AQE Runtime Mitigation</strong>: auto-broadcast and skew splitting at runtime; not a substitute for provisioning; footnote <sup>[5]</sup></li>
+        <li><strong>G.x — Bucketing as Structural Relief</strong>: eliminate shuffle on hot join paths by schema design; footnote <sup>[4]</sup></li>
+      </ul>
+      <p>Inline footnote superscripts added at each assertion. Bibliography appended to Section G.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-file">Document/dev_cluster_math_reference.html</div>
+        <span class="step-type edit">EDIT</span>
+      </div>
+      <ul>
+        <li>Add <code>spark.io.compression.lz4.blockSize</code> row to parameter reference table (512 KB recommended, −20% shuffle file size, cite <sup>[6]</sup>)</li>
+        <li>Revise <code>spark.shuffle.file.buffer</code> recommendation from 64–128 KB to <strong>1 MB</strong> (cite <sup>[2][6]</sup>)</li>
+        <li>Add note on AQE auto-broadcast behavior (cite <sup>[5]</sup>)</li>
+        <li>Bibliography appended to document (or Revisions section)</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-file">development_spark_calculator.html</div>
+        <span class="step-type edit">EDIT</span>
+      </div>
+      <ul>
+        <li>Scratch adequacy output / warning text: add footnoted note that default compression makes effective ceiling ~2× the displayed value <sup>[2][8]</sup></li>
+        <li>Spark Configuration section (spark-defaults.conf output): add <code>spark.io.compression.lz4.blockSize=524288</code> with inline comment citing −20% finding; update <code>spark.shuffle.file.buffer</code> to <code>1m</code></li>
+        <li>Revisions section updated</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">6</div>
+        <div class="step-file">production_spark_calculator.html</div>
+        <span class="step-type edit">EDIT</span>
+      </div>
+      <p>Identical changes to Step 5 applied to the production calculator.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">7</div>
+        <div class="step-file">cluster_sizing_tool.html</div>
+        <span class="step-type edit">EDIT</span>
+      </div>
+      <ul>
+        <li>Shuffle Amplification Ceiling description text: add note that default compression raises the practical ceiling above the displayed number; reference developer guide for practices that raise it further</li>
+        <li>Add <code>spark.io.compression.lz4.blockSize</code> and updated <code>spark.shuffle.file.buffer</code> to configuration output</li>
+        <li>Revisions section updated</li>
+      </ul>
+    </div>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- SECTION D: Rules -->
+<details class="section-details" id="sec_d">
+  <summary class="section-summary">
+    <span class="section-letter">D</span>
+    <span class="section-title">Execution Rules</span>
+    <span class="section-sub">· Git discipline · Revisions sections · New file handling</span>
+  </summary>
+  <div class="section-body">
+    <ul>
+      <li>New HTML files (<strong>Steps 1 and 2</strong>) must be <code>git add</code>'d immediately upon creation before any edits</li>
+      <li>Commit before edits to existing files that have significant changes (Steps 3–7)</li>
+      <li>All existing files with Revisions sections must have the Revisions section updated as part of the same edit when content changes:
+        <ul>
+          <li><code>development_spark_calculator.html</code> — <code>sec_revisions</code></li>
+          <li><code>production_spark_calculator.html</code> — <code>sec_revisions</code> (once added)</li>
+          <li><code>Document/dev_cluster_math_reference.html</code> — <code>revisions</code></li>
+          <li><code>Notes/dev-cluster-storage-reference.html</code> — <code>sec_revisions</code></li>
+        </ul>
+      </li>
+      <li>New HTML files created in Steps 1–2 must follow the project's section collapsible pattern and close-handler DOMContentLoaded convention</li>
+      <li>All footnote superscripts <code>&lt;sup&gt;[N]&lt;/sup&gt;</code> use per-document numbering</li>
+    </ul>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    if (location.hash) history.replaceState(null, '', location.pathname);
+    document.querySelectorAll('details').forEach(function(d) { d.open = false; });
+  }, 0);
+});
+</script>
+</body>
+</html>
