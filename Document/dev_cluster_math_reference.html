@@ -553,6 +553,12 @@
             <td class="note">Fixed — host OS, QEMU process, live-migration buffers.</td>
           </tr>
           <tr>
+            <td>ZFS ARC (OS mirror cache)</td>
+            <td class="val">—</td>
+            <td class="val">8 GB</td>
+            <td class="note">Read cache for the Proxmox OS ZFS mirror (3× 480 GB SSD). Constrained to 8 GB via <code>zfs_arc_max = 8589934592</code> in <code>/etc/modprobe.d/zfs.conf</code>. 8 GB is generous for an OS-only working set. Included in RESERVE_RAM.</td>
+          </tr>
+          <tr>
             <td>Ceph OSD</td>
             <td class="formula">OSD_NODE × 1c</td>
             <td class="formula">OSD_NODE × 3 GB</td>
@@ -646,13 +652,13 @@
             <td class="name">RESERVE_CORES</td>
             <td class="formula">2c (Proxmox) + CEPH_CORES_TOTAL + SVC_CORES_NODE</td>
             <td class="val">14c</td>
-            <td class="note">Total cores unavailable to worker VMs: 2 (Proxmox) + 11 (Ceph) + 1 (YARN RM ÷3) = 14.</td>
+            <td class="note">Total cores unavailable to worker VMs: 2 (Proxmox) + 11 (Ceph) + 1 (YARN RM ÷3) = 14. ZFS ARC has negligible CPU overhead — no core reservation required.</td>
           </tr>
           <tr>
             <td class="name">RESERVE_RAM</td>
-            <td class="formula">8 GB (Proxmox) + CEPH_RAM_TOTAL + SVC_RAM_NODE</td>
-            <td class="val">39 GB</td>
-            <td class="note">Total RAM unavailable to worker VMs: 8 (Proxmox) + 29 (Ceph) + 2 (YARN RM ÷3) = 39 GB.</td>
+            <td class="formula">8 GB (Proxmox) + 8 GB (ZFS ARC) + CEPH_RAM_TOTAL + SVC_RAM_NODE</td>
+            <td class="val">47 GB</td>
+            <td class="note">Total RAM unavailable to worker VMs: 8 (Proxmox) + 8 (ZFS ARC) + 29 (Ceph) + 2 (YARN RM ÷3) = 47 GB.</td>
           </tr>
           <tr style="border-top: 2px solid var(--border2);">
             <td class="name">AVAIL_CORES</td>
@@ -663,8 +669,8 @@
           <tr>
             <td class="name">AVAIL_RAM</td>
             <td class="formula">RAM_NODE − RESERVE_RAM</td>
-            <td class="val">345 GB</td>
-            <td class="note">384 GB (RAM_NODE at default) − 39 GB (RESERVE_RAM) = 345 GB. Hard ceiling for all VM RAM allocations on this node.</td>
+            <td class="val">337 GB</td>
+            <td class="note">384 GB (RAM_NODE at default) − 47 GB (RESERVE_RAM) = 337 GB. Hard ceiling for all VM RAM allocations on this node.</td>
           </tr>
         </tbody>
       </table>

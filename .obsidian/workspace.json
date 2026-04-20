@@ -1,0 +1,216 @@
+{
+  "main": {
+    "id": "dee00490bf1ebbc1",
+    "type": "split",
+    "children": [
+      {
+        "id": "0ab69a4e00b65142",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "26b18bad1ec031f8",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Notes/chat-2026-04-17-calculator-review.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "chat-2026-04-17-calculator-review"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "6e459f8b5f02a731",
+    "type": "split",
+    "children": [
+      {
+        "id": "e623cdea2ccd691a",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ec755f4cc8186349",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "b98ae80192b92188",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "a93528367e49c5a0",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 412.5
+  },
+  "right": {
+    "id": "e7992bc544f2bc26",
+    "type": "split",
+    "children": [
+      {
+        "id": "36b6c3d42b5fa68c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f4c1bf378da418e2",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Notes/chat-2026-04-17-calculator-review.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for chat-2026-04-17-calculator-review"
+            }
+          },
+          {
+            "id": "7a49c332ffcb8f02",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Notes/chat-2026-04-17-calculator-review.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from chat-2026-04-17-calculator-review"
+            }
+          },
+          {
+            "id": "0194bc04f61a30b1",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "a2b54513c20ce290",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "e00b07ac27f7df14",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Notes/chat-2026-04-17-calculator-review.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of chat-2026-04-17-calculator-review"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "26b18bad1ec031f8",
+  "lastOpenFiles": [
+    "Document/spark-shuffle-developer-guide.html",
+    "Document/dev-cluster-storage-reference.html",
+    "Document/production_spark_calculator.html",
+    "Document/development_spark_calculator.html",
+    "Scripts/export_chat.py",
+    "Document/vendor-letter-draft.txt",
+    "Document/vendor-letter-draft.html",
+    "Document/dev_slider_guide.html",
+    "Document/prod_calculator_guide.html",
+    "Document/dev_calculator_guide.html",
+    "Document/cluster_sizing_tool.html",
+    "Images/Development/dev-guide-13-sec-f-spark-config.png",
+    "Images/Development/dev-guide-12-sec-e-network-path.png",
+    "Images/Development/dev-guide-11-sec-d-workload-sizing.png",
+    "Images/Development/dev-guide-10-sec-d-storage-ceph.png",
+    "Images/Development/dev-guide-09-sec-c-core-sensitivity.png",
+    "Images/Development/dev-guide-08-sec-c-memory-layout.png",
+    "Images/Development/dev-guide-07-sec-c-exec-math.png",
+    "Images/Development/dev-guide-06-sec-c-exec-params.png",
+    "Images/Development/dev-guide-05-sec-b-overhead.png",
+    "Images/Development/dev-guide-04-sec-a-resource-budget.png",
+    "Notes/chat-2026-04-17-osd-sizing.md",
+    "Notes/calculator_suggestions.md",
+    "Notes/airflow_planning_notes.md",
+    "Notes/chat-2026-04-17-networking.md",
+    "Notes/chat-2026-04-17-config-matrix-revised.md",
+    "Notes/chat-2026-04-17-calculator-review.md"
+  ]
+}

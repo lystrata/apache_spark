@@ -783,6 +783,11 @@
             <td>Fixed — host OS, QEMU process, live-migration buffers</td>
           </tr>
           <tr>
+            <td>ZFS ARC (OS mirror cache)</td>
+            <td>—</td><td>8 GB</td>
+            <td>Read cache for Proxmox OS ZFS mirror (3× 480 GB SSD). Constrained to 8 GB via <code>zfs_arc_max = 8589934592</code> — sufficient for the OS-only working set. Included in reserved RAM.</td>
+          </tr>
+          <tr>
             <td>Ceph OSDs (<span id="ohd_osd_count">4</span>×)</td>
             <td id="ohd_osd_cores">4c</td><td id="ohd_osd_ram">12 GB</td>
             <td>1 core + 3 GB per OSD (BlueStore WAL cache) — scales with OSD slider</td>
@@ -1206,6 +1211,11 @@
     <div class="section-body">
 
       <div class="card">
+        <div class="card-title">2026-04-20 — ZFS ARC Added as Hard RAM Reservation</div>
+        <p style="font-size:12px;color:var(--muted);">ZFS ARC (Proxmox OS mirror cache) added as an explicit 8 GB reservation per node. Previously unmodeled. <code>zfs_arc_max</code> reduced from 16 GB to 8 GB — sufficient for the OS-only working set. <code>RESERVE_RAM</code> increases by 8 GB/node; available VM RAM decreases by 8 GB/node (−24 GB cluster-wide). <code>ZFS_ARC_RAM = 8</code> constant added to JS.</p>
+      </div>
+
+      <div class="card">
         <div class="card-title">2026-04-19 — Shuffle Tuning Parameters Added to spark-defaults.conf Output</div>
         <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Based on structured review of 8 published sources on Spark shuffle mechanics. No formula changes. Additions to spark-defaults.conf output table and scratch adequacy annotation:</p>
         <table class="param-table">
@@ -1410,6 +1420,7 @@ function recalc() {
   const MON_RAM_NODE     = 6;
   const PROX_CORES_NODE  = 2;
   const PROX_RAM_NODE    = 8;
+  const ZFS_ARC_RAM      = 8;  // zfs_arc_max=8589934592 in /etc/modprobe.d/zfs.conf — OS mirror only
 
   const CEPH_CORES_TOTAL = OSD_CORES_NODE + RGW_CORES_NODE + MON_CORES_NODE;
   const CEPH_RAM_TOTAL   = OSD_RAM_NODE + RGW_RAM_NODE + MON_RAM_NODE;
@@ -1419,7 +1430,7 @@ function recalc() {
   const SVC_RAM_NODE   = Math.ceil(SVC_RAM / NODES);
 
   const RESERVE_CORES    = PROX_CORES_NODE + CEPH_CORES_TOTAL + SVC_CORES_NODE;
-  const RESERVE_RAM      = PROX_RAM_NODE + CEPH_RAM_TOTAL + SVC_RAM_NODE;
+  const RESERVE_RAM      = PROX_RAM_NODE + ZFS_ARC_RAM + CEPH_RAM_TOTAL + SVC_RAM_NODE;
 
   const AVAIL_CORES = CORES_NODE - RESERVE_CORES;
   const AVAIL_RAM   = RAM_NODE - RESERVE_RAM;

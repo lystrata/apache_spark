@@ -6,6 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Infrastructure sizing tools for a 3-node Proxmox hyperconverged cluster running Apache Spark (via YARN), Ceph RGW (S3), and daily ETL ingest (2 TB/day) to Snowflake. Two calculators exist — production and development — each a single self-contained HTML file.
 
+## Project Structure
+
+All working HTML documents live in `Document/`. Scripts live in `Scripts/`. Research notes and planning documents live in `Notes/`. `Ready_For_Review/` is a staging area only — it should be empty between review cycles.
+
+| Directory | Contents |
+|---|---|
+| `Document/` | All working HTML: calculators, guides, references, research summaries |
+| `Scripts/` | Utility scripts (e.g. `export_chat.py`) |
+| `Notes/` | Research notes, planning documents, chat exports |
+| `Ready_For_Review/` | Staging only — files pending user review before promotion |
+| `Images/` | Screenshots organized by `Development/` and `Production/` subdirectories |
+| `Incoming/` | Source PDFs and reference material |
+
 ## Serving the Calculators
 
 Always serve via HTTP, not `file://`. localStorage scoping differs between origins and scenarios saved under one will be invisible to the other.
@@ -14,7 +27,7 @@ Always serve via HTTP, not `file://`. localStorage scoping differs between origi
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000/production_spark_calculator.html` or the dev equivalent.
+Then open `http://localhost:8000/Document/production_spark_calculator.html` or the dev equivalent.
 
 ## Ready_For_Review Staging Rule
 
@@ -22,8 +35,10 @@ Then open `http://localhost:8000/production_spark_calculator.html` or the dev eq
 
 1. Write the output to `Ready_For_Review/<filename>` (same filename as the target)
 2. User reviews the file
-3. On approval, copy to the working location and delete from `Ready_For_Review/`
+3. On approval, copy to `Document/` (the working location) and **delete from `Ready_For_Review/`**
 4. Commit the promoted file
+
+`Ready_For_Review/` must be empty between review cycles. A file remaining there after promotion is a mistake.
 
 This applies to: new HTML documents, calculator updates, reference document updates, and any file where content changes are being made. It does not apply to CLAUDE.md, memory files, or minor in-place fixes explicitly approved by the user.
 
@@ -47,12 +62,12 @@ git checkout <commit-hash> -- <file>
 **Any HTML file that contains a Revisions section must have that section updated as part of the same edit** whenever a formula, calculation, or content change is made. The Revisions section entry must include the date, a short title, and a description of what changed and why. Documentation-only changes (comments, labels, styling) should be noted briefly rather than given a full entry. Do not update the Revisions section for navigation, layout, or styling changes alone.
 
 Files with Revisions sections:
-- `development_spark_calculator.html` — section id `sec_revisions`
-- `production_spark_calculator.html` — section id `sec_revisions` (once added)
+- `Document/development_spark_calculator.html` — section id `sec_revisions`
+- `Document/production_spark_calculator.html` — section id `sec_revisions`
 - `Document/dev_cluster_math_reference.html` — section id `revisions`
-- `Notes/dev-cluster-storage-reference.html` — section id `sec_revisions`
+- `Document/dev-cluster-storage-reference.html` — section id `sec_revisions`
 
-When a change is made to either calculator, the corresponding guide file (`prod_calculator_guide.html`, `dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
+When a change is made to either calculator, the corresponding guide file (`Document/prod_calculator_guide.html`, `Document/dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
 
 ## HTML Document Conventions
 
@@ -223,7 +238,9 @@ Max 32 vCPUs per VM with NUMA pinning enabled (one NUMA domain = one CPU socket 
 
 ## Utility Scripts
 
-`export_chat.py` — converts a Claude Code JSONL session file to readable Markdown. Hardcoded to the session file for this project; pass a path argument to use a different session.
+All scripts live in `Scripts/`.
+
+`Scripts/export_chat.py` — converts a Claude Code JSONL session file to readable Markdown. Hardcoded to the session file for this project; pass a path argument to use a different session.
 
 ## Hardware Reference
 
@@ -236,4 +253,4 @@ Max 32 vCPUs per VM with NUMA pinning enabled (one NUMA domain = one CPU socket 
 | SSD/node | 3× 480 GB (ZFS mirror + hot spare) | 3× 480 GB |
 | RAM slider step | 32 GB (one DIMM) | 32 GB |
 
-Infrastructure reservations per node: Proxmox 2c/8 GB, Ceph RGW 4c/8 GB, Ceph MON 2c/6 GB, Ceph OSD 1c/3 GB each.
+Infrastructure reservations per node: Proxmox 2c/8 GB, ZFS ARC —/8 GB (zfs_arc_max=8589934592), Ceph RGW 4c/8 GB, Ceph MON 2c/6 GB, Ceph OSD 1c/3 GB each.
