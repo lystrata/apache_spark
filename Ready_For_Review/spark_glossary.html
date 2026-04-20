@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spark Infrastructure — Glossary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0f12; --bg2:#13171c; --bg3:#1a1f27; --bg4:#1e2530;
+  --border:#2a3140; --border2:#3a4455;
+  --text:#d4dbe8; --muted:#6b7a92;
+  --accent:#4e9eff; --accent2:#7ec8ff;
+  --green:#3ecf8e; --yellow:#f5a623; --red:#ff5e5e; --purple:#a78bfa;
+  --mono:"IBM Plex Mono",monospace;
+  --sans:"DM Sans",sans-serif;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:var(--sans); background:var(--bg); color:var(--text); line-height:1.75; font-size:15px; }
+body::before {
+  content:''; position:fixed; inset:0;
+  background-image: linear-gradient(rgba(78,158,255,0.025) 1px,transparent 1px), linear-gradient(90deg,rgba(78,158,255,0.025) 1px,transparent 1px);
+  background-size:40px 40px; pointer-events:none; z-index:0;
+}
+.wrap { position:relative; z-index:1; max-width:1040px; margin:0 auto; padding:52px 28px 96px; }
+
+/* Header */
+.doc-tag { font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--accent); text-transform:uppercase; margin-bottom:10px; }
+h1 { font-family:var(--mono); font-size:28px; font-weight:600; color:#fff; letter-spacing:-.02em; margin-bottom:6px; }
+.doc-sub { color:var(--muted); font-size:13px; font-weight:300; margin-bottom:36px; }
+
+/* Collapsible sections */
+.section-details { margin-top:16px; border:1px solid var(--border2); border-radius:10px; overflow:hidden; }
+.section-summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; padding:14px 20px; background:var(--bg3); user-select:none; outline:none; transition:background 0.15s; }
+.section-summary::-webkit-details-marker { display:none; }
+.section-summary::before { content:'▶'; font-size:9px; color:var(--muted); transition:transform 0.22s; flex-shrink:0; margin-right:2px; }
+.section-details[open] > .section-summary::before { transform:rotate(90deg); }
+.section-summary:hover { background:var(--bg4); }
+.section-letter { font-family:var(--mono); font-size:10px; font-weight:700; color:var(--bg); background:var(--accent); width:20px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; flex-shrink:0; letter-spacing:0; }
+.section-title { font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text); white-space:nowrap; }
+.section-sub { font-size:11px; color:var(--muted); flex:1; font-family:var(--mono); }
+.btt { font-family:var(--mono); font-size:10px; color:var(--muted); text-decoration:none; letter-spacing:.06em; flex-shrink:0; padding:3px 8px; border:1px solid var(--border2); border-radius:4px; transition:color 0.15s, border-color 0.15s; }
+.btt:hover { color:var(--accent); border-color:var(--accent); }
+.section-body { padding:24px 24px 28px; background:var(--bg2); }
+.section-close { display:flex; justify-content:flex-start; margin-top:24px; padding-top:14px; border-top:1px solid var(--border); }
+.section-close a { font-family:var(--mono); font-size:10px; color:var(--yellow); text-decoration:none; letter-spacing:.06em; padding:3px 8px; border:1px solid var(--yellow); border-radius:4px; transition:color 0.15s, border-color 0.15s, background 0.15s; cursor:pointer; }
+.section-close a:hover { color:var(--bg); background:var(--yellow); border-color:var(--yellow); }
+
+/* Glossary entries */
+.gentry { border-bottom:1px solid var(--border); padding:14px 0; }
+.gentry:last-of-type { border-bottom:none; }
+.gterm { font-family:var(--mono); font-size:13px; font-weight:600; color:#fff; margin-bottom:5px; }
+.gterm .gabbr { font-size:11px; color:var(--accent); margin-left:8px; font-weight:400; }
+.gdef { font-size:14px; color:var(--text); line-height:1.7; }
+.gdef .gnote { display:block; margin-top:6px; font-size:12px; color:var(--muted); font-style:italic; }
+.gdef .gcaution { display:block; margin-top:6px; font-size:12px; color:var(--yellow); }
+
+/* Callout boxes */
+.callout { border-radius:8px; padding:16px 20px; margin:18px 0; font-size:14px; line-height:1.65; }
+.callout.info  { background:rgba(78,158,255,.06);  border:1px solid rgba(78,158,255,.25); }
+.callout.warn  { background:rgba(245,166,35,.06);  border:1px solid rgba(245,166,35,.22); }
+.callout.green { background:rgba(62,207,142,.05);  border:1px solid rgba(62,207,142,.2); }
+.callout strong { color:#fff; }
+.callout code  { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2px 6px; border-radius:3px; color:var(--accent2); border:1px solid var(--border); }
+
+code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2px 6px; border-radius:3px; color:var(--accent2); border:1px solid var(--border); }
+p { font-size:14px; line-height:1.7; margin-bottom:12px; }
+p:last-child { margin-bottom:0; }
+strong { color:#fff; font-weight:600; }
+
+/* Revisions table */
+.rev-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:12px; }
+.rev-table th { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); padding:8px 12px; border-bottom:1px solid var(--border2); text-align:left; }
+.rev-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.55; }
+.rev-table tr:last-child td { border-bottom:none; }
+.rev-table td:first-child { font-family:var(--mono); font-size:12px; color:var(--accent); white-space:nowrap; width:170px; }
+</style>
+</head>
+<body>
+<div id="top" class="wrap">
+
+  <div class="doc-tag">Reference Document</div>
+  <h1>Spark Infrastructure — Glossary</h1>
+  <div class="doc-sub">Terms, acronyms, and concepts for the Spark / YARN / Ceph / Airflow stack</div>
+
+  <!-- OVERVIEW -->
+  <details class="section-details" id="sec_overview" open>
+    <summary class="section-summary">
+      <span class="section-letter" style="background:var(--muted)">&#9432;</span>
+      <span class="section-title">Overview</span>
+      <span class="section-sub">· how to use this glossary · important disambiguation notes</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+      <p>This glossary covers terminology used across the Spark, YARN, Airflow, Ceph, and monitoring stack. Terms are grouped by system. Use the section headers to navigate to the relevant area.</p>
+      <div class="callout warn">
+        <strong>Two words that mean different things in different contexts:</strong><br><br>
+        <strong>Executor</strong> — in <strong>Spark</strong>, an executor is a JVM process on a worker node that runs computation. In <strong>Airflow</strong>, an executor is the plugin that decides how to dispatch pipeline tasks (LocalExecutor, CeleryExecutor). Completely unrelated concepts sharing the same word.<br><br>
+        <strong>DAG</strong> — in <strong>Airflow</strong>, a DAG is a pipeline definition (a Python file describing a workflow). In <strong>Spark's internal model</strong>, a DAG is the graph of computation stages the engine builds to execute a query. Same acronym, different scope.
+      </div>
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- SECTION A: SPARK CORE -->
+  <details class="section-details" id="sec_a">
+    <summary class="section-summary">
+      <span class="section-letter">A</span>
+      <span class="section-title">Spark Core</span>
+      <span class="section-sub">· driver · executor · task · stage · job · shuffle · partition · DataFrame</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+
+      <div class="gentry">
+        <div class="gterm">Apache Spark</div>
+        <div class="gdef">A distributed computation engine. Reads data, applies transformations in parallel across a cluster, and writes results. In this environment Spark runs on YARN and processes the daily CSV ingest before loading to Snowflake.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Driver <span class="gabbr">Spark Driver Process</span></div>
+        <div class="gdef">The process that controls a Spark application. It parses user code, builds the execution plan, negotiates resources from YARN, and coordinates executor work. In <strong>cluster mode</strong> the driver runs inside the cluster; in <strong>client mode</strong> it runs on the submitting machine (e.g. the bastion VM for Jupyter sessions).
+          <span class="gnote">The driver is single-threaded by design — it coordinates but does not process data itself.</span>
+        </div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Executor <span class="gabbr">Spark Executor — not to be confused with Airflow Executor</span></div>
+        <div class="gdef">A JVM process launched on a YARN worker node. Each executor runs tasks assigned by the driver, stores shuffle data, and holds cached RDD/DataFrame partitions in memory. Executor count, CPU cores, and memory are the primary sizing levers in the calculators.
+          <span class="gcaution">⚠ "Executor" in Airflow means something entirely different — see Section D.</span>
+        </div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Task</div>
+        <div class="gdef">The smallest unit of parallel work in Spark. One task processes one partition of data on one executor core. A stage may contain thousands of tasks running simultaneously across all executors.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Stage</div>
+        <div class="gdef">A set of tasks that can run in parallel without a shuffle between them. A Spark job is divided into stages at every point where data must be redistributed across executors (a shuffle boundary). Stages run sequentially; tasks within a stage run in parallel.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Job</div>
+        <div class="gdef">A complete unit of Spark work, triggered by an action (writing to disk, counting rows, etc.). A job is composed of one or more stages. The Spark History Server shows one entry per job.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Shuffle</div>
+        <div class="gdef">The redistribution of data across executor partitions — necessary for operations like joins, aggregations, and sorts that require rows from different partitions to be co-located. Shuffles write intermediate data to disk and transfer it over the network, making them the most expensive operation in most Spark pipelines.
+          <span class="gnote">Shuffle amplification: the ratio of shuffle write volume to input data size. A 2 TB ingest with 3× amplification generates 6 TB of shuffle data — a key input to scratch disk sizing.</span>
+        </div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Partition</div>
+        <div class="gdef">A chunk of data processed by a single task. The number of partitions determines parallelism — more partitions means more tasks running in parallel (up to available executor cores). Too few partitions underutilizes the cluster; too many creates overhead from task scheduling.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">RDD <span class="gabbr">Resilient Distributed Dataset</span></div>
+        <div class="gdef">The original Spark data abstraction — an immutable, distributed collection of objects. Largely superseded by DataFrames for most workloads but still used internally by Spark and in some low-level operations.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">DataFrame</div>
+        <div class="gdef">A distributed table with named columns and a schema, built on top of RDDs. The primary API for structured data processing. Spark optimizes DataFrame operations through the Catalyst query optimizer before executing them.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">SparkSession</div>
+        <div class="gdef">The entry point to Spark functionality in code. Creating a SparkSession starts the driver process and connects to the cluster. One SparkSession per application.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">spark-submit</div>
+        <div class="gdef">The command-line tool used to submit a Spark application to a cluster. Accepts parameters for executor count, memory, CPU, deployment mode, and the application JAR or Python file. Airflow uses <code>spark-submit</code> internally when the SparkSubmitOperator fires a production job.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Spark History Server</div>
+        <div class="gdef">A web UI that displays metrics and event logs for completed Spark jobs. Reads event log files written to a persistent location (S3/Ceph RGW in this environment) after a job finishes. Used for post-job performance analysis and debugging.</div>
+      </div>
+
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- SECTION B: YARN & CLUSTER RESOURCES -->
+  <details class="section-details" id="sec_b">
+    <summary class="section-summary">
+      <span class="section-letter">B</span>
+      <span class="section-title">YARN &amp; Cluster Resources</span>
+      <span class="section-sub">· ResourceManager · NodeManager · client mode · cluster mode · container</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+
+      <div class="gentry">
+        <div class="gterm">YARN <span class="gabbr">Yet Another Resource Negotiator</span></div>
+        <div class="gdef">The cluster resource manager that Spark runs on in this environment. YARN receives job submissions, allocates CPU and memory containers across worker nodes, and manages running applications. It is the scheduling layer between Spark and the physical hardware.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">ResourceManager <span class="gabbr">RM</span></div>
+        <div class="gdef">The YARN master process. Runs on one node and accepts job submissions (<code>spark-submit</code> sends to port 8032). Tracks available resources across all NodeManagers and allocates containers to applications. The YARN web UI runs on port 8088 and is proxied through Nginx on the bastion VM.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">NodeManager <span class="gabbr">NM</span></div>
+        <div class="gdef">The YARN worker process that runs on every node where executors will live. Receives container launch requests from the ResourceManager, starts executor JVMs, and reports resource usage back. One NodeManager per worker VM.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">ApplicationMaster <span class="gabbr">AM</span></div>
+        <div class="gdef">A per-job process launched by YARN when a Spark job is submitted in cluster mode. The ApplicationMaster negotiates executor containers from the ResourceManager on behalf of the Spark driver. In cluster mode, the Spark driver runs inside the ApplicationMaster process.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Container</div>
+        <div class="gdef">A resource allocation unit in YARN — a fixed amount of CPU (vCores) and memory assigned to one process on one NodeManager. Each Spark executor runs in its own container. The container size determines executor memory and core count.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">vCore</div>
+        <div class="gdef">A virtual CPU unit in YARN's resource model. YARN tracks CPU availability in vCores; each executor container requests a number of vCores. In this environment one vCore maps to one vCPU on the VM.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Client Mode</div>
+        <div class="gdef">A Spark deployment mode where the driver process runs on the machine that submitted the job — outside the cluster. Used for interactive development (Jupyter on the bastion VM). Driver logs appear locally, making debugging easier. The driver must stay alive for the job duration; if the submitting machine dies, the job dies.
+          <span class="gnote">In this environment: Jupyter notebooks run in client mode — Spark driver on bastion VM, executors in the YARN cluster.</span>
+        </div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Cluster Mode</div>
+        <div class="gdef">A Spark deployment mode where the driver runs inside the cluster as an ApplicationMaster. Used for production jobs submitted by Airflow. The submitting process (Airflow's <code>spark-submit</code>) exits once the job is handed off; the job continues independently inside YARN.
+          <span class="gnote">In this environment: Airflow production DAGs submit in cluster mode — driver and executors all run inside the YARN cluster.</span>
+        </div>
+      </div>
+
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- SECTION C: MEMORY & PERFORMANCE -->
+  <details class="section-details" id="sec_c">
+    <summary class="section-summary">
+      <span class="section-letter">C</span>
+      <span class="section-title">Memory &amp; Performance</span>
+      <span class="section-sub">· executor memory · overhead · OOM · shuffle amplification · spill · broadcast join</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+
+      <div class="gentry">
+        <div class="gterm">Executor Memory <span class="gabbr">--executor-memory</span></div>
+        <div class="gdef">The JVM heap allocated to each executor container. This is the primary parameter tuned in the Spark calculators. Larger executor memory means more data fits in RAM before spilling to disk, but fewer executors fit per node.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Memory Overhead</div>
+        <div class="gdef">Non-heap memory reserved alongside each executor's JVM heap — covers JVM internals, off-heap buffers, and network memory. Defaults to 10% of executor memory (minimum 384 MB). YARN enforces the total container size as <code>executor-memory + overhead</code>; exceeding it kills the container with an OOM.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Off-Heap Memory</div>
+        <div class="gdef">Memory allocated outside the JVM heap, managed directly by Spark's Tungsten engine. Used to avoid JVM garbage collection pauses on large datasets. Configured separately from executor memory and counted against the container total.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">OOM <span class="gabbr">Out of Memory</span></div>
+        <div class="gdef">An executor killed because it exceeded its YARN container memory limit. Typically caused by data skew (one partition much larger than others), insufficient executor memory, or memory overhead set too low. The calculators include an OOM margin warning when the safety buffer falls below 4 GB.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Spill</div>
+        <div class="gdef">When Spark cannot fit intermediate shuffle or aggregation data in executor memory, it writes the overflow to local disk (scratch space). Spill degrades performance but prevents OOM failures. The calculators size NVMe scratch space to accommodate expected spill volume.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Shuffle Amplification</div>
+        <div class="gdef">The ratio of shuffle write volume to input data size. A pipeline reading 2 TB with a shuffle amplification of 3× writes 6 TB of intermediate shuffle data. This is the primary driver of scratch disk sizing. Highly join-heavy or aggregation-heavy pipelines have higher amplification than simple filter/transform jobs.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Broadcast Join</div>
+        <div class="gdef">A join optimization where a small table is copied in full to every executor, avoiding a shuffle entirely. Spark applies this automatically when one side of a join is below a configurable threshold (default 10 MB). Dramatically reduces shuffle volume for fact-dimension joins.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Speculation</div>
+        <div class="gdef">A Spark feature that re-launches slow-running tasks on different executors in parallel. If the re-launched copy finishes first, the original is killed. Useful when hardware variability causes stragglers, but can increase resource consumption.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Data Skew</div>
+        <div class="gdef">A condition where data is unevenly distributed across partitions — a small number of partitions are much larger than the rest. Skew causes some tasks to run far longer than others (stragglers) and can trigger OOM on the oversized partitions. Common with joins on non-uniform key distributions.</div>
+      </div>
+
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- SECTION D: AIRFLOW & ORCHESTRATION -->
+  <details class="section-details" id="sec_d">
+    <summary class="section-summary">
+      <span class="section-letter">D</span>
+      <span class="section-title">Airflow &amp; Orchestration</span>
+      <span class="section-sub">· DAG · operator · scheduler · executor · LocalExecutor · CeleryExecutor</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+
+      <div class="callout info">
+        In Airflow, <strong>DAG</strong> and <strong>Executor</strong> have meanings specific to Airflow's pipeline model — distinct from the same words in Spark's execution model. See the Overview section for the full disambiguation.
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Apache Airflow</div>
+        <div class="gdef">A workflow orchestration platform. Pipelines are defined as Python code (DAGs). The Airflow scheduler monitors DAG definitions, fires tasks on schedule, retries failures, and provides a web UI for monitoring. In this environment it is the conductor for the daily ETL: trigger ingest → submit Spark job → load to Snowflake.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">DAG <span class="gabbr">Directed Acyclic Graph — Airflow context</span></div>
+        <div class="gdef">An Airflow pipeline definition written in Python. A directed graph of tasks where edges represent dependencies and there are no cycles (a task cannot depend on itself, directly or indirectly). Airflow's scheduler reads DAG files, determines which tasks are ready to run, and dispatches them.
+          <span class="gcaution">⚠ In Spark's internal model, "DAG" refers to the graph of computation stages. Same acronym, different context.</span>
+        </div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Task <span class="gabbr">Airflow Task — not to be confused with Spark Task</span></div>
+        <div class="gdef">A single unit of work within an Airflow DAG — for example, "run this spark-submit command" or "check if this S3 file exists." Defined using an Operator. Tasks have dependencies on other tasks within the same DAG.
+          <span class="gcaution">⚠ A Spark Task is the smallest unit of parallel computation inside a Spark job. These are unrelated concepts.</span>
+        </div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Operator</div>
+        <div class="gdef">The type of an Airflow task — defines what the task does. Common operators in this environment: <code>SparkSubmitOperator</code> (submits a Spark job to YARN), <code>S3KeySensor</code> (waits for a file to appear in S3/Ceph), <code>BashOperator</code> (runs a shell command), <code>SnowflakeOperator</code> (runs a SQL statement in Snowflake).</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Scheduler <span class="gabbr">Airflow Scheduler</span></div>
+        <div class="gdef">The Airflow process that continuously parses DAG files, evaluates task dependencies, and queues tasks that are ready to run. Always-on; typically the most resource-intensive Airflow component. One scheduler process per Airflow deployment.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Executor <span class="gabbr">Airflow Executor — not to be confused with Spark Executor</span></div>
+        <div class="gdef">The plugin that determines how Airflow dispatches queued tasks. The executor type is a deployment-level configuration choice — it does not affect individual DAG logic.
+          <span class="gcaution">⚠ Nothing to do with Spark executors. Airflow Executor = "how tasks are dispatched". Spark Executor = "the JVM process running computation on a worker node".</span>
+        </div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">LocalExecutor</div>
+        <div class="gdef">An Airflow executor that runs tasks as subprocesses on the same machine as the Airflow scheduler. No additional infrastructure required. Sufficient for moderate task concurrency. The assumed executor type for this deployment — appropriate for a daily batch ETL workload where Spark handles all heavy computation.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">CeleryExecutor</div>
+        <div class="gdef">An Airflow executor that distributes tasks to separate worker processes via a message queue (Redis or RabbitMQ). Designed for high-concurrency workloads or deployments where tasks must run on different machines. Requires Redis as an additional dependency. Not needed for this deployment unless task concurrency demands it.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">DAG Run</div>
+        <div class="gdef">One execution instance of a DAG — the record of a single pipeline run, including start time, end time, and status of every task. Airflow's UI shows DAG runs as rows in the grid view.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Task Instance</div>
+        <div class="gdef">One execution of a specific task within a specific DAG Run. Has its own status (queued, running, success, failed, retrying) and its own log. The lowest-level entity in Airflow's execution model.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">SparkSubmitOperator</div>
+        <div class="gdef">An Airflow operator that runs <code>spark-submit</code> to submit a Spark job to a cluster. Configured with executor count, memory, the target YARN ResourceManager address, and the application JAR or script. Blocks until the job completes, then reports success or failure back to the DAG.</div>
+      </div>
+
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- SECTION E: STORAGE & CEPH -->
+  <details class="section-details" id="sec_e">
+    <summary class="section-summary">
+      <span class="section-letter">E</span>
+      <span class="section-title">Storage &amp; Ceph</span>
+      <span class="section-sub">· OSD · MON · MGR · RGW · S3 · replication · exaBGP</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+
+      <div class="gentry">
+        <div class="gterm">Ceph</div>
+        <div class="gdef">An open-source distributed storage system providing object, block, and file storage from a shared pool of drives. In this environment Ceph runs across all three Proxmox nodes, using the NVMe drives as OSDs. Spark reads and writes data via Ceph's S3-compatible gateway (RGW).</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">OSD <span class="gabbr">Object Storage Daemon</span></div>
+        <div class="gdef">The Ceph process that manages one physical drive. Each NVMe allocated to Ceph runs one OSD. OSDs store data chunks, replicate them to peer OSDs, and handle recovery when a drive or node fails. OSD count per node is a key input to the calculators — it determines both Ceph usable capacity and the NVMe drives left for Spark scratch.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">MON <span class="gabbr">Monitor</span></div>
+        <div class="gdef">The Ceph process that maintains the authoritative cluster map and manages quorum. A 3-node Ceph cluster runs 3 MONs — quorum requires 2 of 3 to be alive, so the cluster tolerates one MON failure. MONs do not store data; they store metadata about where data lives.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">MGR <span class="gabbr">Manager</span></div>
+        <div class="gdef">The Ceph process that provides monitoring, orchestration, and plugin functionality (dashboard, Prometheus metrics exporter). Runs active/standby — one active MGR at a time, with a standby on another node for failover.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">RGW <span class="gabbr">RADOS Gateway</span></div>
+        <div class="gdef">Ceph's S3-compatible object storage gateway. Exposes Ceph storage via the S3 API so that any S3-aware client (Spark, Airflow, AWS CLI, etc.) can read and write data without knowing about Ceph internals. In this environment RGW is the interface through which Spark reads CSV files and writes processed output.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">S3 <span class="gabbr">Simple Storage Service</span></div>
+        <div class="gdef">Amazon's object storage protocol — a standard HTTP API for storing and retrieving named objects in buckets. Ceph RGW speaks the S3 protocol, so tools written for AWS S3 work against Ceph without modification. "S3" in this document always refers to Ceph RGW unless AWS is explicitly mentioned.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Replication Factor</div>
+        <div class="gdef">The number of copies Ceph stores of each data chunk across OSDs. Set to 3 in this environment — every piece of data exists on 3 different OSDs across (ideally) 3 different nodes. One full node can fail without data loss. The tradeoff: usable capacity = raw capacity ÷ replication factor.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">RADOS <span class="gabbr">Reliable Autonomic Distributed Object Store</span></div>
+        <div class="gdef">The underlying Ceph storage layer. All higher-level interfaces (RGW, RBD block storage, CephFS) are built on top of RADOS. When you read or write via the S3 API, RADOS handles the actual data placement across OSDs.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">exaBGP</div>
+        <div class="gdef">A BGP route injection tool used to announce a floating IP address for the Ceph RGW endpoint. Whichever node is healthy advertises the floating IP via BGP; if that node fails, another node takes over the announcement. Clients (including the bastion VM and Spark executors) always use the floating IP — failover is transparent.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Scratch Space</div>
+        <div class="gdef">Local NVMe capacity on each worker node reserved for Spark shuffle and spill data. Not Ceph-replicated — it is ephemeral, node-local storage. When a Spark job shuffles data it writes to scratch, transfers between nodes over the network, and discards after the job completes. Scratch sizing is driven by shuffle amplification and concurrent job count.</div>
+      </div>
+
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- SECTION F: INFRASTRUCTURE & MONITORING -->
+  <details class="section-details" id="sec_f">
+    <summary class="section-summary">
+      <span class="section-letter">F</span>
+      <span class="section-title">Infrastructure &amp; Monitoring</span>
+      <span class="section-sub">· Proxmox · NUMA · ZFS · Prometheus · Grafana · Loki · Promtail</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+
+      <div class="gentry">
+        <div class="gterm">Proxmox VE <span class="gabbr">Proxmox Virtual Environment</span></div>
+        <div class="gdef">An open-source hypervisor platform based on KVM (for VMs) and LXC (for containers). The physical nodes in this environment run Proxmox, which hosts the YARN executor VMs and Ceph service VMs. Proxmox also manages the cluster network and storage pools.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Hyperconverged Infrastructure <span class="gabbr">HCI</span></div>
+        <div class="gdef">An architecture where compute (CPU/RAM for VMs) and storage (Ceph OSDs) run on the same physical nodes, sharing the same hardware. The 3-node production cluster is hyperconverged — the same servers run YARN executor VMs and Ceph OSDs simultaneously. The tradeoff is resource contention between compute and storage workloads.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">NUMA <span class="gabbr">Non-Uniform Memory Access</span></div>
+        <div class="gdef">A hardware architecture in multi-socket servers where each CPU socket has its own local memory bank. Accessing memory on a remote socket (cross-NUMA) is slower than local access. In this environment the production nodes have 2 CPU sockets (2 NUMA domains × 32 cores each). VMs pinned to one NUMA domain get predictable memory latency; VMs spanning both domains may pay a cross-NUMA penalty.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">ZFS</div>
+        <div class="gdef">A filesystem and volume manager used on the Proxmox hosts to store VM disk images. ZFS provides checksumming, compression, and snapshots. The 3× 480 GB SSDs per node run ZFS (mirrored pair + hot spare) for the OS and VM disk storage pool.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">ARC <span class="gabbr">Adaptive Replacement Cache</span></div>
+        <div class="gdef">ZFS's in-memory read cache. ARC aggressively consumes available RAM to cache frequently accessed data — beneficial for ZFS but it competes with Spark executor memory. In this environment ZFS ARC is capped at 8 GB per node (<code>zfs_arc_max=8589934592</code>) via the Proxmox configuration to protect executor memory headroom.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">vCPU</div>
+        <div class="gdef">A virtual CPU assigned to a VM. Maps to one hyperthread on the physical host. The calculators track vCPU allocation per node across all VMs to ensure physical core counts are not overcommitted.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Prometheus</div>
+        <div class="gdef">An open-source metrics collection and alerting system. Scrapes numeric time-series metrics from exporters running on each host at a configurable interval (15 seconds in this environment). Stores metrics in its TSDB (time-series database). Grafana uses Prometheus as a data source for dashboards.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">TSDB <span class="gabbr">Time Series Database</span></div>
+        <div class="gdef">Prometheus's on-disk storage format for metrics data. Highly compressed — approximately 1.5 bytes per sample. At 15-second scrape intervals across ~12,000 series, 90-day retention requires roughly 10–15 GB of disk.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Grafana</div>
+        <div class="gdef">A dashboarding and visualization platform. Connects to data sources (Prometheus for metrics, Loki for logs) and renders graphs, tables, and alerts. In this environment a new Grafana instance on the monitoring cluster will consolidate infrastructure dashboards for all Proxmox nodes, YARN, Ceph, and bastion services.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Loki</div>
+        <div class="gdef">A log aggregation system developed by Grafana Labs. Receives log streams from Promtail agents, indexes them by labels (host, service, log level), and makes them searchable through Grafana's log explorer. Unlike Elasticsearch, Loki does not index log content — it indexes metadata only, keeping resource usage low.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Promtail</div>
+        <div class="gdef">The Loki log shipping agent. Runs on each host, tails configured log files and the systemd journal, attaches labels, and forwards log lines to a Loki instance. Lightweight: approximately 100 MB RAM per host. One Promtail agent will run on the bastion VM and on each of the three Spark cluster nodes.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">node_exporter</div>
+        <div class="gdef">A Prometheus exporter that exposes Linux host metrics: CPU utilization, memory usage, disk I/O, network throughput, filesystem capacity, and more. Runs as a lightweight daemon on every monitored host (~800 time series per host). The primary source of raw hardware visibility in Grafana dashboards.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">pve_exporter</div>
+        <div class="gdef">A Prometheus exporter for Proxmox VE. Exposes VM status, CPU and memory usage per VM, storage pool utilization, and cluster node health via the Proxmox API. Adds approximately 600 time series per Proxmox node.</div>
+      </div>
+
+      <div class="gentry">
+        <div class="gterm">Bastion VM</div>
+        <div class="gdef">In this environment, the VM on the second Proxmox cluster that hosts all user-facing services: Airflow, Spark History Server, JupyterHub, and Nginx. Users interact with the Spark cluster exclusively through the bastion VM — they never SSH directly into cluster nodes. "Bastion" traditionally refers to a hardened jump host; here it extends to cover the full service layer.</div>
+      </div>
+
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- REVISIONS -->
+  <details class="section-details" id="sec_revisions">
+    <summary class="section-summary">
+      <span class="section-letter" style="background:var(--muted)">R</span>
+      <span class="section-title">Revisions</span>
+      <span class="section-sub">· change history</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+      <table class="rev-table">
+        <thead><tr><th>Date</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>2026-04-20 16:30</td>
+            <td>Initial version — six sections covering Spark Core, YARN, Memory &amp; Performance, Airflow, Ceph, and Infrastructure &amp; Monitoring.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+</div><!-- .wrap -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('details.section-details').forEach(function(d) {
+    if (d.id !== 'sec_overview') d.open = false;
+  });
+});
+</script>
+</body>
+</html>
