@@ -16,6 +16,17 @@ python3 -m http.server 8000
 
 Then open `http://localhost:8000/production_spark_calculator.html` or the dev equivalent.
 
+## Ready_For_Review Staging Rule
+
+**All new files and refactored existing files must be written to `Ready_For_Review/` first.** Do not write directly to the working location. The workflow is:
+
+1. Write the output to `Ready_For_Review/<filename>` (same filename as the target)
+2. User reviews the file
+3. On approval, copy to the working location and delete from `Ready_For_Review/`
+4. Commit the promoted file
+
+This applies to: new HTML documents, calculator updates, reference document updates, and any file where content changes are being made. It does not apply to CLAUDE.md, memory files, or minor in-place fixes explicitly approved by the user.
+
 ## Editing Rules
 
 This project uses git for version control. **Commit before making significant edits** so any state can be restored.
