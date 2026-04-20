@@ -30,7 +30,16 @@ Each chat context maintains a TODO file tracking outstanding tasks, open questio
 
 **"show todos" prompt:** When the user types `show todos`, read and display the contents of both TODO files. If only one context is active in the current session, display that one and note the other exists.
 
-**Format:** Each TODO file uses three sections — `## Open Questions`, `## Pending Tasks`, and `## Next Session`. Use Markdown checklist boxes (`- [ ]` unchecked, `- [x]` checked) for all items. Check items off as they are resolved rather than deleting them, so there is a record of what was completed and when.
+**Format:** Each TODO file uses three sections — `## Waiting for Vendor Reply`, `## Open Questions`, `## Pending Tasks`, and `## Next Session`. Use Markdown checklist boxes (`- [ ]` unchecked, `- [x]` checked) for all items. Check items off as they are resolved rather than deleting them, so there is a record of what was completed and when.
+
+## Vendor Questions Convention
+
+When the user identifies a question that must be forwarded to a vendor, add it to the relevant `questions_for_vendors.txt` file with full context and a `- [ ]` entry under `## Waiting for Vendor Reply` in the TODO file. When a vendor reply is received, check off the TODO item and note the answer in `questions_for_vendors.txt`.
+
+| Context | Vendor questions file |
+|---|---|
+| Spark calculators and cluster sizing | `Notes/questions_for_vendors.txt` |
+| Remote services (Airflow, monitoring, bastion) | `Notes_remote_services/questions_for_vendors.txt` |
 
 ---
 
