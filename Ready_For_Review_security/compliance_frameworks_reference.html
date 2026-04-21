@@ -98,6 +98,14 @@ li { margin-bottom:2px; }
 .control-id { font-family:var(--mono); font-size:11px; color:var(--accent2); white-space:nowrap; flex-shrink:0; min-width:80px; }
 .control-desc { color:var(--text); line-height:1.5; }
 
+/* Citation block */
+.cite-block { margin-top:20px; padding:14px 18px; background:var(--bg3); border:1px solid var(--border); border-left:3px solid var(--border2); border-radius:6px; }
+.cite-block h4 { font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+.cite-block ol { padding-left:18px; margin:0; }
+.cite-block li { font-size:12px; font-family:var(--mono); color:var(--muted); line-height:1.8; }
+.cite-block a { color:var(--accent2); text-decoration:underline; text-decoration-color:rgba(126,200,255,0.35); text-underline-offset:3px; }
+.cite-block a:hover { color:#fff; }
+
 @media(max-width:720px) {
   .section-sub { display:none; }
   .ref-table td:first-child { white-space:normal; }
@@ -110,7 +118,7 @@ li { margin-bottom:2px; }
 
   <div class="doc-tag">&#9672; Security &middot; Authentication Scope</div>
   <h1>Compliance Frameworks Reference</h1>
-  <p class="doc-sub">CIS Controls v8 &middot; NIST SP 800-53 Rev 5 &middot; SOC 2 Trust Services Criteria &middot; 2026-04-21</p>
+  <p class="doc-sub">CIS Controls v8.1 &middot; NIST SP 800-53 Rev 5 (Upd 1) &middot; SOC 2 Trust Services Criteria (2022) &middot; 2026-04-21</p>
 
   <!-- OVERVIEW -->
   <details class="section-details" id="sec_overview" open>
@@ -232,7 +240,15 @@ li { margin-bottom:2px; }
       </details>
 
       <h3>Governing body and publication</h3>
-      <p>CIS Controls are maintained by the <strong>Center for Internet Security (CIS)</strong> and are freely available at <code>cisecurity.org</code>. Version 8 was published May 2021. There is no certification associated with CIS Controls — organizations self-attest or use third-party assessors.</p>
+      <p>CIS Controls are maintained by the <strong>Center for Internet Security (CIS)</strong> and are freely available at <a href="https://www.cisecurity.org/controls" target="_blank">cisecurity.org/controls</a>. Version 8 was published May 2021. <strong>Version 8.1</strong> is the current release as of this writing — it refines v8 safeguards without restructuring the control families; the IG tiers and control numbers cited in this section remain valid. There is no certification associated with CIS Controls — organizations self-attest or use third-party assessors.</p>
+
+      <div class="cite-block">
+        <h4>Sources — Section A</h4>
+        <ol>
+          <li><a href="https://www.cisecurity.org/controls/v8" target="_blank">CIS Critical Security Controls Version 8</a> — Center for Internet Security, May 2021. Primary reference for IG tiers, safeguard counts, and control statements cited above.</li>
+          <li><a href="https://www.cisecurity.org/controls/v8-1" target="_blank">CIS Critical Security Controls Version 8.1</a> — Center for Internet Security. Current release; confirms control numbering and IG assignments used in this section.</li>
+        </ol>
+      </div>
 
       <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
     </div>
@@ -319,7 +335,15 @@ li { margin-bottom:2px; }
       <p>800-53 defines three baselines — Low, Moderate, and High — that specify which controls are required at each impact level. For most private infrastructure deployments not subject to FISMA, the <strong>Moderate baseline</strong> is a reasonable reference point. It includes all IA controls listed above.</p>
 
       <h3>Governing body and publication</h3>
-      <p>Published by the <strong>National Institute of Standards and Technology (NIST)</strong>, freely available at <code>nvlpubs.nist.gov</code>. No formal certification exists — compliance is assessed by third-party auditors (for FedRAMP) or self-declared. Revision 6 is in development as of 2026.</p>
+      <p>Published by the <strong>National Institute of Standards and Technology (NIST)</strong>, freely available at <a href="https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final" target="_blank">csrc.nist.gov</a>. The current authoritative version is Rev 5, Update 1. No formal certification exists — compliance is assessed by third-party auditors (for FedRAMP) or self-declared. Revision 6 is in development as of 2026.</p>
+
+      <div class="cite-block">
+        <h4>Sources — Section B</h4>
+        <ol>
+          <li><a href="https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final" target="_blank">NIST SP 800-53 Rev 5, Update 1 — Security and Privacy Controls for Information Systems and Organizations</a> — National Institute of Standards and Technology. Current authoritative version; primary reference for control families, IA family controls, and baseline definitions cited above.</li>
+          <li><a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53r5.pdf" target="_blank">NIST SP 800-53 Rev 5 — Full Text PDF</a> — nvlpubs.nist.gov. Complete control catalog including supplemental guidance and control enhancements.</li>
+        </ol>
+      </div>
 
       <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
     </div>
@@ -414,6 +438,14 @@ li { margin-bottom:2px; }
         <strong>Note:</strong> SOC 2 criteria are deliberately non-prescriptive. The same criterion can be satisfied by many different technical implementations. The audit tests <em>whether controls achieve the criteria</em>, not whether specific tools are in place. This makes SOC 2 well-suited to a framework-agnostic approach — document controls in plain terms first, then let the auditor map them.
       </div>
 
+      <div class="cite-block">
+        <h4>Sources — Section C</h4>
+        <ol>
+          <li><a href="https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022" target="_blank">2017 Trust Services Criteria (With Revised Points of Focus — 2022)</a> — AICPA &amp; CIMA. Authoritative source for CC6 criteria statements and points of focus cited above.</li>
+          <li><a href="https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2" target="_blank">SOC 2® — SOC for Service Organizations: Trust Services Criteria</a> — AICPA &amp; CIMA. Official SOC 2 landing page; defines report types (Type I / Type II) and trust service categories.</li>
+        </ol>
+      </div>
+
       <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
     </div>
   </details>
@@ -494,6 +526,14 @@ li { margin-bottom:2px; }
         <strong>Takeaway:</strong> CIS Controls v8 is the right operational anchor. NIST 800-53 and SOC 2 are additive mappings applied later when a specific external requirement arises.
       </div>
 
+      <div class="cite-block">
+        <h4>Sources — Section D</h4>
+        <ol>
+          <li>Comparison assertions derived from primary sources cited in Sections A, B, and C above. No additional sources required — all framework characterizations are drawn directly from the official publications.</li>
+          <li><a href="https://www.cisecurity.org/controls/cis-controls-navigator/v8" target="_blank">CIS Controls Navigator v8</a> — Center for Internet Security. Interactive tool confirming IG assignments and safeguard counts used in the comparison table.</li>
+        </ol>
+      </div>
+
       <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
     </div>
   </details>
@@ -509,7 +549,7 @@ li { margin-bottom:2px; }
       <table class="ref-table">
         <thead><tr><th>Date</th><th>Change</th></tr></thead>
         <tbody>
-          <tr><td>2026-04-21</td><td>Initial version — CIS v8, NIST SP 800-53 Rev 5, SOC 2 Trust Services Criteria; authentication-relevant controls mapped to this infrastructure; comparison table and recommendation.</td></tr>
+          <tr><td>2026-04-21</td><td>Initial version — CIS v8/v8.1, NIST SP 800-53 Rev 5 Update 1, SOC 2 Trust Services Criteria (2017, 2022 revised); authentication-relevant controls mapped to this infrastructure; comparison table and recommendation. Section-level citations added with verified URLs.</td></tr>
         </tbody>
       </table>
       <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
