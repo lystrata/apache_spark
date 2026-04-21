@@ -18,6 +18,12 @@ All working HTML documents live in `Document/`. Scripts live in `Scripts/`. Rese
 | `Ready_For_Review/` | Staging only — files pending user review before promotion |
 | `Images/` | Screenshots organized by `Development/` and `Production/` subdirectories |
 | `Incoming/` | Source PDFs and reference material |
+| `Document_remote_services/` | Working HTML for remote services (Airflow, monitoring, bastion) |
+| `Notes_remote_services/` | Research notes and planning for remote services context |
+| `Ready_For_Review_remote_services/` | Staging for remote services documents |
+| `Document_security/` | Working HTML for security context — on-site revision control only |
+| `Notes_security/` | Research notes and planning for security context — on-site revision control only |
+| `Ready_For_Review_security/` | Staging for security documents |
 
 ## Session TODO Convention
 
@@ -27,6 +33,7 @@ Each chat context maintains a TODO file tracking outstanding tasks, open questio
 |---|---|
 | Spark calculators and cluster sizing | `Notes/todos_calculator.md` |
 | Remote services (Airflow, monitoring, bastion) | `Notes_remote_services/todos_remote_services.md` |
+| Security | `Notes_security/todos_security.md` |
 
 **"show todos" prompt:** When the user types `show todos`, read and display the contents of both TODO files. If only one context is active in the current session, display that one and note the other exists.
 
@@ -40,6 +47,7 @@ When the user identifies a question that must be forwarded to a vendor, add it t
 |---|---|
 | Spark calculators and cluster sizing | `Notes/questions_for_vendors.txt` |
 | Remote services (Airflow, monitoring, bastion) | `Notes_remote_services/questions_for_vendors.txt` |
+| Security | `Notes_security/questions_for_vendors.txt` |
 
 ---
 
