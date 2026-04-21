@@ -1,4 +1,4 @@
-# Master TODO — All Contexts
+#  Master TODO — All Contexts
 _Last updated 2026-04-21_
 
 ---
@@ -11,7 +11,7 @@ _Last updated 2026-04-21_
 
 ## Open Questions
 
-- [ ] [calculators] Review any calculator changes pending in Ready_For_Review/
+- [x] [calculators] Review any calculator changes pending in Ready_For_Review/
 - [ ] [remote_services] Airflow executor type — LocalExecutor assumed; pending vendor reply
 - [ ] [remote_services] "Monitoring Apache" — Airflow dashboards, Spark dashboards, or both? Scopes Grafana build-out
 - [ ] [remote_services] Second Proxmox host specs (vCPU, RAM, storage) — sets VM allocation ceiling
@@ -31,19 +31,22 @@ _Last updated 2026-04-21_
 
 **Configuration & Hardware Updates:**
 - [x] [correspondence] Update YARN Node Manager core allocation from 14 to 18 cores
-- [ ] [correspondence] Confirm 3-OSD storage allocation strategy (OSD utilization max 80%)
-- [ ] [correspondence] Revisit and confirm JBOD vs. RAID 5 for scratch drives decision
+- [x] [correspondence] Confirm 3-OSD storage allocation strategy (OSD utilization max 80%) — see `calculators/Document/dev-cluster-storage-reference.html`
+- [x] [correspondence] Revisit and confirm JBOD vs. RAID 5 for scratch drives decision — see `calculators/Document/dev-cluster-storage-reference.html`
 - [x] [correspondence] Confirm Spark version 3.5.3 in production calculator
+- [ ] [calculators] Dev cluster: no hardware RAID — NVMe scratch drives run JBOD; only Proxmox OS SSDs use ZFS — see `calculators/Document/dev-cluster-storage-reference.html`
+- [ ] [calculators] Dev cluster: scratch OSDs formatted with XFS — see `calculators/Document/dev-cluster-storage-reference.html`
+- [ ] [calculators] Update all related dev HTML files to reflect JBOD/XFS storage decisions (dev-cluster-storage-reference.html, dev_cluster_math_reference.html, development_spark_calculator.html, dev_slider_guide.html)
 
 **Correspondence & Project Coordination:**
 - [ ] [correspondence] Work on Proxmox access method (screen sharing vs. direct) — target completion this week
 - [ ] [correspondence] Define required interconnections between remote Airflow server and Spark cluster — coordinate with Sean Klette
 - [ ] [correspondence] Review updated resource calculation document from Karthik (pending receipt)
-- [ ] [correspondence] Provide answers to Production Cluster Q&A questionnaire — address data sizing, SLA, ingestion rate, transformation complexity, and cluster constraints
-- [ ] [correspondence] Review and provide feedback on dev cluster resource calculations and mappings
-- [ ] [correspondence] Confirm JBOD + XFS as final disk strategy for dev
+- [x] [correspondence] Provide answers to Production Cluster Q&A questionnaire — address data sizing, SLA, ingestion rate, transformation complexity, and cluster constraints — see `calculators/Document/production_spark_calculator.html`
+- [ ] [correspondence] Review and provide feedback on dev cluster resource calculations and mappings — see `calculators/Document/dev_cluster_math_reference.html`
+- [x] [correspondence] Confirm JBOD + XFS as final disk strategy for dev — see `calculators/Document/dev-cluster-storage-reference.html`
 - [ ] [correspondence] Confirm directory structure for incoming and archived CSV files (date-based vs. flat)
-- [ ] [correspondence] Identify where in the pipeline CSV compression occurs and update mapping logic
+- [ ] [correspondence] Identify where in the pipeline CSV compression occurs and update mapping logic — see `calculators/Document/etl-data-flow-diagram.html`
 - [ ] [correspondence] Resolve authentication approach (Keycloak vs. Okta) with Cyber/Security
 
 **Remote Services Provisioning:**
@@ -73,5 +76,5 @@ _Last updated 2026-04-21_
 
 - [calculators] Review any pending calculator changes
 - [remote_services] Resolve open questions (host specs, executor type, event log location) to finalize VM sizing; decide on Grafana dashboard scope
-- [security] Promote compliance_frameworks_reference.html after review; define document categories for authentication scope
+- [security] Promote compliance_frameworks_reference.html after review; define document categories for authentication scope — see `security/Ready_For_Review/compliance_frameworks_reference.html`
 - [correspondence] Follow up on vendor replies and finalize configuration decisions
