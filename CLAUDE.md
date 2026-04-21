@@ -8,27 +8,34 @@ Infrastructure sizing tools for a 3-node Proxmox hyperconverged cluster running 
 
 ## Project Structure
 
-All working HTML documents live in `Document/`. Scripts live in `Scripts/`. Research notes and planning documents live in `Notes/`. `Ready_For_Review/` is a staging area only — it should be empty between review cycles.
+The project is organized into four context hierarchies: `calculators/`, `remote_services/`, `security/`, and `correspondence/`. Each contains `Document/`, `Notes/`, `Ready_For_Review/`, `Incoming/`, and `Images/` subdirectories. Shared utilities live in `Scripts/` at the root. `Ready_For_Review/` directories are staging areas only — they should be empty between review cycles.
 
 | Directory | Contents |
 |---|---|
-| `Document/` | All working HTML: calculators, guides, references, research summaries |
-| `Scripts/` | Utility scripts (e.g. `export_chat.py`) |
-| `Notes/` | Research notes, planning documents, chat exports |
-| `Ready_For_Review/` | Staging only — files pending user review before promotion |
-| `Images/` | Screenshots organized by `Development/` and `Production/` subdirectories |
-| `Incoming/` | Source PDFs and reference material |
-| `Document_remote_services/` | Working HTML for remote services (Airflow, monitoring, bastion) |
-| `Notes_remote_services/` | Research notes and planning for remote services context |
-| `Ready_For_Review_remote_services/` | Staging for remote services documents |
-| `Document_security/` | Working HTML for security context — on-site revision control only |
-| `Notes_security/` | Research notes and planning for security context — on-site revision control only |
-| `Ready_For_Review_security/` | Staging for security documents |
-| `Incoming_security/` | Source PDFs and reference material for security context — on-site revision control only |
-| `Document_correspondence/` | Working documents for project correspondence — no revision control |
-| `Notes_correspondence/` | Planning and notes for correspondence context |
-| `Ready_For_Review_correspondence/` | Staging for correspondence documents |
-| `Incoming_correspondence/` | Source material and reference PDFs for correspondence context |
+| `calculators/Document/` | Working HTML: calculators, guides, references, research summaries |
+| `calculators/Notes/` | Research notes, planning documents, chat exports |
+| `calculators/Ready_For_Review/` | Staging only — files pending user review before promotion |
+| `calculators/Incoming/` | Source PDFs and reference material |
+| `calculators/Images/` | Screenshots organized by `Development/` and `Production/` subdirectories |
+| `remote_services/Document/` | Working HTML for remote services (Airflow, monitoring, bastion) |
+| `remote_services/Notes/` | Research notes and planning for remote services context |
+| `remote_services/Ready_For_Review/` | Staging for remote services documents |
+| `remote_services/Incoming/` | Source PDFs and reference material for remote services context |
+| `remote_services/Images/` | Screenshots for remote services documentation |
+| `remote_services/Scripts/` | Context-specific scripts for remote services |
+| `security/Document/` | Working HTML for security context — on-site revision control only |
+| `security/Notes/` | Research notes and planning for security context — on-site revision control only |
+| `security/Ready_For_Review/` | Staging for security documents |
+| `security/Incoming/` | Source PDFs and reference material for security context — on-site revision control only |
+| `security/Images/` | Screenshots for security documentation |
+| `security/Scripts/` | Context-specific scripts for security |
+| `correspondence/Document/` | Working documents for project correspondence — no revision control |
+| `correspondence/Notes/` | Planning and notes for correspondence context |
+| `correspondence/Ready_For_Review/` | Staging for correspondence documents |
+| `correspondence/Incoming/` | Source material and reference PDFs for correspondence context |
+| `correspondence/Images/` | Screenshots for correspondence documentation |
+| `Scripts/` | Shared utility scripts (e.g. `export_chat.py`) |
+| `Shared_References/` | Reference materials shared across all contexts |
 
 ## Session Context Convention
 
@@ -36,10 +43,10 @@ At the start of a session the user may type `set context <name>` to declare whic
 
 | Name | TODO file | Vendor questions | Documents | Staging |
 |---|---|---|---|---|
-| `calculators` | `Notes/todos_calculator.md` | `Notes/questions_for_vendors.txt` | `Document/` | `Ready_For_Review/` |
-| `remote_services` | `Notes_remote_services/todos_remote_services.md` | `Notes_remote_services/questions_for_vendors.txt` | `Document_remote_services/` | `Ready_For_Review_remote_services/` |
-| `security` | `Notes_security/todos_security.md` | `Notes_security/questions_for_vendors.txt` | `Document_security/` | `Ready_For_Review_security/` |
-| `correspondence` | `Notes_correspondence/todos_correspondence.md` | `Notes_correspondence/questions_for_vendors.txt` | `Document_correspondence/` | `Ready_For_Review_correspondence/` |
+| `calculators` | `calculators/Notes/todos_calculator.md` | `calculators/Notes/questions_for_vendors.txt` | `calculators/Document/` | `calculators/Ready_For_Review/` |
+| `remote_services` | `remote_services/Notes/todos_remote_services.md` | `remote_services/Notes/questions_for_vendors.txt` | `remote_services/Document/` | `remote_services/Ready_For_Review/` |
+| `security` | `security/Notes/todos_security.md` | `security/Notes/questions_for_vendors.txt` | `security/Document/` | `security/Ready_For_Review/` |
+| `correspondence` | `correspondence/Notes/todos_correspondence.md` | `correspondence/Notes/questions_for_vendors.txt` | `correspondence/Document/` | `correspondence/Ready_For_Review/` |
 
 When the user types `set context <name>`:
 1. Acknowledge the active context by name.
@@ -64,10 +71,10 @@ When the user identifies a question that must be forwarded to a vendor, add it t
 
 | Context | Vendor questions file |
 |---|---|
-| Spark calculators and cluster sizing | `Notes/questions_for_vendors.txt` |
-| Remote services (Airflow, monitoring, bastion) | `Notes_remote_services/questions_for_vendors.txt` |
-| Security | `Notes_security/questions_for_vendors.txt` |
-| Project correspondence | `Notes_correspondence/questions_for_vendors.txt` |
+| Spark calculators and cluster sizing | `calculators/Notes/questions_for_vendors.txt` |
+| Remote services (Airflow, monitoring, bastion) | `remote_services/Notes/questions_for_vendors.txt` |
+| Security | `security/Notes/questions_for_vendors.txt` |
+| Project correspondence | `correspondence/Notes/questions_for_vendors.txt` |
 
 ---
 
@@ -119,7 +126,7 @@ Applies to **all contexts** (calculators, remote_services, security). Use this f
 - Break at directory boundaries using backslash continuation (`\<br/>`).
 - Example: `https://github.com/keycloak/keycloak/blob/main/\<br/>docs/documentation/server_admin/...`
 
-**Application:** All new distribution documents must follow this format. Documents in `Document/`, `Document_remote_services/`, and `Document_security/` directories should use Turabian styling.
+**Application:** All new distribution documents must follow this format. Documents in `calculators/Document/`, `remote_services/Document/`, and `security/Document/` directories should use Turabian styling.
 
 ---
 
@@ -139,7 +146,7 @@ Always serve via HTTP, not `file://`. localStorage scoping differs between origi
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000/Document/production_spark_calculator.html` or the dev equivalent.
+Then open `http://localhost:8000/calculators/Document/production_spark_calculator.html` or the dev equivalent.
 
 ## Ready_For_Review Staging Rule
 
@@ -231,12 +238,12 @@ git checkout <commit-hash> -- <file>
 **Any HTML file that contains a Revisions section must have that section updated as part of the same edit** whenever a formula, calculation, or content change is made. The Revisions section entry must include the date, a short title, and a description of what changed and why. Documentation-only changes (comments, labels, styling) should be noted briefly rather than given a full entry. Do not update the Revisions section for navigation, layout, or styling changes alone.
 
 Files with Revisions sections:
-- `Document/development_spark_calculator.html` — section id `sec_revisions`
-- `Document/production_spark_calculator.html` — section id `sec_revisions`
-- `Document/dev_cluster_math_reference.html` — section id `revisions`
-- `Document/dev-cluster-storage-reference.html` — section id `sec_revisions`
+- `calculators/Document/development_spark_calculator.html` — section id `sec_revisions`
+- `calculators/Document/production_spark_calculator.html` — section id `sec_revisions`
+- `calculators/Document/dev_cluster_math_reference.html` — section id `revisions`
+- `calculators/Document/dev-cluster-storage-reference.html` — section id `sec_revisions`
 
-When a change is made to either calculator, the corresponding guide file (`Document/prod_calculator_guide.html`, `Document/dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
+When a change is made to either calculator, the corresponding guide file (`calculators/Document/prod_calculator_guide.html`, `calculators/Document/dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
 
 ## HTML Document Conventions
 
@@ -303,7 +310,7 @@ function closeSub(el) {
 }
 ```
 
-Required CSS (add to `<style>` block — copy from `Document/dev_cluster_math_reference.html`):
+Required CSS (add to `<style>` block — copy from `calculators/Document/dev_cluster_math_reference.html`):
 `.sub-details`, `.sub-summary`, `.sub-title`, `.sub-desc`, `.sub-body`, `.sub-close`
 
 ### Cross-Reference Jump Links
