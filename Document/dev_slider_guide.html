@@ -172,6 +172,7 @@ li { margin-bottom:6px; line-height:1.65; }
       <li><a href="#group4">Group 4 &mdash; Executor Shape</a></li>
       <li><a href="#group5">Group 5 &mdash; Workload Sizing</a></li>
       <li><a href="#group6">Group 6 &mdash; Partition Strategy</a></li>
+      <li><a href="#sec-f">Section F &mdash; Spark Configuration Output</a></li>
       <li><a href="#dependencies">Slider Dependencies at a Glance</a></li>
       <li><a href="#failures">The Three Things That Go Wrong</a></li>
     </ol>
@@ -198,6 +199,7 @@ li { margin-bottom:6px; line-height:1.65; }
       <div class="stack-col-head">Layer 2</div>
       <div class="stack-col-title">Infrastructure Cut</div>
       <div class="stack-item fixed">Proxmox: 2c / 8 GB</div>
+      <div class="stack-item fixed">ZFS ARC: 0c / 8 GB</div>
       <div class="stack-item fixed">Ceph RGW: 4c / 8 GB</div>
       <div class="stack-item fixed">Ceph MON: 2c / 6 GB</div>
       <div class="stack-item slider">Ceph OSD: 1c / 3 GB &times; N</div>
@@ -262,8 +264,8 @@ li { margin-bottom:6px; line-height:1.65; }
       </tr>
       <tr>
         <td>Infrastructure reservations</td>
-        <td>Proxmox 2c/8 GB &middot; RGW 4c/8 GB &middot; MON 2c/6 GB</td>
-        <td>Fixed software allocations required to run the platform. These are consumed before any Spark VM is considered. The OSD reservation (1c/3 GB per drive) scales with the OSD count slider.</td>
+        <td>Proxmox 2c/8 GB &middot; RGW 4c/8 GB &middot; MON 2c/6 GB &middot; ZFS ARC 0c/8 GB</td>
+        <td>Fixed software allocations required to run the platform. These are consumed before any Spark VM is considered. ZFS ARC (the OS-mirror read cache) is capped at 8 GB via <code>zfs_arc_max</code> and reserved explicitly. The OSD reservation (1c/3 GB per drive) scales with the OSD count slider.</td>
       </tr>
     </tbody>
   </table>
@@ -403,7 +405,8 @@ li { margin-bottom:6px; line-height:1.65; }
           <br><br>
           Of the vCPUs assigned to the VM, a further <strong>2 are reserved</strong> for the guest OS and YARN NodeManager daemon, so only <code>vCPUs &minus; 2</code> are available to Spark executors.
           <br><br>
-          <em>Critical difference from RAM/VM:</em> this slider does <strong>not auto-clamp</strong> when the practical ceiling drops. Setting it above the available cores causes the core budget bar to turn red (overcommit), but the slider stays put and no automatic correction occurs. The <strong>Fixed Overhead Reservations</strong> card is the authoritative source for the current safe ceiling &mdash; check it after any OSD count change.
+          <em>Auto-clamp behaviour:</em> unlike the old implementation, this slider <strong>does auto-clamp</strong> when the practical ceiling drops. Every time <code>recalc()</code> runs it recomputes the available core ceiling and forces the slider to that value if the current setting exceeds it. In practice this means increasing the OSD count immediately drops the vCPUs/VM slider to the new ceiling &mdash; no manual correction needed and no silent overcommit. The <strong>Fixed Overhead Reservations</strong> card still shows the current ceiling for reference.<br><br>
+          <em>The one case that does not self-correct:</em> a saved scenario loaded from localStorage may contain a vCPU value that was valid when it was saved but is now over-ceiling (for example, if the hardware configuration changed between sessions). On load, <code>recalc()</code> will clamp the value silently &mdash; the restored slider position will be lower than what was saved. If a scenario loads and the vCPU count looks lower than expected, compare it against the Fixed Overhead Reservations card to confirm.
         </div>
         <div class="affects">
           <span class="affects-label">&#9660; Drives:</span>
@@ -418,7 +421,8 @@ li { margin-bottom:6px; line-height:1.65; }
           <span class="slider-default">default 320 GB</span>
         </div>
         <div class="slider-desc">
-          How much RAM the VM is allocated. <strong>This slider&rsquo;s maximum is computed dynamically</strong> &mdash; it automatically adjusts whenever you change RAM/node, OSD count, VMs/node, or the services VM toggle. You cannot accidentally set it above what the hardware supports. Of the RAM assigned to the VM, 2 GB is reserved for the YARN NodeManager, and the remainder is divided into executor slots.
+          How much RAM the VM is allocated. <strong>This slider&rsquo;s maximum is computed dynamically</strong> &mdash; it automatically adjusts whenever you change RAM/node, OSD count, VMs/node, or the services VM toggle. You cannot accidentally set it above what the hardware supports. Of the RAM assigned to the VM, 2 GB is reserved for the YARN NodeManager, and the remainder is divided into executor slots.<br><br>
+          <em>Reference figures with 4 OSDs and full 384 GB RAM per node:</em> fixed reservations total approximately <strong>44 GB</strong> (Proxmox 8 GB + ZFS ARC 8 GB + Ceph RGW 8 GB + Ceph MON 6 GB + 4 OSDs&times;3 GB + ResourceManager ~2 GB), leaving approximately <strong>340 GB</strong> available for VMs. Compare to the old model (before ZFS ARC was added) which showed ~36 GB reserved and ~348 GB available.
         </div>
         <div class="affects">
           <span class="affects-label">&#9650; Constrained by:</span>
@@ -550,7 +554,8 @@ li { margin-bottom:6px; line-height:1.65; }
           <span class="slider-default">default 2 TB</span>
         </div>
         <div class="slider-desc">
-          How much raw data arrives each day. This drives the Ceph days-of-retention calculation (usable Ceph capacity &divide; daily volume) and sets the baseline for the shuffle scratch warning. If you are running smaller development batches, reduce this to get accurate scratch and retention warnings for your actual workload size.
+          How much raw data arrives each day. This drives the Ceph days-of-retention calculation and sets the baseline for the shuffle scratch warning. If you are running smaller development batches, reduce this to get accurate scratch and retention warnings for your actual workload size.<br><br>
+          <em>Retention formula (current):</em> the calculator does not simply divide usable Ceph capacity by daily volume. It first subtracts two additional reservations: <strong>VM OS disks</strong> (<code>VMS_NODE &times; NODES &times; 80 GB</code>) stored on Ceph RBD, and <strong>Parquet outputs pending outbound transfer</strong> (<code>N_PARQUET &times; (DAILY_TB &divide; PARQ_COMP)</code>). Only the remaining <code>CEPH_EFFECTIVE</code> capacity is divided by daily volume to produce <code>CEPH_DAYS</code>. This means increasing daily volume tightens retention faster than you might expect, because it simultaneously grows both the denominator and the Parquet-pending reservation in the numerator.
         </div>
         <div class="affects">
           <span class="affects-label">&#9660; Drives:</span>
@@ -565,7 +570,8 @@ li { margin-bottom:6px; line-height:1.65; }
           <span class="slider-default">default 3.5&times;</span>
         </div>
         <div class="slider-desc">
-          How much data expands during shuffle operations (joins, group-bys, sorts). A simple filter is ~1&times;. A join between two equal-sized tables approaches 2&times;. Multi-stage pipelines with sort-merge joins and aggregations can reach 3&ndash;4&times;. The calculator uses this to estimate worst-case scratch space required: <code>daily_TB &times; shuffle_amp</code>. If your actual jobs spill more than your scratch can hold, the job fails. The default of <strong>3.5&times;</strong> reflects the development ETL pipeline&rsquo;s mix of join types.
+          How much data expands during shuffle operations (joins, group-bys, sorts). A simple filter is ~1&times;. A join between two equal-sized tables approaches 2&times;. Multi-stage pipelines with sort-merge joins and aggregations can reach 3&ndash;4&times;. The calculator uses this to estimate worst-case scratch space required: <code>daily_TB &times; shuffle_amp</code>. If your actual jobs spill more than your scratch can hold, the job fails. The default of <strong>3.5&times;</strong> reflects the development ETL pipeline&rsquo;s mix of join types.<br><br>
+          <em>Compression note:</em> Spark&rsquo;s default shuffle compression (Snappy) is always active. On-disk shuffle data typically occupies <strong>40&ndash;60% of the calculated ceiling</strong>, not the full value. The displayed scratch requirement is therefore a <strong>conservative planning figure</strong> &mdash; the actual on-disk usage will be materially lower. The sub-text beneath the scratch adequacy bar reads &ldquo;compression active: effective ceiling ~2&times; higher&rdquo; to reflect this. Do not reduce the amplification slider to compensate; keep it at the logical data expansion rate and let the compression note explain the headroom.
         </div>
         <div class="affects">
           <span class="affects-label">&#9660; Drives:</span>
@@ -657,11 +663,29 @@ li { margin-bottom:6px; line-height:1.65; }
           <span class="slider-default">default 5&times;</span>
         </div>
         <div class="slider-desc">
-          How much smaller the Parquet output is compared to the CSV input, due to columnar encoding and Snappy compression. Typical business data compresses 4&ndash;6&times;. Highly repetitive data (low-cardinality categoricals, many NULLs) can reach 8&ndash;10&times;. Drives the Parquet size estimate and transfer time calculation.
+          How much smaller the Parquet output is compared to the CSV input, due to columnar encoding and Snappy compression. Typical business data compresses 4&ndash;6&times;. Highly repetitive data (low-cardinality categoricals, many NULLs) can reach 8&ndash;10&times;. Drives the Parquet size estimate, transfer time calculation, and the Parquet-pending Ceph reservation (<code>PARQ_PENDING_TB = N_PARQUET &times; (DAILY_TB &divide; PARQ_COMP)</code>).
         </div>
         <div class="affects">
           <span class="affects-label">&#9660; Drives:</span>
-          <span class="dep-down">Parquet output MB estimate &middot; Snowflake transfer time</span>
+          <span class="dep-down">Parquet output MB estimate &middot; Snowflake transfer time &middot; PARQ_PENDING_TB (Ceph reservation)</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-name">
+          Parquet outputs pending transfer
+          <span class="slider-range">1&ndash;5 &middot; step 1</span>
+          <span class="slider-default">default 2</span>
+        </div>
+        <div class="slider-desc">
+          How many complete Parquet output sets may accumulate on Ceph at the same time before a prior set is confirmed transferred to Snowflake. Each set represents one day&rsquo;s worth of compressed output: <code>DAILY_TB &divide; PARQ_COMP</code>. The total Ceph capacity reserved for pending outputs is <code>N_PARQUET &times; (DAILY_TB &divide; PARQ_COMP)</code> (<code>PARQ_PENDING_TB</code>). This is subtracted from usable Ceph capacity before computing <code>CEPH_DAYS</code>.<br><br>
+          Set this to the maximum number of Parquet batches you expect to be resident on Ceph simultaneously &mdash; for example, <strong>2</strong> if your outbound transfer pipeline confirms one batch before the next ETL run completes, or <strong>3&ndash;5</strong> if transfers may lag behind by multiple days (slow Snowflake COPY INTO, network issues, or a manual review step). Underestimating this value produces an optimistic retention figure; overestimating it reserves capacity unnecessarily.
+        </div>
+        <div class="affects">
+          <span class="affects-label">&#9650; Constrained by:</span>
+          <span class="dep-up">Daily ingest volume &middot; Parquet compression ratio (both determine per-set size)</span><br>
+          <span class="affects-label">&#9660; Drives:</span>
+          <span class="dep-down">PARQ_PENDING_TB &middot; CEPH_EFFECTIVE &middot; CEPH_DAYS &middot; Ceph retention warning</span>
         </div>
       </div>
 
@@ -682,6 +706,29 @@ li { margin-bottom:6px; line-height:1.65; }
 
     </div>
   </div>
+
+
+  <!-- ═══════════════════════════════ SECTION F — SPARK CONFIGURATION -->
+  <h2 id="sec-f">Section F &mdash; Spark Configuration Output</h2>
+
+  <p>The calculator&rsquo;s Section F is <strong>not a slider group</strong> &mdash; it is a read-only output panel generated by <code>buildParamTable()</code>. It produces a live <code>spark-defaults.conf</code>-style table that updates automatically whenever any slider changes.</p>
+
+  <div class="callout info">
+    <strong>What it shows:</strong> The table lists the derived Spark configuration parameters &mdash; including executor memory, cores, overhead, off-heap size, partition counts, and shuffle tuning parameters &mdash; formatted as <code>key = value</code> pairs suitable for pasting directly into <code>spark-defaults.conf</code> or a Spark submit command. It is a copy-paste reference, not an interactive input.
+  </div>
+
+  <p>Key parameters included in the output:</p>
+  <ul>
+    <li><code>spark.executor.memory</code> and <code>spark.executor.cores</code> &mdash; derived from the executor shape sliders</li>
+    <li><code>spark.executor.memoryOverheadFactor</code> &mdash; from the YARN overhead % slider</li>
+    <li><code>spark.memory.offHeap.size</code> &mdash; from the off-heap GB slider</li>
+    <li><code>spark.sql.shuffle.partitions</code> &mdash; calculated from total executor count &times; cores</li>
+    <li><code>spark.sql.adaptive.advisoryPartitionSizeInBytes</code> &mdash; from the shuffle output size slider</li>
+    <li>Shuffle tuning parameters: serializer, <code>lz4.blockSize</code>, <code>shuffle.file.buffer</code>, <code>memoryFraction</code>, <code>maxSizeInFlight</code></li>
+    <li><code>spark.sql.parquet.compression.codec</code> set to <code>snappy</code> for Snowflake compatibility</li>
+  </ul>
+
+  <p>Because all values are recomputed on every slider change, Section F always reflects the current slider state. Use it to review the full parameter set before applying it to the cluster.</p>
 
 
   <!-- ═══════════════════════════════ SECTION 9 — DEPENDENCIES -->
@@ -729,8 +776,13 @@ li { margin-bottom:6px; line-height:1.65; }
       </tr>
       <tr>
         <td>Daily ingest + Shuffle amp</td>
-        <td>Scratch adequacy warning &middot; partition count</td>
-        <td>Worst-case scratch = daily_TB &times; shuffle_amp. If this exceeds 75% of scratch/VM, the warning fires.</td>
+        <td>Scratch adequacy warning &middot; partition count &middot; PARQ_PENDING_TB</td>
+        <td>Worst-case scratch = daily_TB &times; shuffle_amp. If this exceeds 75% of scratch/VM, the warning fires. Daily ingest also scales the Parquet-pending Ceph reservation.</td>
+      </tr>
+      <tr>
+        <td>N_PARQUET (pending Parquet)</td>
+        <td>CEPH_EFFECTIVE &middot; CEPH_DAYS &middot; Ceph retention warning</td>
+        <td><code>PARQ_PENDING_TB = N_PARQUET &times; (DAILY_TB &divide; PARQ_COMP)</code>. More pending sets reduce effective Ceph headroom directly.</td>
       </tr>
       <tr>
         <td>Data skew profile</td>
@@ -780,7 +832,8 @@ li { margin-bottom:6px; line-height:1.65; }
         <li>VMs per node &uarr; &rarr; scratch NVMe split across more VMs &rarr; scratch TB/VM &darr;</li>
         <li>Join type &rarr; wide shuffle joins multiply scratch requirement beyond the basic shuffle_amp estimate</li>
       </ul>
-      <strong>Warning threshold:</strong> Scratch TB per VM &lt; 75% of worst-case shuffle volume (<code>daily_TB &times; shuffle_amp</code>). The 75% buffer exists because shuffle data is not perfectly distributed &mdash; some VMs will receive more than the average.
+      <strong>Warning threshold:</strong> Scratch TB per VM &lt; 75% of worst-case shuffle volume (<code>daily_TB &times; shuffle_amp</code>). The 75% buffer exists because shuffle data is not perfectly distributed &mdash; some VMs will receive more than the average.<br><br>
+      <strong>Compression context:</strong> The displayed scratch requirement is calculated from the logical data volume before shuffle compression. Spark&rsquo;s default Snappy shuffle compression means actual on-disk usage is typically <strong>40&ndash;60% lower</strong> than the calculated figure &mdash; the scratch adequacy bar sub-text notes &ldquo;compression active: effective ceiling ~2&times; higher.&rdquo; In practice this warning rarely becomes a real-world disk-full event when compression is active, but the conservative figure is retained as a planning guarantee: if on-disk usage somehow approaches the calculated ceiling (e.g. compression-resistant data, disabled codec), the cluster still has headroom.
     </div>
     <div class="failure-sliders">
       Move to fix: OSD count &darr; (frees NVMe for scratch) &middot; VMs per node &darr; &middot; Daily ingest and Shuffle amp &uarr; to model your real workload accurately
@@ -794,11 +847,14 @@ li { margin-bottom:6px; line-height:1.65; }
       <strong>What is happening:</strong> Ceph&rsquo;s usable capacity is fixed by how many NVMe drives you assign to it and the replication factor. If daily ingest consumes capacity faster than you&rsquo;re clearing old data, the store fills up.<br><br>
       <strong>The cause chain:</strong>
       <ul style="margin:10px 0 10px 16px; font-size:13px; line-height:1.8;">
-        <li>OSD count &darr; &rarr; fewer NVMe drives in Ceph &rarr; raw Ceph capacity &darr; &rarr; usable capacity &darr; &rarr; fewer days of retention</li>
+        <li>OSD count &darr; &rarr; fewer NVMe drives in Ceph &rarr; raw Ceph capacity &darr; &rarr; usable capacity &darr; &rarr; fewer effective days</li>
         <li>Replication factor &uarr; &rarr; each byte written N times &rarr; usable capacity = raw &divide; N &darr;</li>
-        <li>Daily ingest &uarr; &rarr; more data written per day &rarr; retention days &darr;</li>
+        <li>Daily ingest &uarr; &rarr; more data consumed per day <em>and</em> Parquet-pending reservation grows &rarr; effective headroom &darr; faster than the raw numbers suggest</li>
+        <li>N_PARQUET &uarr; &rarr; more Parquet sets held on Ceph awaiting transfer confirmation &rarr; <code>PARQ_PENDING_TB</code> &uarr; &rarr; <code>CEPH_EFFECTIVE</code> &darr;</li>
+        <li>VMs/node &uarr; &rarr; more VM OS disks on Ceph RBD &rarr; <code>VM_OS_USABLE_TB</code> &uarr; &rarr; <code>CEPH_EFFECTIVE</code> &darr;</li>
       </ul>
-      <strong>Warning threshold:</strong> Ceph usable capacity &divide; daily ingest &lt; 3 days. Three days is the minimum buffer to survive a weekend without active data management.
+      <em>Current formula:</em> <code>CEPH_EFFECTIVE = CEPH_USABLE &minus; VM_OS_USABLE_TB &minus; PARQ_PENDING_TB</code>; <code>CEPH_DAYS = CEPH_EFFECTIVE &divide; DAILY_TB</code>. The old formula was simply <code>CEPH_USABLE &divide; DAILY_TB</code> &mdash; it did not account for Ceph capacity consumed by infrastructure.<br><br>
+      <strong>Warning threshold:</strong> <code>CEPH_EFFECTIVE &divide; DAILY_TB &lt; 3 days</code>. Three days is the minimum buffer to survive a weekend without active data management.
     </div>
     <div class="failure-sliders">
       Move to fix: OSD count &uarr; (more Ceph capacity) &middot; Replication factor &darr; to 2&times; (with caution on a 3-node cluster) &middot; Daily ingest &darr; to reflect actual load
@@ -813,10 +869,11 @@ li { margin-bottom:6px; line-height:1.65; }
       <strong>The cause chain:</strong>
       <ul style="margin:10px 0 10px 16px; font-size:13px; line-height:1.8;">
         <li>OSD count &uarr; &rarr; each OSD consumes 1 physical core &rarr; cores available for VM &darr; &rarr; vCPUs/VM ceiling &darr;</li>
-        <li>vCPUs/VM slider does <strong>not</strong> auto-clamp &rarr; if OSD count increases after vCPUs was set, overcommit occurs silently until you notice the red bar</li>
+        <li>vCPUs/VM slider <strong>auto-clamps</strong> on every <code>recalc()</code> call &rarr; increasing OSD count immediately drops the slider to the new ceiling, so live overcommit cannot persist through the UI</li>
       </ul>
-      <strong>Concrete example:</strong> At 5 OSDs (default), infrastructure consumes 13 cores, leaving 19 for the VM. Setting vCPUs to 20 puts 1 core into overcommit. The bar turns red, but the slider stays at 20 &mdash; it will not move itself.<br><br>
-      <strong>Resolution:</strong> Check the Fixed Overhead Reservations card for the current available core count, then reduce vCPUs/VM to fit within it.
+      <strong>Concrete example:</strong> At 5 OSDs (default), infrastructure consumes 13 cores, leaving 19 for the VM. Setting vCPUs to 20 causes the bar to turn red briefly &mdash; then on the next <code>recalc()</code> the slider drops to 19 and the bar recovers. The transient red flash is the only visible indication.<br><br>
+      <strong>The one remaining failure mode:</strong> a scenario saved in localStorage when the core ceiling was higher (e.g. fewer OSDs at save time) will restore the old vCPU value, which <code>recalc()</code> silently clamps downward on load. The restored configuration is valid, but the vCPU count will be lower than what was saved &mdash; check the Fixed Overhead Reservations card if a loaded scenario looks different than expected.<br><br>
+      <strong>Resolution:</strong> Check the Fixed Overhead Reservations card for the current available core count. The slider ceiling is enforced automatically; no manual correction is needed for live use.
     </div>
     <div class="failure-sliders">
       Move to fix: vCPUs/VM &darr; to stay within (32 &minus; infrastructure cores) &middot; OSD count &darr; (each reduction frees 1 core)

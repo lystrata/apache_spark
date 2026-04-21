@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Notes/chat-2026-04-17-calculator-review.md",
+                "file": "Notes_remote_services/todos_remote_services.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "chat-2026-04-17-calculator-review"
+              "title": "todos_remote_services"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Notes/chat-2026-04-17-calculator-review.md",
+                "file": "Incoming/selectfrom.dev-Spark Optimization Reducing Shuffle.pdf",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for chat-2026-04-17-calculator-review"
+              "title": "Backlinks for selectfrom.dev-Spark Optimization Reducing Shuffle"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Notes/chat-2026-04-17-calculator-review.md",
+                "file": "Incoming/selectfrom.dev-Spark Optimization Reducing Shuffle.pdf",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from chat-2026-04-17-calculator-review"
+              "title": "Outgoing links from selectfrom.dev-Spark Optimization Reducing Shuffle"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Notes/chat-2026-04-17-calculator-review.md",
+                "file": "Incoming/selectfrom.dev-Spark Optimization Reducing Shuffle.pdf",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of chat-2026-04-17-calculator-review"
+              "title": "Outline of selectfrom.dev-Spark Optimization Reducing Shuffle"
             }
           }
         ]
@@ -183,19 +183,35 @@
       "bases:Create new base": false
     }
   },
-  "active": "26b18bad1ec031f8",
+  "active": "ec755f4cc8186349",
   "lastOpenFiles": [
-    "Document/spark-shuffle-developer-guide.html",
-    "Document/dev-cluster-storage-reference.html",
-    "Document/production_spark_calculator.html",
-    "Document/development_spark_calculator.html",
-    "Scripts/export_chat.py",
-    "Document/vendor-letter-draft.txt",
-    "Document/vendor-letter-draft.html",
-    "Document/dev_slider_guide.html",
-    "Document/prod_calculator_guide.html",
-    "Document/dev_calculator_guide.html",
-    "Document/cluster_sizing_tool.html",
+    "Notes_correspondence/questions_for_vendors.txt",
+    "Notes_correspondence/todos_correspondence.md",
+    "Incoming_correspondence",
+    "Ready_For_Review_correspondence",
+    "Notes_correspondence",
+    "Document_correspondence",
+    "Incoming_security/Evaluating Identity Architecture for the Spark Platform.pdf",
+    "Evaluating Identity Architecture for the Spark Platform.pdf",
+    "Shared_References/Turabian-Style-Guide.080919.pdf",
+    "Shared_References",
+    "Turabian-Style-Guide.080919.pdf",
+    "Ready_For_Review_security/AD_identity_architecture_analysis.html",
+    "Notes_security/todos_security.md",
+    "Notes_remote_services/todos_remote_services.md",
+    "Notes_remote_services/remote_service_host_notes.md",
+    "Notes/todos_calculator.md",
+    "Notes/chat-2026-04-17-networking.md",
+    "Notes_remote_services/chat-2026-04-17-networking_remote_services.md",
+    "Notes_remote_services/yarn_rm_ha_notes_remote_services.md",
+    "Notes_remote_services/monitoring_sizing_reference.md",
+    "Notes_remote_services/bastion_sizing_reference.md",
+    "Notes_remote_services/airflow_planning_notes.md",
+    "Notes/yarn_rm_ha_notes.md",
+    "Notes/monitoring_sizing_reference.md",
+    "Notes/chat-2026-04-17-osd-sizing.md",
+    "Notes/chat-2026-04-17-calculator-review.md",
+    "Notes/bastion_sizing_reference.md",
     "Images/Development/dev-guide-13-sec-f-spark-config.png",
     "Images/Development/dev-guide-12-sec-e-network-path.png",
     "Images/Development/dev-guide-11-sec-d-workload-sizing.png",
@@ -206,11 +222,8 @@
     "Images/Development/dev-guide-06-sec-c-exec-params.png",
     "Images/Development/dev-guide-05-sec-b-overhead.png",
     "Images/Development/dev-guide-04-sec-a-resource-budget.png",
-    "Notes/chat-2026-04-17-osd-sizing.md",
     "Notes/calculator_suggestions.md",
     "Notes/airflow_planning_notes.md",
-    "Notes/chat-2026-04-17-networking.md",
-    "Notes/chat-2026-04-17-config-matrix-revised.md",
-    "Notes/chat-2026-04-17-calculator-review.md"
+    "Notes/chat-2026-04-17-config-matrix-revised.md"
   ]
 }

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spark Cluster Sizing — Document Index</title>
+<style>
+  :root {
+    --bg:     #1a1a2e; --surface: #16213e; --border: #2a2a4a;
+    --text:   #e0e0e0; --muted:   #aaa;
+    --accent: #4e9eff; --accent2: #3ecf8e;
+    --warn:   #f0a500; --purple:  #c084fc;
+    --mono:   'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text);
+    font-family: system-ui, sans-serif; font-size: 14px;
+    padding: 40px 28px 80px; max-width: 960px; margin: 0 auto; }
+
+  h1 { color: var(--accent); font-size: 22px; margin-bottom: 4px; }
+  .doc-meta { color: var(--muted); font-size: 12px; margin-bottom: 36px; }
+
+  h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--muted); margin: 32px 0 10px; border-bottom: 1px solid var(--border);
+    padding-bottom: 6px; }
+
+  .card-grid { display: grid; gap: 10px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border);
+    border-radius: 7px; padding: 16px 18px;
+    display: flex; align-items: flex-start; gap: 14px;
+    text-decoration: none; color: inherit;
+    transition: border-color .15s, background .15s; }
+  .card:hover { border-color: var(--accent); background: rgba(78,158,255,.06); }
+
+  .card-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+  .card-desc  { font-size: 12px; color: #ccc; line-height: 1.6; }
+  .card-file  { font-family: var(--mono); font-size: 10px; color: var(--muted);
+    margin-top: 5px; }
+
+  .tag { display:inline-block; font-size:10px; font-weight:600; border-radius:3px;
+    padding:1px 7px; margin-right:6px; vertical-align:middle; }
+  .tag-calc  { background:rgba(78,158,255,.15);  color:var(--accent); }
+  .tag-guide { background:rgba(192,132,252,.15); color:var(--purple); }
+  .tag-ref   { background:rgba(62,207,142,.15);  color:var(--accent2); }
+  .tag-res   { background:rgba(240,165,0,.15);   color:var(--warn); }
+</style>
+</head>
+<body>
+
+<h1>Spark Cluster Sizing</h1>
+<div class="doc-meta">3-node Proxmox · Apache Spark on YARN · Ceph RGW (S3) · Snowflake ingest · 2 TB/day ETL</div>
+
+<!-- ── Calculators ───────────────────────────── -->
+<h2>Calculators</h2>
+<div class="card-grid">
+
+  <a class="card" href="development_spark_calculator.html">
+    <div class="card-icon">🖥</div>
+    <div>
+      <div class="card-title"><span class="tag tag-calc">CALC</span>Development Spark Calculator</div>
+      <div class="card-desc">Interactive sizing tool for the development cluster — 3 nodes, 32 cores/node, 384 GB RAM/node, 7× 3.84 TB NVMe. Sliders for VMs, executors, memory, Ceph OSDs, and workload. Outputs executor config, scratch headroom, and spark-defaults.conf.</div>
+      <div class="card-file">development_spark_calculator.html</div>
+    </div>
+  </a>
+
+  <a class="card" href="production_spark_calculator.html">
+    <div class="card-icon">🖥</div>
+    <div>
+      <div class="card-title"><span class="tag tag-calc">CALC</span>Production Spark Calculator</div>
+      <div class="card-desc">Interactive sizing tool for the production cluster — 3 nodes, 64 cores/node (dual NUMA), 768 GB RAM/node, 9× 3.2 TB NVMe. Same slider model as dev with production hardware constants.</div>
+      <div class="card-file">production_spark_calculator.html</div>
+    </div>
+  </a>
+
+  <a class="card" href="cluster_sizing_tool.html">
+    <div class="card-icon">⚙️</div>
+    <div>
+      <div class="card-title"><span class="tag tag-calc">CALC</span>Cluster Sizing Tool</div>
+      <div class="card-desc">General-purpose cluster sizing utility covering VM allocation, vCPU budgets, and RAM partitioning across the Proxmox hypervisor layer.</div>
+      <div class="card-file">cluster_sizing_tool.html</div>
+    </div>
+  </a>
+
+</div>
+
+<!-- ── Guides ────────────────────────────────── -->
+<h2>Guides</h2>
+<div class="card-grid">
+
+  <a class="card" href="dev_slider_guide.html">
+    <div class="card-icon">📖</div>
+    <div>
+      <div class="card-title"><span class="tag tag-guide">GUIDE</span>Development Calculator — Slider Reference</div>
+      <div class="card-desc">Explains every slider and checkbox in the development calculator: what it controls, valid ranges, dependencies, and failure modes. Includes RAM/vCPU budget diagrams and the full executor memory layer stack.</div>
+      <div class="card-file">dev_slider_guide.html</div>
+    </div>
+  </a>
+
+  <a class="card" href="dev_calculator_guide.html">
+    <div class="card-icon">📖</div>
+    <div>
+      <div class="card-title"><span class="tag tag-guide">GUIDE</span>Development Calculator — Visual Guide</div>
+      <div class="card-desc">Screenshot-based walkthrough of the development calculator UI — section by section with annotated callouts.</div>
+      <div class="card-file">dev_calculator_guide.html</div>
+    </div>
+  </a>
+
+  <a class="card" href="prod_calculator_guide.html">
+    <div class="card-icon">📖</div>
+    <div>
+      <div class="card-title"><span class="tag tag-guide">GUIDE</span>Production Calculator — Visual Guide</div>
+      <div class="card-desc">Screenshot-based walkthrough of the production calculator UI — section by section with annotated callouts.</div>
+      <div class="card-file">prod_calculator_guide.html</div>
+    </div>
+  </a>
+
+  <a class="card" href="spark-shuffle-developer-guide.html">
+    <div class="card-icon">📖</div>
+    <div>
+      <div class="card-title"><span class="tag tag-guide">GUIDE</span>Spark Shuffle — Developer Guide</div>
+      <div class="card-desc">Detailed developer-facing guide to Spark shuffle mechanics, key configuration parameters (serializer, buffer sizes, memoryFraction, maxSizeInFlight), and how each maps to the calculator's output.</div>
+      <div class="card-file">spark-shuffle-developer-guide.html</div>
+    </div>
+  </a>
+
+</div>
+
+<!-- ── Reference ─────────────────────────────── -->
+<h2>Reference</h2>
+<div class="card-grid">
+
+  <a class="card" href="dev_cluster_math_reference.html">
+    <div class="card-icon">📐</div>
+    <div>
+      <div class="card-title"><span class="tag tag-ref">REF</span>Development Cluster — Math Reference</div>
+      <div class="card-desc">All sizing formulas in one place: infrastructure reservations, executor math, Ceph usable capacity, scratch headroom, and NUMA constraints. Annotated with default values from the dev hardware spec.</div>
+      <div class="card-file">dev_cluster_math_reference.html</div>
+    </div>
+  </a>
+
+  <a class="card" href="dev-cluster-storage-reference.html">
+    <div class="card-icon">💾</div>
+    <div>
+      <div class="card-title"><span class="tag tag-ref">REF</span>Development Cluster — Storage Reference</div>
+      <div class="card-desc">NVMe scratch sizing analysis: Config I vs Config II OSD counts, scratch capacity per node, shuffle amplification ceiling, and the 4.61× constraint at 5 TB/day. Includes Ceph headroom model.</div>
+      <div class="card-file">dev-cluster-storage-reference.html</div>
+    </div>
+  </a>
+
+  <a class="card" href="etl-data-flow-diagram.html">
+    <div class="card-icon">🔀</div>
+    <div>
+      <div class="card-title"><span class="tag tag-ref">REF</span>ETL Data Flow Diagram</div>
+      <div class="card-desc">End-to-end pipeline diagram: External Source → Ceph CSV landing → YARN executor processing (map, shuffle write, NVMe scratch, fetch, reduce) → Parquet output → Ceph → Snowflake. Includes executor memory layout bar and stage-by-stage data volume table.</div>
+      <div class="card-file">etl-data-flow-diagram.html</div>
+    </div>
+  </a>
+
+</div>
+
+<!-- ── Research ──────────────────────────────── -->
+<h2>Research &amp; Correspondence</h2>
+<div class="card-grid">
+
+  <a class="card" href="shuffle-research-summary.html">
+    <div class="card-icon">🔬</div>
+    <div>
+      <div class="card-title"><span class="tag tag-res">RESEARCH</span>Shuffle Tuning — Research Summary</div>
+      <div class="card-desc">Structured review of 8 sources (Magnet/LinkedIn, Barcelona SC, UC Berkeley, Databricks) on shuffle amplification, compression factors, and buffer sizing. Basis for the shuffle parameter recommendations in the calculators.</div>
+      <div class="card-file">shuffle-research-summary.html</div>
+    </div>
+  </a>
+
+  <a class="card" href="vendor-letter-draft.html">
+    <div class="card-icon">✉️</div>
+    <div>
+      <div class="card-title"><span class="tag tag-res">LETTER</span>Vendor Letter Draft</div>
+      <div class="card-desc">Draft correspondence summarizing the cluster sizing analysis and configuration recommendations. Includes compression factor addendum.</div>
+      <div class="card-file">vendor-letter-draft.html</div>
+    </div>
+  </a>
+
+</div>
+
+</body>
+</html>

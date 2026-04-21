@@ -25,6 +25,10 @@ All working HTML documents live in `Document/`. Scripts live in `Scripts/`. Rese
 | `Notes_security/` | Research notes and planning for security context — on-site revision control only |
 | `Ready_For_Review_security/` | Staging for security documents |
 | `Incoming_security/` | Source PDFs and reference material for security context — on-site revision control only |
+| `Document_correspondence/` | Working documents for project correspondence — no revision control |
+| `Notes_correspondence/` | Planning and notes for correspondence context |
+| `Ready_For_Review_correspondence/` | Staging for correspondence documents |
+| `Incoming_correspondence/` | Source material and reference PDFs for correspondence context |
 
 ## Session Context Convention
 
@@ -35,6 +39,7 @@ At the start of a session the user may type `set context <name>` to declare whic
 | `calculators` | `Notes/todos_calculator.md` | `Notes/questions_for_vendors.txt` | `Document/` | `Ready_For_Review/` |
 | `remote_services` | `Notes_remote_services/todos_remote_services.md` | `Notes_remote_services/questions_for_vendors.txt` | `Document_remote_services/` | `Ready_For_Review_remote_services/` |
 | `security` | `Notes_security/todos_security.md` | `Notes_security/questions_for_vendors.txt` | `Document_security/` | `Ready_For_Review_security/` |
+| `correspondence` | `Notes_correspondence/todos_correspondence.md` | `Notes_correspondence/questions_for_vendors.txt` | `Document_correspondence/` | `Ready_For_Review_correspondence/` |
 
 When the user types `set context <name>`:
 1. Acknowledge the active context by name.
@@ -49,7 +54,7 @@ Each chat context maintains a TODO file tracking outstanding tasks, open questio
 
 **"show todos" prompt:** When the user types `show todos`:
 - If a context is active, read and display that context's TODO file only, and note the other contexts exist.
-- If no context is set, read and display all three TODO files.
+- If no context is set, read and display all four TODO files.
 
 **Format:** Each TODO file uses three sections — `## Waiting for Vendor Reply`, `## Open Questions`, `## Pending Tasks`, and `## Next Session`. Use Markdown checklist boxes (`- [ ]` unchecked, `- [x]` checked) for all items. Check items off as they are resolved rather than deleting them, so there is a record of what was completed and when.
 
@@ -62,6 +67,7 @@ When the user identifies a question that must be forwarded to a vendor, add it t
 | Spark calculators and cluster sizing | `Notes/questions_for_vendors.txt` |
 | Remote services (Airflow, monitoring, bastion) | `Notes_remote_services/questions_for_vendors.txt` |
 | Security | `Notes_security/questions_for_vendors.txt` |
+| Project correspondence | `Notes_correspondence/questions_for_vendors.txt` |
 
 ---
 
@@ -119,7 +125,7 @@ Applies to **all contexts** (calculators, remote_services, security). Use this f
 
 ## Compact Milestones
 
-Applies to **all contexts** (calculators, remote_services, security).
+Applies to **all contexts** (calculators, remote_services, security, correspondence).
 
 When a natural stopping point is reached — a document is complete and staged, a cluster of open questions is resolved, a planning phase closes — flag it and ask the user whether to `/compact` before continuing. What constitutes a milestone is a judgment call; when uncertain, ask rather than assume.
 

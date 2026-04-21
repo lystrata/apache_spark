@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETL Data Flow — Spark Cluster</title>
+<style>
+  :root {
+    --bg:     #1a1a2e; --surface: #16213e; --border: #2a2a4a;
+    --text:   #e0e0e0; --muted:   #aaa;
+    --accent: #4e9eff; --accent2: #3ecf8e;
+    --warn:   #f0a500; --bad:     #e05c5c; --purple: #c084fc;
+    --mono:   'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text);
+    font-family: system-ui, sans-serif; font-size: 14px;
+    padding: 32px 24px 60px; max-width: 1200px; margin: 0 auto; }
+  h1 { color: var(--accent); font-size: 22px; margin-bottom: 4px; }
+  .doc-meta { color: var(--muted); font-size: 12px; margin-bottom: 20px; }
+  h2 { color: var(--accent); font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.07em; margin: 28px 0 10px; }
+  .section-label { color: #bbb; font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 6px; font-weight: 600; }
+
+  /* colour legend */
+  .legend { display: flex; gap: 24px; flex-wrap: wrap; align-items: center;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px 16px; margin-bottom: 18px; }
+  .legend-title { color: #bbb; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .08em; margin-right: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #ccc; }
+  .legend-arrow { display: flex; align-items: center; gap: 4px; }
+  .l-line { height: 3px; width: 28px; border-radius: 2px; }
+  .l-head { width: 0; height: 0; }
+  .l-head-r { border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 9px solid; }
+
+  .wrap { background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 20px; margin-bottom: 10px; overflow-x: auto; }
+  .wrap svg { display: block; width: 100%; max-width: 1140px; margin: 0 auto; }
+  svg text { font-family: system-ui, sans-serif; }
+
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:28px; }
+  th { background:rgba(78,158,255,0.08); color:var(--accent); padding:8px 12px;
+    text-align:left; border-bottom:1px solid var(--border); font-size:11px;
+    text-transform:uppercase; letter-spacing:.05em; }
+  td { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,0.05);
+    vertical-align:top; line-height:1.6; }
+  tr:last-child td { border-bottom:none; }
+  code { font-family:var(--mono); background:rgba(255,255,255,0.07);
+    padding:1px 5px; border-radius:3px; font-size:11px; }
+  .tag { display:inline-block; font-size:10px; font-weight:600; border-radius:3px;
+    padding:1px 7px; margin-right:4px; }
+  .tag-src    { background:rgba(240,165,0,.15);   color:var(--warn); }
+  .tag-stor   { background:rgba(78,158,255,.15);  color:var(--accent); }
+  .tag-proc   { background:rgba(192,132,252,.15); color:var(--purple); }
+  .tag-dest   { background:rgba(62,207,142,.15);  color:var(--accent2); }
+  .tag-scratch{ background:rgba(224,92,92,.15);   color:var(--bad); }
+  .note { color:#aaa; font-size:12px; margin-top:3px; }
+</style>
+</head>
+<body>
+
+<h1 id="top">ETL Data Flow — Development Cluster</h1>
+<div class="doc-meta">2026-04-20 &nbsp;·&nbsp; Spark on YARN · Ceph RGW (S3) · Snowflake ingest</div>
+
+<!-- ── Colour Legend ─────────────────────────────────── -->
+<div class="legend">
+  <span class="legend-title">Arrow colours:</span>
+
+  <div class="legend-item">
+    <div class="legend-arrow">
+      <div class="l-line" style="background:#4e9eff"></div>
+      <div class="l-head l-head-r" style="border-left-color:#4e9eff"></div>
+    </div>
+    Storage / S3 data movement
+  </div>
+
+  <div class="legend-item">
+    <div class="legend-arrow">
+      <div class="l-line" style="background:#c084fc"></div>
+      <div class="l-head l-head-r" style="border-left-color:#c084fc"></div>
+    </div>
+    Spark compute / processing flow
+  </div>
+
+  <div class="legend-item">
+    <div class="legend-arrow">
+      <div class="l-line" style="background:#f0a500"></div>
+      <div class="l-head l-head-r" style="border-left-color:#f0a500"></div>
+    </div>
+    NVMe scratch path (shuffle write &amp; fetch — constraint zone)
+  </div>
+
+  <div class="legend-item">
+    <div class="legend-arrow">
+      <div class="l-line" style="background:#3ecf8e"></div>
+      <div class="l-head l-head-r" style="border-left-color:#3ecf8e"></div>
+    </div>
+    Output / delivery path
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SECTION 1 — INGEST PATH
+════════════════════════════════════════════ -->
+<div class="section-label">① Ingest Path — data entering the cluster</div>
+<div class="wrap">
+<svg viewBox="0 0 1100 200">
+  <defs>
+    <marker id="a0" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#4e9eff"/></marker>
+    <marker id="ap" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#c084fc"/></marker>
+  </defs>
+
+  <!-- External Source -->
+  <rect x="20" y="38" width="200" height="94" rx="7"
+    fill="rgba(240,165,0,.12)" stroke="#f0a500" stroke-width="2"/>
+  <text x="120" y="74" text-anchor="middle" font-size="15" font-weight="700" fill="#f0a500">External</text>
+  <text x="120" y="93" text-anchor="middle" font-size="15" font-weight="700" fill="#f0a500">Data Source</text>
+  <text x="120" y="116" text-anchor="middle" font-size="12" fill="#ddd">CSV · 2–5 TB/day</text>
+
+  <!-- Arrow 1→2 -->
+  <line x1="220" y1="85" x2="278" y2="85" stroke="#4e9eff" stroke-width="2.5" marker-end="url(#a0)"/>
+  <text x="249" y="73" text-anchor="middle" font-size="11" fill="#bbb">ingest</text>
+
+  <!-- Ceph RGW CSV -->
+  <rect x="278" y="28" width="230" height="114" rx="7"
+    fill="rgba(78,158,255,.12)" stroke="#4e9eff" stroke-width="2"/>
+  <text x="393" y="64" text-anchor="middle" font-size="15" font-weight="700" fill="#4e9eff">Ceph RGW</text>
+  <text x="393" y="83" text-anchor="middle" font-size="13" fill="#7ec8ff">(local S3 — CSV landing)</text>
+  <text x="393" y="104" text-anchor="middle" font-size="12" fill="#ccc">s3a://bucket/csv/</text>
+  <text x="393" y="122" text-anchor="middle" font-size="11" fill="#aaa">CSV cleared after job begins</text>
+
+  <!-- Arrow: CSV → YARN entry -->
+  <line x1="508" y1="85" x2="566" y2="85" stroke="#4e9eff" stroke-width="2.5" marker-end="url(#a0)"/>
+  <text x="537" y="72" text-anchor="middle" font-size="11" fill="#bbb">S3A read</text>
+  <text x="537" y="84" text-anchor="middle" font-size="11" fill="#bbb">128 MB</text>
+  <text x="537" y="96" text-anchor="middle" font-size="11" fill="#bbb">partitions</text>
+
+  <!-- YARN entry box (dashed — detail in section 2) -->
+  <rect x="566" y="28" width="330" height="114" rx="7"
+    fill="rgba(192,132,252,.08)" stroke="rgba(192,132,252,.55)" stroke-width="2" stroke-dasharray="6,3"/>
+  <text x="731" y="64" text-anchor="middle" font-size="14" font-weight="700" fill="#d4a8ff">YARN Executors</text>
+  <text x="731" y="84" text-anchor="middle" font-size="12" fill="#ccc">Input partitions distributed across executor slots</text>
+  <text x="731" y="102" text-anchor="middle" font-size="11" fill="#bbb">INPUT_PARTS = ⌈DAILY_GB × 1024 / 128⌉</text>
+  <text x="731" y="120" text-anchor="middle" font-size="11" fill="#bbb">3 nodes × N executors/VM × EXEC_CORES each</text>
+
+  <!-- Down arrow: "see detail below" -->
+  <line x1="731" y1="142" x2="731" y2="182" stroke="rgba(192,132,252,.8)" stroke-width="2.5" marker-end="url(#ap)"/>
+  <text x="731" y="197" text-anchor="middle" font-size="11" fill="#d4a8ff">see detail below</text>
+</svg>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SECTION 2 — YARN EXECUTOR DETAIL
+════════════════════════════════════════════ -->
+<div class="section-label">② YARN Executor Processing — the compute core</div>
+<div class="wrap">
+<svg viewBox="0 0 1100 430">
+  <defs>
+    <marker id="bp" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#c084fc"/></marker>
+    <marker id="bw" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#f0a500"/></marker>
+    <marker id="bg" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#3ecf8e"/></marker>
+  </defs>
+
+  <!-- Outer cluster box -->
+  <rect x="10" y="10" width="1080" height="340" rx="8"
+    fill="rgba(192,132,252,.06)" stroke="rgba(192,132,252,.5)" stroke-width="2"/>
+  <text x="550" y="36" text-anchor="middle" font-size="13" font-weight="700"
+    fill="#d4a8ff" letter-spacing=".05em">
+    YARN EXECUTORS — 3 nodes × N executors/VM × EXEC_CORES cores each
+  </text>
+
+  <!-- ── Input Partitions ─── -->
+  <rect x="30" y="58" width="190" height="105" rx="7"
+    fill="rgba(240,165,0,.14)" stroke="#f0a500" stroke-width="2"/>
+  <text x="125" y="96" text-anchor="middle" font-size="15" font-weight="700" fill="#f0a500">Input Partitions</text>
+  <text x="125" y="116" text-anchor="middle" font-size="12" fill="#ddd">maxPartitionBytes</text>
+  <text x="125" y="133" text-anchor="middle" font-size="12" fill="#ddd">= 128 MB each</text>
+  <text x="125" y="152" text-anchor="middle" font-size="11" fill="#bbb">loop per partition</text>
+
+  <!-- Arrow: partitions → map -->
+  <line x1="220" y1="110" x2="270" y2="110" stroke="#c084fc" stroke-width="2.5" marker-end="url(#bp)"/>
+
+  <!-- ── Map Tasks ─── -->
+  <rect x="270" y="44" width="220" height="135" rx="7"
+    fill="rgba(192,132,252,.18)" stroke="#c084fc" stroke-width="2"/>
+  <text x="380" y="82" text-anchor="middle" font-size="17" font-weight="700" fill="#c084fc">Map Tasks</text>
+  <text x="380" y="104" text-anchor="middle" font-size="13" fill="#ddd">filter · join · transform</text>
+  <text x="380" y="122" text-anchor="middle" font-size="12" fill="#ccc">reduceByKey aggregates</text>
+  <text x="380" y="139" text-anchor="middle" font-size="12" fill="#ccc">here before shuffle</text>
+  <text x="380" y="158" text-anchor="middle" font-size="11" fill="#bbb">KryoSerializer → smaller records</text>
+
+  <!-- Arrow: map ↓ shuffle write -->
+  <line x1="380" y1="179" x2="380" y2="230" stroke="#f0a500" stroke-width="3" marker-end="url(#bw)"/>
+  <text x="412" y="201" font-size="12" fill="#f0a500">shuffle write</text>
+
+  <!-- ── NVMe Scratch ─── -->
+  <rect x="238" y="230" width="284" height="105" rx="7"
+    fill="rgba(224,92,92,.2)" stroke="#e05c5c" stroke-width="2"/>
+  <text x="380" y="265" text-anchor="middle" font-size="16" font-weight="700" fill="#e05c5c">NVMe Scratch</text>
+  <text x="380" y="287" text-anchor="middle" font-size="13" fill="#f0c0c0">map output + reduce spill</text>
+  <text x="380" y="305" text-anchor="middle" font-size="12" fill="#ddd">both on disk simultaneously at peak</text>
+  <text x="380" y="322" text-anchor="middle" font-size="11" fill="#ccc">snappy compression: ~40–60% of raw size on disk</text>
+
+  <!-- Arrow: scratch → right → up → reduce (L-shape fetch path) -->
+  <line x1="522" y1="282" x2="586" y2="282" stroke="#f0a500" stroke-width="3"/>
+  <line x1="586" y1="282" x2="586" y2="135" stroke="#f0a500" stroke-width="3"/>
+  <line x1="586" y1="135" x2="615" y2="135" stroke="#f0a500" stroke-width="3" marker-end="url(#bw)"/>
+  <text x="528" y="305" text-anchor="start" font-size="12" fill="#f0a500">Fetch</text>
+  <text x="528" y="321" text-anchor="start" font-size="11" fill="#ddd">maxSizeInFlight = 96m</text>
+
+  <!-- ── Reduce Tasks ─── -->
+  <rect x="615" y="44" width="220" height="135" rx="7"
+    fill="rgba(192,132,252,.18)" stroke="#c084fc" stroke-width="2"/>
+  <text x="725" y="82" text-anchor="middle" font-size="17" font-weight="700" fill="#c084fc">Reduce Tasks</text>
+  <text x="725" y="104" text-anchor="middle" font-size="13" fill="#ddd">aggregate · sort · merge</text>
+  <text x="725" y="122" text-anchor="middle" font-size="12" fill="#ccc">shuffle.memoryFraction</text>
+  <text x="725" y="139" text-anchor="middle" font-size="12" fill="#ccc">= 0.30 → less spill</text>
+  <text x="725" y="158" text-anchor="middle" font-size="11" fill="#bbb">AQE skew join splitting active</text>
+
+  <!-- Arrow: reduce → parquet -->
+  <line x1="835" y1="111" x2="878" y2="111" stroke="#3ecf8e" stroke-width="2.5" marker-end="url(#bg)"/>
+
+  <!-- ── Parquet Output ─── -->
+  <rect x="878" y="54" width="196" height="115" rx="7"
+    fill="rgba(62,207,142,.16)" stroke="#3ecf8e" stroke-width="2"/>
+  <text x="976" y="90" text-anchor="middle" font-size="15" font-weight="700" fill="#3ecf8e">Parquet Output</text>
+  <text x="976" y="110" text-anchor="middle" font-size="13" fill="#ddd">~150 MB files</text>
+  <text x="976" y="128" text-anchor="middle" font-size="12" fill="#ccc">snappy codec</text>
+  <text x="976" y="147" text-anchor="middle" font-size="11" fill="#bbb">OUTPUT_PARTS partitions</text>
+
+  <!-- Arrow: parquet exits bottom of cluster toward section 3 -->
+  <line x1="976" y1="169" x2="976" y2="352" stroke="#3ecf8e" stroke-width="2.5" marker-end="url(#bg)"/>
+  <text x="1004" y="270" font-size="12" fill="#7de8c0">to Ceph</text>
+  <text x="1004" y="286" font-size="12" fill="#7de8c0">Parquet ↓</text>
+
+  <!-- ── Config notes at cluster bottom ─── -->
+  <text x="550" y="368" text-anchor="middle" font-size="12" fill="#c8a8ff">
+    spark.executor.memory (EXEC_MEM) · memoryOverheadFactor (OVH_PCT) · spark.memory.offHeap.size (OFFHEAP)
+  </text>
+  <text x="550" y="386" text-anchor="middle" font-size="12" fill="#c8a8ff">
+    spark.sql.adaptive.enabled=true · autoBroadcastJoinThreshold · spark.io.compression.lz4.blockSize=524288
+  </text>
+
+  <!-- Entry indicator from section 1 -->
+  <text x="125" y="26" text-anchor="middle" font-size="11" fill="rgba(240,165,0,.7)">↓ from ingest</text>
+</svg>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SECTION 3 — OUTPUT PATH + NVMe SIZING
+════════════════════════════════════════════ -->
+<div class="section-label">③ Output Path &amp; Scratch Constraint</div>
+<div class="wrap">
+<svg viewBox="0 0 1100 280">
+  <defs>
+    <marker id="cg" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#3ecf8e"/></marker>
+  </defs>
+
+  <!-- Entry arrow from section 2 -->
+  <line x1="858" y1="10" x2="858" y2="44" stroke="#3ecf8e" stroke-width="2.5" marker-end="url(#cg)"/>
+  <text x="886" y="30" font-size="11" fill="#7de8c0">↑ from YARN</text>
+
+  <!-- Ceph RGW Parquet -->
+  <rect x="678" y="44" width="248" height="115" rx="7"
+    fill="rgba(78,158,255,.12)" stroke="#4e9eff" stroke-width="2"/>
+  <text x="802" y="82" text-anchor="middle" font-size="15" font-weight="700" fill="#4e9eff">Ceph RGW</text>
+  <text x="802" y="101" text-anchor="middle" font-size="13" fill="#7ec8ff">(local S3 — Parquet)</text>
+  <text x="802" y="121" text-anchor="middle" font-size="12" fill="#ddd">N=2 output sets pending</text>
+  <text x="802" y="140" text-anchor="middle" font-size="11" fill="#bbb">PARQ_PENDING_TB consumed from Ceph</text>
+
+  <!-- Arrow: Ceph Parquet → Snowflake -->
+  <line x1="926" y1="101" x2="974" y2="101" stroke="#3ecf8e" stroke-width="2.5" marker-end="url(#cg)"/>
+  <text x="950" y="86" text-anchor="middle" font-size="11" fill="#bbb">outbound</text>
+  <text x="950" y="99" text-anchor="middle" font-size="11" fill="#bbb">batch transfer</text>
+  <text x="950" y="112" text-anchor="middle" font-size="11" fill="#bbb">(confirmed)</text>
+
+  <!-- Cloud band -->
+  <rect x="972" y="28" width="116" height="146" rx="7"
+    fill="rgba(62,207,142,.06)" stroke="rgba(62,207,142,.3)" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="1030" y="46" text-anchor="middle" font-size="9" fill="rgba(62,207,142,.6)" letter-spacing=".1em">CLOUD</text>
+
+  <!-- Snowflake box -->
+  <rect x="980" y="52" width="100" height="110" rx="7"
+    fill="rgba(62,207,142,.16)" stroke="#3ecf8e" stroke-width="2"/>
+  <text x="1030" y="87" text-anchor="middle" font-size="26" fill="rgba(62,207,142,.4)">❄</text>
+  <text x="1030" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="#3ecf8e">Snowflake</text>
+  <text x="1030" y="130" text-anchor="middle" font-size="11" fill="#ccc">COPY INTO</text>
+  <text x="1030" y="147" text-anchor="middle" font-size="10" fill="#bbb">cloud staging</text>
+
+  <!-- Volume annotation -->
+  <text x="802" y="178" text-anchor="middle" font-size="12" fill="#ccc">
+    ~0.4–1 TB/day Parquet output (5× compression ratio from CSV)
+  </text>
+  <text x="802" y="195" text-anchor="middle" font-size="11" fill="#bbb">
+    CEPH_EFFECTIVE = CEPH_USABLE − VM_OS_TB − PARQ_PENDING_TB &nbsp;·&nbsp; CEPH_DAYS = CEPH_EFFECTIVE / DAILY_TB
+  </text>
+
+  <!-- NVMe Scratch Pool sizing callout -->
+  <rect x="18" y="34" width="630" height="136" rx="7"
+    fill="rgba(224,92,92,.09)" stroke="rgba(224,92,92,.4)" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="333" y="62" text-anchor="middle" font-size="15" font-weight="700" fill="#e05c5c">NVMe Scratch Pool (per node)</text>
+  <text x="333" y="88" text-anchor="middle" font-size="13" fill="#f0c0c0">Config I: 4 scratch drives × 3.84 TB = 15.36 TB / node</text>
+  <text x="333" y="110" text-anchor="middle" font-size="13" fill="#f0c0c0">ceiling = daily_TB × shuffle_amp × 2 ÷ nodes</text>
+  <text x="333" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#e05c5c">= 4.61× at 5 TB/day — hard limit with Config I</text>
+  <text x="333" y="154" text-anchor="middle" font-size="11" fill="#ccc">
+    Snappy compression default → effective on-disk usage ~40–60% of ceiling · planning uses raw volume (conservative)
+  </text>
+</svg>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     EXECUTOR MEMORY BAR
+════════════════════════════════════════════ -->
+<h2>Executor Memory Layout (per slot)</h2>
+<div class="wrap">
+<svg viewBox="0 0 1100 185">
+  <text x="20" y="22" font-size="12" fill="#ccc">
+    SLOT_GB = (RAM_VM − 2 GB NodeManager) ÷ EXEC_PER_VM
+  </text>
+  <rect x="20" y="36" width="1060" height="76" rx="5"
+    fill="rgba(255,255,255,.025)" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+  <!-- Executor heap -->
+  <rect x="20" y="36" width="795" height="76" rx="5"
+    fill="rgba(192,132,252,.2)" stroke="rgba(192,132,252,.55)" stroke-width="1.5"/>
+  <text x="408" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#d4a8ff">spark.executor.memory (EXEC_MEM)</text>
+  <text x="408" y="84" text-anchor="middle" font-size="12" fill="#ddd">shuffle buffers · sort · Parquet row groups · spark.shuffle.memoryFraction = 0.30</text>
+  <text x="408" y="101" text-anchor="middle" font-size="11" fill="#c8a8ff">= floor(MAX_EXEC_MEM × 0.95) — 5% safety margin</text>
+  <!-- JVM Overhead -->
+  <rect x="815" y="36" width="100" height="76"
+    fill="rgba(78,158,255,.2)" stroke="rgba(78,158,255,.55)" stroke-width="1.5"/>
+  <text x="865" y="66" text-anchor="middle" font-size="12" font-weight="700" fill="#4e9eff">JVM</text>
+  <text x="865" y="82" text-anchor="middle" font-size="12" fill="#7ec8ff">Overhead</text>
+  <text x="865" y="99" text-anchor="middle" font-size="11" fill="#ccc">OVH_PCT</text>
+  <!-- Off-heap -->
+  <rect x="915" y="36" width="50" height="76"
+    fill="rgba(240,165,0,.2)" stroke="rgba(240,165,0,.55)" stroke-width="1.5"/>
+  <text x="940" y="64" text-anchor="middle" font-size="11" font-weight="700" fill="#f0a500">Off</text>
+  <text x="940" y="80" text-anchor="middle" font-size="11" fill="#f0a500">heap</text>
+  <text x="940" y="97" text-anchor="middle" font-size="10" fill="#ccc">OFFHEAP</text>
+  <!-- OOM margin -->
+  <rect x="965" y="36" width="115" height="76" style="border-radius:0 5px 5px 0"
+    fill="rgba(62,207,142,.15)" stroke="rgba(62,207,142,.45)" stroke-width="1.5"/>
+  <text x="1022" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#3ecf8e">OOM</text>
+  <text x="1022" y="82" text-anchor="middle" font-size="12" fill="#3ecf8e">Margin</text>
+  <text x="1022" y="99" text-anchor="middle" font-size="11" fill="#ccc">≥ 4 GB</text>
+  <!-- Bracket annotations -->
+  <line x1="20"  y1="122" x2="238" y2="122" stroke="rgba(224,92,92,.7)" stroke-width="1.5"/>
+  <line x1="20"  y1="116" x2="20"  y2="128" stroke="rgba(224,92,92,.7)" stroke-width="1.5"/>
+  <line x1="238" y1="116" x2="238" y2="128" stroke="rgba(224,92,92,.7)" stroke-width="1.5"/>
+  <text x="129" y="144" text-anchor="middle" font-size="11" fill="#e05c5c">shuffle 30% → shuffle sort / aggregation buffers</text>
+  <line x1="238" y1="122" x2="795" y2="122" stroke="rgba(78,158,255,.5)" stroke-width="1.5"/>
+  <line x1="795" y1="116" x2="795" y2="128" stroke="rgba(78,158,255,.5)" stroke-width="1.5"/>
+  <text x="516" y="144" text-anchor="middle" font-size="11" fill="#7ec8ff">storage 70% → cached RDDs · Parquet row buffers · broadcast variables</text>
+  <text x="1022" y="168" text-anchor="middle" font-size="11" fill="#aaa">warn if &lt; 4 GB</text>
+</svg>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     STAGE TABLE
+════════════════════════════════════════════ -->
+<h2>Stage-by-Stage: Data Volumes &amp; Constraints</h2>
+<table>
+  <thead>
+    <tr><th>#</th><th>Stage</th><th>Data Volume</th><th>Key Constraint / Formula</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><span class="tag tag-src">SRC</span><strong>External Data Source</strong>
+        <div class="note">Raw CSV from upstream systems</div></td>
+      <td>2–5 TB/day</td>
+      <td>Sets <code>DAILY_TB</code> — all downstream sizing flows from this.</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><span class="tag tag-stor">CEPH</span><strong>Ceph RGW — CSV Landing</strong>
+        <div class="note"><code>s3a://bucket/csv/</code> · CSV cleared after job begins</div></td>
+      <td>1 day = DAILY_TB</td>
+      <td><code>CEPH_EFFECTIVE = CEPH_USABLE − VM_OS_TB − PARQ_PENDING_TB</code><br>
+          <code>CEPH_DAYS = CEPH_EFFECTIVE / DAILY_TB</code></td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><span class="tag tag-proc">SPARK</span><strong>Map Tasks — Transform &amp; Shuffle Write</strong>
+        <div class="note">Filter · join · transform · writes sorted shuffle output to NVMe scratch</div></td>
+      <td>Map output = DAILY_TB × shuffle_amp<br>Persists until all reducers complete</td>
+      <td>Snappy compression: 40–60% reduction on disk. <code>KryoSerializer</code> reduces record size. <code>lz4.blockSize=524288</code> gives −20% additional file size.</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><span class="tag tag-scratch">SCRATCH</span><strong>NVMe Scratch — Map Output + Reduce Spill</strong>
+        <div class="note">Both phases coexist on disk at peak — this is the ×2 factor</div></td>
+      <td>Peak = DAILY_TB × shuffle_amp × 2</td>
+      <td><strong>Config I ceiling: 4.61× at 5 TB/day.</strong> <code>shuffle.memoryFraction=0.30</code> reduces reduce-side spill. Planning uses raw volume (conservative — compression is a buffer, not a guarantee).</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><span class="tag tag-proc">SPARK</span><strong>Reduce Tasks — Aggregate &amp; Write Parquet</strong>
+        <div class="note">Fetch shuffle blocks · merge · build Parquet output files</div></td>
+      <td>Output ≈ DAILY_TB ÷ 5<br>~0.4–1 TB/day Parquet</td>
+      <td>Target ~150 MB files for Snowflake COPY INTO. <code>df.repartition(OUTPUT_PARTS)</code>. Files &lt;64 MB or &gt;300 MB trigger warnings.</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><span class="tag tag-stor">CEPH</span><strong>Ceph RGW — Parquet Outputs</strong>
+        <div class="note">N=2 sets accumulate until prior transfer confirmed</div></td>
+      <td><code>PARQ_PENDING_TB = N × (DAILY_TB ÷ PARQ_COMP)</code></td>
+      <td><code>N_PARQUET</code> slider (1–5, default 2). Each set deducted from <code>CEPH_EFFECTIVE</code>. Transfer pipeline must run ≥1×/day.</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td><span class="tag tag-dest">DEST</span><strong>Snowflake — COPY INTO</strong>
+        <div class="note">Cloud-side ingest · Parquet deleted only on confirmed delivery</div></td>
+      <td>~0.4–1 TB/day Parquet</td>
+      <td>Stalled transfer pipeline increases N_PARQUET pressure on Ceph headroom until CEPH_DAYS drops below the 3-day warning threshold.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="font-size:12px;color:#aaa;margin-top:16px;">
+  Interactive sizing: <a href="development_spark_calculator.html" style="color:var(--accent)">development_spark_calculator.html</a> &nbsp;·&nbsp;
+  Scratch analysis: <a href="dev-cluster-storage-reference.html" style="color:var(--accent)">dev-cluster-storage-reference.html</a> &nbsp;·&nbsp;
+  Shuffle guide: <a href="spark-shuffle-developer-guide.html" style="color:var(--accent)">spark-shuffle-developer-guide.html</a>
+</p>
+
+</body>
+</html>
