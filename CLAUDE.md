@@ -70,6 +70,45 @@ This applies to: new HTML documents, calculator updates, reference document upda
 
 This project uses git for version control. **Commit before making significant edits** so any state can be restored.
 
+### Pre-Commit Sanitization Hook
+
+A pre-commit hook at `.git/hooks/pre-commit` scans staged content for corporate identifiers before every commit. Patterns checked (case-insensitive): `allegiance`, `askallegiance`, `rohn.wood@`. When a match is found, the commit is interrupted and prompts for action: sanitize, force, or quit.
+
+**This hook is not tracked by git** (`.git/` is never committed). It must be installed manually on each machine after cloning:
+
+```bash
+# From the repo root — run once after cloning
+cat > .git/hooks/pre-commit << 'EOF'
+#!/usr/bin/env bash
+PATTERNS="allegiance|askallegiance|rohn\.wood@"
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+if [ -z "$STAGED" ]; then exit 0; fi
+MATCHES=$(git diff --cached -U0 | grep -iE "^\+" | grep -iE "$PATTERNS")
+if [ -z "$MATCHES" ]; then exit 0; fi
+echo ""
+echo "┌─────────────────────────────────────────────────────────────┐"
+echo "│  pre-commit: corporate identifier(s) found in staged files  │"
+echo "└─────────────────────────────────────────────────────────────┘"
+echo ""
+echo "$MATCHES" | sed 's/^+/  /'
+echo ""
+echo "  Options:"
+echo "    s  sanitize — abort commit and review manually"
+echo "    f  force    — commit anyway (intentional)"
+echo "    q  quit     — abort commit, no action"
+echo ""
+exec < /dev/tty
+read -rp "  Choice [s/f/q]: " CHOICE
+echo ""
+case "$CHOICE" in
+  f|F) echo "  Proceeding with commit."; exit 0 ;;
+  s|S) echo "  Commit aborted. Sanitize flagged lines before committing."; exit 1 ;;
+  *)   echo "  Commit aborted."; exit 1 ;;
+esac
+EOF
+chmod +x .git/hooks/pre-commit
+```
+
 ```bash
 git add <file>
 git commit -m "Pre-edit snapshot: <brief description>"
