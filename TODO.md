@@ -34,9 +34,9 @@ _Last updated 2026-04-21_
 - [x] [correspondence] Confirm 3-OSD storage allocation strategy (OSD utilization max 80%) — see `calculators/Document/dev-cluster-storage-reference.html`
 - [x] [correspondence] Revisit and confirm JBOD vs. RAID 5 for scratch drives decision — see `calculators/Document/dev-cluster-storage-reference.html`
 - [x] [correspondence] Confirm Spark version 3.5.3 in production calculator
-- [ ] [calculators] Dev cluster: no hardware RAID — NVMe scratch drives run JBOD; only Proxmox OS SSDs use ZFS — see `calculators/Document/dev-cluster-storage-reference.html`
-- [ ] [calculators] Dev cluster: scratch OSDs formatted with XFS — see `calculators/Document/dev-cluster-storage-reference.html`
-- [ ] [calculators] Update all related dev HTML files to reflect JBOD/XFS storage decisions (dev-cluster-storage-reference.html, dev_cluster_math_reference.html, development_spark_calculator.html, dev_slider_guide.html)
+- [x] [calculators] Dev cluster: no hardware RAID — NVMe scratch drives run JBOD; only Proxmox OS SSDs use ZFS — see `calculators/Document/dev-cluster-storage-reference.html`
+- [x] [calculators] Dev cluster: scratch OSDs formatted with XFS — see `calculators/Document/dev-cluster-storage-reference.html`
+- [x] [calculators] Update all related dev HTML files to reflect JBOD/XFS storage decisions (dev-cluster-storage-reference.html, dev_cluster_math_reference.html, development_spark_calculator.html, dev_slider_guide.html)
 
 **Correspondence & Project Coordination:**
 - [ ] [correspondence] Work on Proxmox access method (screen sharing vs. direct) — target completion this week
