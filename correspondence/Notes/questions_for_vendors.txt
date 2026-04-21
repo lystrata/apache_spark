@@ -4,6 +4,46 @@ Updated 2026-04-21 00:00
 
 ===============================================================
 
-No questions logged yet.
+PRODUCTION CLUSTER Q&A QUESTIONNAIRE
+Source: Meeting 2026-04-20, Karthik Hedger H A (Ksolves)
+Status: Pending completion by Ask Allegiance team
+
+Karthik provided a comprehensive questionnaire (Allegiance Production Cluster QnA.xlsx) with
+the following required answers to finalize resource sizing:
+
+PHASE 1: Data Sizing & High-Level Requirements
+- Current average daily size of raw input data (CSV) — confirm if still ~4.5 TB
+- Maximum anticipated size of single CSV file during peak load
+- Projected incremental growth rate (6–12 months)
+- Estimated size of intermediate Parquet output
+- Total number of distinct Spark jobs/transformations (current estimate: 40 jobs)
+- Maximum concurrency (simultaneous job execution)
+- Mandatory end-to-end processing SLA (current assumption: 4 hours)
+- Ingestion frequency/volume (daily batch vs. intermittent transactional transfers)
+
+DATA CHARACTERISTICS
+- Average number of columns per dataset (CSV & Parquet)
+- Data types distribution (numeric vs. string vs. nested/JSON %)
+- Presence of wide rows (large string columns, blobs)
+- Input file compression format (GZIP, Snappy, LZO, or uncompressed)
+- Partitioning strategy (by date, region, client ID, etc.)
+- File volume vs. size ratio (many small files vs. few large files)
+
+TRANSFORMATION COMPLEXITY
+- Percentage of jobs involving joins (and join types: broadcast vs. shuffle)
+- Large fact-to-fact joins requiring significant shuffle
+- High-cardinality groupBy and aggregation operations
+- Window functions usage (memory-heavy operations)
+- Iterative processing, ML workloads, or graph processing
+- Python/Scala UDF usage (impact on serialization/CPU)
+
+CLUSTER & RESOURCE CONSTRAINTS
+- CPU cores per node (production vs. dev)
+- RAM per node (production vs. dev)
+- Disk type for storage/scratch (NVMe/SSD/HDD)
+- Shared cluster resources (other workloads on same cluster?)
+
+Action: Coordinate with Murali/Ask Allegiance team to complete answers; Karthik will send
+follow-up email with detailed questions to Murali/team.
 
 ---------------------------------------------------------------
