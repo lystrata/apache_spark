@@ -24,6 +24,7 @@ All working HTML documents live in `Document/`. Scripts live in `Scripts/`. Rese
 | `Document_security/` | Working HTML for security context — on-site revision control only |
 | `Notes_security/` | Research notes and planning for security context — on-site revision control only |
 | `Ready_For_Review_security/` | Staging for security documents |
+| `Incoming_security/` | Source PDFs and reference material for security context — on-site revision control only |
 
 ## Session Context Convention
 
@@ -74,6 +75,47 @@ These rules apply in the **security context** at full strength. In other context
 - **Personal blogs** carry low weight. Cite them only when multiple independent sources cluster on the same conclusion, and note that the sourcing is blog-level.
 - If fewer than two corroborating sources can be found, state explicitly: *"I cannot find corroborated evidence for this claim."* Do not assert it.
 - All citations must include a URL the user can verify directly. If a URL cannot be confirmed as live and correct, do not include it — state the source by title and publisher instead.
+
+## Documents for Distribution: Turabian Style Format
+
+Applies to **all contexts** (calculators, remote_services, security). Use this format for any HTML document intended for external distribution or formal review.
+
+**Reference:** `Shared_References/Turabian-Style-Guide.080919.pdf` (2019 Turabian Style Guide, Calvary University)
+
+**Turabian elements to apply (electronic communication):**
+
+1. **Heading Hierarchy** (Turabian § 2.2.2)
+   - Level 1: Italicized, centered (*main title*)
+   - Level 2: Non-italicized, centered (**major sections**)
+   - Level 3: Italicized, left-aligned (*subsections*)
+   - Level 4: Non-italicized, left-aligned (**sub-subsections**)
+
+2. **Footnotes** (Turabian § 16)
+   - **Full form on first citation (Turabian § 16.4):** Author, "Title," in *Source*, accessed Date, URL.
+   - **Shortened form on subsequent citations:** Author, "Short Title," in *Source*.
+   - Superscript numbers placed after punctuation ending the sentence.
+   - Single-spaced with blank line between each footnote.
+
+3. **Block Quotations** (Turabian § 2.2.5)
+   - Indented ½" from left margin (40px in HTML).
+   - Single-spaced within the quotation.
+   - No quotation marks at beginning/end (indentation replaces them).
+
+4. **Bibliography** (Turabian § 2.2.6 and § 16.1)
+   - Alphabetized by author last name (A–Z).
+   - Hanging indent (first line flush left, subsequent lines indented ½").
+   - Single-spaced entries with blank lines between sources.
+   - Include all works cited plus quality works consulted.
+   - Format: Author, "Title," in *Source*, accessed Date, URL.
+
+**URL Line Breaking:**
+- Break long URLs only when necessary to fit readable line width (approximately 110–130 characters).
+- Break at directory boundaries using backslash continuation (`\<br/>`).
+- Example: `https://github.com/keycloak/keycloak/blob/main/\<br/>docs/documentation/server_admin/...`
+
+**Application:** All new distribution documents must follow this format. Documents in `Document/`, `Document_remote_services/`, and `Document_security/` directories should use Turabian styling.
+
+---
 
 ## Compact Milestones
 
