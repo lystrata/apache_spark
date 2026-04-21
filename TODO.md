@@ -30,10 +30,10 @@ _Last updated 2026-04-21_
 ## Pending Tasks
 
 **Configuration & Hardware Updates:**
-- [ ] [correspondence] Update YARN Node Manager core allocation from 14 to 18 cores
+- [x] [correspondence] Update YARN Node Manager core allocation from 14 to 18 cores
 - [ ] [correspondence] Confirm 3-OSD storage allocation strategy (OSD utilization max 80%)
 - [ ] [correspondence] Revisit and confirm JBOD vs. RAID 5 for scratch drives decision
-- [ ] [correspondence] Confirm Spark version 3.5.3 in production calculator
+- [x] [correspondence] Confirm Spark version 3.5.3 in production calculator
 
 **Correspondence & Project Coordination:**
 - [ ] [correspondence] Work on Proxmox access method (screen sharing vs. direct) — target completion this week

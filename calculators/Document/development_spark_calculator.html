@@ -681,7 +681,7 @@
   <header>
     <div class="header-tag">◈ Infrastructure Sizing Tool &nbsp;·&nbsp; <span style="color:var(--purple)">PROTO v1 — envelope + core sensitivity + blast radius</span></div>
     <h1>Proxmox / Spark Development Cluster Calculator</h1>
-    <div class="header-sub">3-node development · Ceph RGW (S3) · YARN · Snowflake dev · 1 TB/day ingest</div>
+    <div class="header-sub">3-node development · Ceph RGW (S3) · YARN · Snowflake dev · 1 TB/day ingest · Spark 3.5.3</div>
     <div class="header-actions">
       <button class="btn btn-save" id="btn_save" onclick="saveState()">Save</button>
       <button class="btn btn-reset" onclick="resetState()">Reset</button>
@@ -770,9 +770,9 @@
                     <div class="ctrl-val" id="vms_per_node_val">1</div>
                   </div>
                   <div class="control-row">
-                    <div class="ctrl-label"><strong>vCPUs per worker VM</strong><br><span style="font-size:10px"><span id="vcpu_current">14</span> vCPUs → <span id="vcpu_avail">12</span> for executors · ceiling <span id="vcpu_max">32</span></span></div>
-                    <input type="range" id="vcpus_per_vm" min="8" max="32" step="2" value="14" oninput="recalc()">
-                    <div class="ctrl-val" id="vcpus_per_vm_val">14</div>
+                    <div class="ctrl-label"><strong>vCPUs per worker VM</strong><br><span style="font-size:10px"><span id="vcpu_current">18</span> vCPUs → <span id="vcpu_avail">16</span> for executors · ceiling <span id="vcpu_max">32</span></span></div>
+                    <input type="range" id="vcpus_per_vm" min="8" max="32" step="2" value="18" oninput="recalc()">
+                    <div class="ctrl-val" id="vcpus_per_vm_val">18</div>
                   </div>
                   <div class="control-row">
                     <div class="ctrl-label"><strong>RAM per worker VM (GB)</strong></div>
@@ -1341,7 +1341,7 @@
   <details class="section-details" id="sec_revisions">
     <summary class="section-summary" id="sec_revisions_summary">
       <span class="section-title">Revisions</span>
-      <span class="section-sub">· Formula change history · 2026-04-01 through 2026-04-18</span>
+      <span class="section-sub">· Formula change history · 2026-04-01 through 2026-04-21</span>
     </summary>
     <div class="section-body">
 
@@ -1398,6 +1398,11 @@
       <div class="card">
         <div class="card-title">2026-04-17 — Documentation Only</div>
         <p style="font-size:12px;color:var(--muted);">Inline code comments expanded explaining the 4/5/6 GB OOM threshold basis and the 1.0/1.1/1.25 join scratch multipliers, which had been undocumented. No formula changes. Reviewed against third-party mathematical review — all core formulas confirmed correct.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">2026-04-21 — vCPUs per VM Default Updated: 14 → 18</div>
+        <p style="font-size:12px;color:var(--muted);">Default vcpus_per_vm slider value updated from 14 to 18. Dev nodes have 32 cores; RESERVE_CORES = 14 (Proxmox 2 + Ceph 11 + YARN RM 1), leaving 18 cores available for worker VMs. The previous default of 14 understated available capacity. Change confirmed in 2026-04-21 daily status meeting.</p>
       </div>
 
       <div class="card">
