@@ -1406,6 +1406,11 @@
       </div>
 
       <div class="card">
+        <div class="card-title">2026-04-21 — Scratch Drive Labels Updated: JBOD/XFS</div>
+        <p style="font-size:12px;color:var(--muted);">Storage grid scratch drive labels updated to show JBOD/XFS. Shuffle-per-drive sub-label updated to include JBOD/XFS notation. No formula or capacity changes — the calculator already modeled drives as independent JBOD volumes. Labels now reflect the confirmed hardware configuration.</p>
+      </div>
+
+      <div class="card">
         <div class="card-title">2026-04-20 — ZFS ARC Added as Hard RAM Reservation</div>
         <p style="font-size:12px;color:var(--muted);">ZFS ARC (Proxmox OS mirror cache) added as an explicit 8 GB reservation per node. Previously unmodeled. <code>zfs_arc_max</code> reduced from 16 GB to 8 GB — sufficient for the OS-only working set. <code>RESERVE_RAM</code> increases by 8 GB/node; available VM RAM decreases by 8 GB/node (−24 GB cluster-wide). <code>ZFS_ARC_RAM = 8</code> constant added to JS.</p>
       </div>
@@ -1912,7 +1917,7 @@ function recalc() {
   setVal('out_concurrent_writers', TOTAL_EXEC);
   setVal('out_shuffle_per_drive', fmt(SHUFFLE_PER_DRIVE_TB, 2) + ' TB');
   setClass('out_shuffle_per_drive', SHUFFLE_PER_DRIVE_TB > NVME_TB * 0.75 ? 'warn' : 'ok');
-  setVal('out_shuffle_per_drive_sub', `${TOTAL_SCRATCH_DRIVES} drives · ${fmt(NVME_TB,1)} TB ea · NVMe seq ≈ 3 GB/s`);
+  setVal('out_shuffle_per_drive_sub', `${TOTAL_SCRATCH_DRIVES} drives · ${fmt(NVME_TB,1)} TB ea · JBOD/XFS · NVMe seq ≈ 3 GB/s`);
 
   // Ceph OSD visual
   buildOSDVisual(OSD_NODE, SCRATCH_NVME_PER_NODE, NODES);
@@ -2053,7 +2058,7 @@ function buildStorageGrid(osdCount, vmsNode, scratchNvme) {
   }
   for(let i=osdCount+1; i<=osdCount+scratchNvme; i++) {
     const vmIdx = (i - osdCount - 1) % vmsNode + 1;
-    items.push({ type:'nvme', label:`Worker VM-${vmIdx} scratch`, size:'3.84 TB SSD', role:'scratch' });
+    items.push({ type:'nvme', label:`Worker VM-${vmIdx} scratch (JBOD/XFS)`, size:'3.84 TB NVMe', role:'scratch' });
   }
   g.innerHTML = items.map(item => {
     const iconClass = item.role === 'ceph' ? 'nvme ceph' : item.type;

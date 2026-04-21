@@ -255,7 +255,7 @@ li { margin-bottom:6px; line-height:1.65; }
       <tr>
         <td>NVMe drives per node</td>
         <td>7 &times; 3.84 TB</td>
-        <td>All NVMe is shared between Ceph OSDs and Spark scratch. The OSD count slider decides the split. These drives are not interchangeable with the SSDs.</td>
+        <td>All NVMe is shared between Ceph OSDs and Spark scratch. The OSD count slider decides the split. Scratch drives run <strong>JBOD/XFS</strong> — no hardware RAID. Each scratch NVMe is an independent <code>spark.local.dir</code> path. These drives are not interchangeable with the SSDs.</td>
       </tr>
       <tr>
         <td>SSD drives per node</td>
@@ -310,7 +310,7 @@ li { margin-bottom:6px; line-height:1.65; }
   <!-- ═══════════════════════════════ SECTION 4 — GROUP 2 -->
   <h2 id="group2">4. Group 2 &mdash; Storage Split</h2>
 
-  <p>The 7 NVMe drives per node serve two completely different purposes: <strong>Ceph OSDs</strong> (the distributed object store that provides the S3 endpoint) and <strong>Spark scratch</strong> (local temporary storage for shuffle data during jobs). These two uses compete directly &mdash; every drive you give to Ceph is one fewer drive available for shuffle spill, and vice versa. The sliders in this group control that trade-off.</p>
+  <p>The 7 NVMe drives per node serve two completely different purposes: <strong>Ceph OSDs</strong> (the distributed object store that provides the S3 endpoint) and <strong>Spark scratch</strong> (local temporary storage for shuffle data during jobs). These two uses compete directly &mdash; every drive you give to Ceph is one fewer drive available for shuffle spill, and vice versa. The sliders in this group control that trade-off. Scratch drives are configured as <strong>JBOD</strong> (no hardware RAID) and formatted <strong>XFS</strong>.</p>
 
   <div class="callout info">
     <strong>Why Spark needs local scratch:</strong> When a Spark job performs a join or group-by across a large dataset, it must physically move data between executors (this is called a shuffle). That intermediate data is written to local disk before being sent across the network. If the local scratch space runs out mid-shuffle, the job fails.

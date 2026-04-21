@@ -163,7 +163,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
     <summary class="section-summary">
       <span class="section-letter">A</span>
       <span class="section-title">Hardware Baseline</span>
-      <span class="section-sub">&middot; HPE DL385 Gen11 &middot; SR932i-p Gen11 RAID controller &middot; BCM57414 OCP3 NIC</span>
+      <span class="section-sub">&middot; HPE DL385 Gen11 &middot; SR932i-p Gen11 controller &middot; BCM57414 OCP3 NIC</span>
       <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
     </summary>
     <div class="section-body">
@@ -182,12 +182,12 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
         </tbody>
       </table>
 
-      <h3 id="raid-controller">RAID Controller</h3>
-      <p>The fitted controller is the <strong>HPE SR932i-p Gen11</strong> (Slot 2). This is HPE&rsquo;s performance-tier Gen11 NVMe RAID controller. Key properties relevant to this analysis:</p>
+      <h3 id="raid-controller">Storage Controller</h3>
+      <p>The fitted controller is the <strong>HPE SR932i-p Gen11</strong> (Slot 2). This is HPE&rsquo;s performance-tier Gen11 NVMe controller. Key properties for reference:</p>
       <ul style="padding-left:20px; margin-bottom:14px; font-size:14px; line-height:1.9;">
-        <li>Supports hardware RAID 0 / 1 / 5 / 6 / 10 / 50 / 60 directly on NVMe drives via PCIe Gen4</li>
-        <li><strong>8 GB Flash-Backed Write Cache (FBWC)</strong> &mdash; non-volatile, survives power loss; parity writes land in cache and drain asynchronously</li>
-        <li>Parity computation runs on the controller ASIC &mdash; CPU overhead to Spark is effectively zero</li>
+        <li>Supports hardware RAID 0 / 1 / 5 / 6 / 10 / 50 / 60 directly on NVMe drives via PCIe Gen4 &mdash; this capability is <strong>not used on scratch drives</strong></li>
+        <li><strong>8 GB Flash-Backed Write Cache (FBWC)</strong> &mdash; non-volatile, survives power loss</li>
+        <li>NVMe scratch drives are presented as <strong>JBOD</strong> (individual pass-through devices) and formatted <strong>XFS</strong>. Hardware RAID is reserved for the Proxmox OS SSDs via ZFS only.</li>
       </ul>
 
       <h3>Network Interface</h3>
@@ -346,13 +346,13 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
       <table class="ref-table">
         <thead><tr><th>Scratch Configuration</th><th>Scratch Usable / Node</th><th>4 TB @ 4&times;</th><th>5 TB @ 3&times;</th><th>5 TB @ 4&times;</th></tr></thead>
         <tbody>
-          <tr><td>JBOD (5-drive)</td><td>19.2 TB</td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td></tr>
-          <tr class="recommended-row"><td>HW RAID-5 (5-drive)</td><td>15.4 TB</td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td></tr>
+          <tr class="recommended-row"><td>JBOD / XFS (5-drive)</td><td>19.2 TB</td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td></tr>
+          <tr><td>HW RAID-5 (5-drive)</td><td>15.4 TB</td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td></tr>
           <tr><td>HW RAID-6 (5-drive)</td><td>11.5 TB</td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="warn">short</span></td></tr>
         </tbody>
       </table>
 
-      <p>HW RAID-5 covers all development ingest scenarios at all shuffle amplifications. HW RAID-6 is adequate at 3&times; amplification but falls short at the 5 TB / 4&times; ceiling. JBOD covers all scenarios but provides no fault tolerance.</p>
+      <p>JBOD/XFS (Config F) provides the most scratch capacity and covers all development ingest scenarios at all shuffle amplifications. HW RAID-5 also covers all scenarios with reduced capacity. HW RAID-6 falls short at the 5 TB / 4&times; ceiling. <strong>JBOD/XFS is the confirmed configuration</strong> — no hardware RAID is used on NVMe scratch drives.</p>
 
       <div class="callout">
         These outcomes feed directly into the full A&ndash;J configuration evaluation. See
@@ -385,7 +385,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
           <tr><td>VM OS disk</td><td>Not sized</td><td><strong>80 GB/VM &times; 3 VMs (RHEL 9/10, RBD on Ceph)</strong></td></tr>
           <tr><td>Dev max ingest</td><td>5 TB</td><td>5 TB (unchanged)</td></tr>
           <tr><td>Shuffle amplification range</td><td>3&times;&ndash;4&times;</td><td>3&times;&ndash;4&times; (unchanged)</td></tr>
-          <tr><td>RAID controller</td><td>SR932i-p Gen11, 8 GB FBWC</td><td>Unchanged &mdash; NVMe RAID confirmed viable</td></tr>
+          <tr><td>Storage controller</td><td>SR932i-p Gen11, 8 GB FBWC</td><td>Present but RAID <strong>not used on scratch</strong> &mdash; NVMe scratch drives run JBOD/XFS</td></tr>
           <tr><td>NVMe / node</td><td>7&times; 3.84 TB</td><td>Unchanged</td></tr>
           <tr><td>Ceph replication</td><td>3&times;</td><td>Unchanged</td></tr>
         </tbody>
@@ -407,10 +407,10 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
           <tr class="eliminated-row"><td>C</td><td>1</td><td>6</td><td>RAIDZ2</td><td>15.4 TB</td><td>3.84 TB</td><td><span class="bad">NO</span></td><td><span class="na">&mdash;</span></td><td><span class="na">&mdash;</span></td><td><span class="na">&mdash;</span></td><td><span class="na">&mdash;</span></td></tr>
           <tr class="eliminated-row"><td>D</td><td>1</td><td>6</td><td>HW RAID-5</td><td>19.2 TB</td><td>3.84 TB</td><td><span class="bad">NO</span></td><td><span class="na">&mdash;</span></td><td><span class="na">&mdash;</span></td><td><span class="na">&mdash;</span></td><td><span class="na">&mdash;</span></td></tr>
           <tr class="eliminated-row"><td>E</td><td>1</td><td>6</td><td>HW RAID-6</td><td>15.4 TB</td><td>3.84 TB</td><td><span class="bad">NO</span></td><td><span class="na">&mdash;</span></td><td><span class="na">&mdash;</span></td><td><span class="na">&mdash;</span></td><td><span class="na">&mdash;</span></td></tr>
-          <tr><td>F</td><td>2</td><td>5</td><td>JBOD</td><td>19.2 TB</td><td>7.68 TB</td><td><span class="ok">YES</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td></tr>
+          <tr class="recommended-row"><td>F</td><td>2</td><td>5</td><td>JBOD / XFS</td><td>19.2 TB</td><td>7.68 TB</td><td><span class="ok">YES</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td></tr>
           <tr><td>G</td><td>2</td><td>5</td><td>RAIDZ1</td><td>15.4 TB</td><td>7.68 TB</td><td><span class="ok">YES</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="warn">short</span></td></tr>
           <tr><td>H</td><td>2</td><td>5</td><td>RAIDZ2</td><td>11.5 TB</td><td>7.68 TB</td><td><span class="ok">YES</span></td><td><span class="ok">OK</span></td><td><span class="warn">short</span></td><td><span class="warn">short</span></td><td><span class="warn">short</span></td></tr>
-          <tr class="recommended-row"><td>I</td><td>2</td><td>5</td><td>HW RAID-5</td><td>15.4 TB</td><td>7.68 TB</td><td><span class="ok">YES</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="warn">short</span></td></tr>
+          <tr><td>I</td><td>2</td><td>5</td><td>HW RAID-5</td><td>15.4 TB</td><td>7.68 TB</td><td><span class="ok">YES</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="ok">OK</span></td><td><span class="warn">short</span></td></tr>
           <tr><td>J</td><td>2</td><td>5</td><td>HW RAID-6</td><td>11.5 TB</td><td>7.68 TB</td><td><span class="ok">YES</span></td><td><span class="ok">OK</span></td><td><span class="warn">short</span></td><td><span class="warn">short</span></td><td><span class="warn">short</span></td></tr>
         </tbody>
       </table>
@@ -426,10 +426,10 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
           <th>Throughput vs JBOD</th><th>Spark CPU Overhead</th><th>Throughput on Failure</th><th>Job Time Impact (Normal)</th>
         </tr></thead>
         <tbody>
-          <tr><td>F</td><td>JBOD (5d)</td><td><span class="bad">0</span></td><td>Data loss, job fails</td><td>100% baseline</td><td>0 cores</td><td>&mdash;</td><td>0% baseline</td></tr>
+          <tr class="recommended-row"><td>F</td><td>JBOD / XFS (5d)</td><td><span class="bad">0</span></td><td>Drive loss = job fails; recompute required</td><td>100% baseline</td><td>0 cores</td><td>&mdash;</td><td>0% baseline</td></tr>
           <tr><td>G</td><td>RAIDZ1 (5d)</td><td>1 drive</td><td>Degraded, job continues</td><td>~92%</td><td>~0.5&ndash;1 core</td><td>~40&ndash;60% read</td><td>+2&ndash;4%</td></tr>
           <tr><td>H</td><td>RAIDZ2 (5d)</td><td>2 drives</td><td>Degraded, still protected at 1 fail</td><td>~87%</td><td>~1&ndash;2 cores</td><td>~80&ndash;90% (1 fail) / ~40&ndash;60% (2 fail)</td><td>+4&ndash;7%</td></tr>
-          <tr class="recommended-row"><td>I</td><td>HW RAID-5 (5d)</td><td>1 drive</td><td>Degraded, job continues</td><td>~99%</td><td>~0% (ASIC+FBWC)</td><td>~40&ndash;60% read</td><td>+0&ndash;1%</td></tr>
+          <tr><td>I</td><td>HW RAID-5 (5d)</td><td>1 drive</td><td>Degraded, job continues</td><td>~99%</td><td>~0% (ASIC+FBWC)</td><td>~40&ndash;60% read</td><td>+0&ndash;1%</td></tr>
           <tr><td>J</td><td>HW RAID-6 (5d)</td><td>2 drives</td><td>Degraded, still protected at 1 fail</td><td>~98%</td><td>~0% (ASIC+FBWC)</td><td>~80&ndash;90% (1 fail) / ~40&ndash;60% (2 fail)</td><td>+1&ndash;2%</td></tr>
         </tbody>
       </table>
@@ -444,7 +444,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
     <summary class="section-summary">
       <span class="section-letter">F</span>
       <span class="section-title">Recommendation</span>
-      <span class="section-sub">&middot; Config I selected &middot; Full specification &middot; Config J caveat</span>
+      <span class="section-sub">&middot; Config F selected &middot; Full specification &middot; JBOD/XFS decision rationale</span>
       <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
     </summary>
     <div class="section-body">
@@ -452,33 +452,34 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
       <table class="ref-table">
         <thead><tr><th>Use Case</th><th>Config ID</th><th>Key Reason</th></tr></thead>
         <tbody>
-          <tr><td>Max capacity, no protection</td><td>F</td><td>JBOD 5-drive, 19.2 TB scratch &mdash; zero overhead, zero fault tolerance</td></tr>
-          <tr class="recommended-row"><td>Fault tolerance &mdash; recommended</td><td>I</td><td>HW RAID-5 on 5 drives, 15.4 TB scratch, FBWC, ~0% CPU cost, 1-drive fault tolerance</td></tr>
-          <tr><td>2-drive fault tolerance</td><td>J</td><td>HW RAID-6 on 5 drives, 11.5 TB scratch &mdash; short at 5 TB @ 4&times; shuffle</td></tr>
+          <tr class="recommended-row"><td>Confirmed &mdash; max capacity, JBOD/XFS</td><td>F</td><td>JBOD/XFS 5-drive, 19.2 TB scratch &mdash; maximum capacity, zero CPU overhead, no fault tolerance</td></tr>
+          <tr><td>1-drive fault tolerance (not selected)</td><td>I</td><td>HW RAID-5 on 5 drives, 15.4 TB scratch, FBWC, ~0% CPU cost</td></tr>
+          <tr><td>2-drive fault tolerance (not selected)</td><td>J</td><td>HW RAID-6 on 5 drives, 11.5 TB scratch &mdash; short at 5 TB @ 4&times; shuffle</td></tr>
         </tbody>
       </table>
 
-      <p><strong>Config I is the recommended configuration.</strong> An earlier analysis had recommended Config D (HW RAID-5 on 6 scratch drives, 1 OSD/node). That configuration is eliminated by the revised Ceph requirement documented in Section B. Config I carries the same <a href="#raid-controller" onclick="jumpTo('raid-controller','sec_a')">SR932i-p RAID controller and FBWC</a> advantages, covers the full 4&ndash;5 TB development ingest range at all shuffle amplifications, and provides single-drive fault tolerance with negligible performance impact confirmed in <a href="#table2" onclick="jumpTo('table2','sec_e')">Section E &mdash; Table 2</a>.</p>
+      <p><strong>Config F (JBOD/XFS) is the confirmed configuration.</strong> Hardware RAID is not used on NVMe scratch drives. The decision prioritizes maximum scratch capacity (19.2 TB/node) and eliminates any RAID controller dependency from the Spark I/O path. The development cluster accepts the trade-off: a scratch drive failure causes a job failure requiring recompute, which is acceptable given the recompute tolerance of the development workload. Config F also fully resolves the scratch ceiling concern documented in Section G &mdash; the 5.76&times; ceiling is equivalent to what would require a hardware expansion under Config I.</p>
 
-      <h3 id="config-i-spec">Config I &mdash; Full Specification</h3>
+      <h3 id="config-f-spec">Config F &mdash; Full Specification</h3>
 
       <table class="ref-table">
         <thead><tr><th>Configuration Item</th><th>Selected Value</th></tr></thead>
         <tbody>
           <tr><td>NVMe drives / node</td><td>7 total</td></tr>
           <tr><td>OSDs / node</td><td>2 (Ceph BlueStore)</td></tr>
-          <tr><td>Scratch drives / node</td><td>5 (HW RAID-5 via SR932i-p Gen11)</td></tr>
+          <tr><td>Scratch drives / node</td><td>5 (JBOD &mdash; individual pass-through devices)</td></tr>
+          <tr><td>Scratch filesystem</td><td>XFS</td></tr>
           <tr><td>Ceph usable</td><td>7.68 TB</td></tr>
-          <tr><td>Scratch usable / node</td><td>15.4 TB</td></tr>
-          <tr><td>Write cache</td><td>8 GB FBWC (Flash-Backed Write Cache)</td></tr>
-          <tr><td>CPU overhead to Spark</td><td>~0% (parity on controller ASIC)</td></tr>
-          <tr><td>Scratch drive fault tolerance</td><td>1 drive</td></tr>
+          <tr><td>Scratch usable / node</td><td>19.2 TB</td></tr>
+          <tr><td>Scratch ceiling @ 5 TB ingest</td><td>5.76&times; shuffle amplification</td></tr>
+          <tr><td>CPU overhead to Spark</td><td>0% (no RAID parity computation)</td></tr>
+          <tr><td>Scratch drive fault tolerance</td><td>None &mdash; drive loss = job failure, recompute required</td></tr>
           <tr><td>Worker VM OS</td><td>RHEL 9 or 10, 80 GB RBD disk on Ceph</td></tr>
         </tbody>
       </table>
 
-      <div class="callout warn">
-        <strong>Config J caveat:</strong> Config J provides 2-drive fault tolerance on scratch but its 11.5 TB scratch usable falls short of the <a href="#scratch-req" onclick="jumpTo('scratch-req','sec_d')">13.3 TB required at 5 TB @ 4&times; shuffle</a>. Config J is viable only if shuffle amplification is confirmed to remain at 3&times; or below for all development workloads.
+      <div class="callout info">
+        <strong>JBOD trade-off acknowledged:</strong> Config F provides no scratch drive fault tolerance. A failed NVMe scratch drive during a job causes that job to fail; the job must be resubmitted once the drive is replaced and XFS is reformatted. This is the accepted trade-off for the development cluster, where recompute tolerance is high and maximum scratch headroom is the priority.
       </div>
 
       <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
@@ -490,13 +491,13 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
     <summary class="section-summary">
       <span class="section-letter">G</span>
       <span class="section-title">Scratch Space: Adequacy Concern &amp; Expansion Analysis</span>
-      <span class="section-sub">&middot; Config I ceiling · +1 NVMe/node impact · Operational dependency assessment</span>
+      <span class="section-sub">&middot; Config F ceiling · Scratch ceiling analysis · Compression &amp; AQE mitigations</span>
       <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
     </summary>
     <div class="section-body">
 
-      <div class="callout warn">
-        <strong>This section documents a structural concern with <a href="#config-i-spec" onclick="jumpTo('config-i-spec','sec_f')">Config I</a>.</strong> The recommended configuration passes all modeled scenarios but its margin at the worst-case development ingest (5 TB @ 4&times;) is only <strong>+15%</strong>. A development cluster is, by definition, a place where developers write exploratory and iterative queries. Shuffle amplification of 4&times; is not a safe ceiling for that workload — it is a moderate-complexity threshold. This section assesses the gap frankly and quantifies the hardware change that closes it.
+      <div class="callout info">
+        <strong>Config F (JBOD/XFS) resolves the ceiling concern that would have existed under Config I.</strong> With 19.2 TB scratch per node, Config F&rsquo;s shuffle amplification ceiling at 5 TB ingest is <strong>5.76&times;</strong> — the same headroom that would have required adding a drive per node under HW RAID-5. Two chained sort-merge joins on even data (typically 4&times;&ndash;5&times;) do not require developer intervention. This section documents the ceiling analysis and the mitigations that extend the practical safe envelope further.
       </div>
 
     <details class="sub-details">
@@ -525,24 +526,24 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
 
     <details class="sub-details">
       <summary class="sub-summary">
-        <span class="sub-title">CONFIG I CEILING ANALYSIS</span>
-        <span class="sub-desc">Maximum shuffle amplification the current hardware can sustain</span>
+        <span class="sub-title">CONFIG F CEILING ANALYSIS</span>
+        <span class="sub-desc">Maximum shuffle amplification Config F (JBOD/XFS) can sustain</span>
       </summary>
       <div class="sub-body">
-        <p><a href="#config-i-spec" onclick="jumpTo('config-i-spec','sec_f')">Config I</a> provides <strong>15.36 TB scratch per node</strong> (5 drives, HW RAID-5). The per-node scratch requirement is <code>ingest_TB &times; shuffle_amp &times; 2 &divide; 3 nodes</code>. Solving for the maximum shuffle amplification Config I can sustain:</p>
+        <p><a href="#config-f-spec" onclick="jumpTo('config-f-spec','sec_f')">Config F</a> provides <strong>19.2 TB scratch per node</strong> (5 drives, JBOD/XFS). The per-node scratch requirement is <code>ingest_TB &times; shuffle_amp &times; 2 &divide; 3 nodes</code>. Solving for the maximum shuffle amplification Config F can sustain:</p>
 
-      <div class="math-box">max_shuffle_amp = scratch_per_node &divide; (ingest_TB &times; 2 &divide; 3) = 15.36 &divide; (5 &times; 0.667) = <strong>4.61&times;</strong></div>
+      <div class="math-box">max_shuffle_amp = scratch_per_node &divide; (ingest_TB &times; 2 &divide; 3) = 19.2 &divide; (5 &times; 0.667) = <strong>5.76&times;</strong></div>
 
-      <p>This means any job running at 5 TB ingest with a shuffle amplification above <strong>4.61&times; exhausts per-node scratch</strong>. Spark begins spilling to disk beyond local scratch — which on this hardware means spilling to Ceph (the only other storage path), introducing network I/O into what should be local operations and severely degrading job performance. If Ceph is also under pressure, the job fails.</p>
+      <p>Any job running at 5 TB ingest with a shuffle amplification above <strong>5.76&times; exhausts per-node scratch</strong>. Spark begins spilling to disk beyond local scratch — which on this hardware means spilling to Ceph (the only other storage path), introducing network I/O into what should be local operations and severely degrading job performance. If Ceph is also under pressure, the job fails.</p>
 
       <table class="ref-table">
-        <thead><tr><th>Ingest</th><th>Shuffle Amp</th><th>Scratch Needed / Node</th><th>Config I (15.36 TB)</th><th>Margin</th></tr></thead>
+        <thead><tr><th>Ingest</th><th>Shuffle Amp</th><th>Scratch Needed / Node</th><th>Config F (19.2 TB)</th><th>Margin</th></tr></thead>
         <tbody>
-          <tr><td>5 TB</td><td>3&times;</td><td>10.00 TB</td><td><span class="ok">OK</span></td><td>+5.36 TB / +54%</td></tr>
-          <tr><td>5 TB</td><td>4&times;</td><td>13.33 TB</td><td><span class="ok">OK</span></td><td>+2.03 TB / +15%</td></tr>
-          <tr><td>5 TB</td><td>4.6&times;</td><td>15.33 TB</td><td><span class="warn">edge</span></td><td>+0.03 TB / &lt;1%</td></tr>
-          <tr><td>5 TB</td><td>5&times;</td><td>16.67 TB</td><td><span class="bad">FAIL</span></td><td>&minus;1.31 TB / &minus;8%</td></tr>
-          <tr><td>5 TB</td><td>6&times;</td><td>20.00 TB</td><td><span class="bad">FAIL</span></td><td>&minus;4.64 TB / &minus;23%</td></tr>
+          <tr><td>5 TB</td><td>3&times;</td><td>10.00 TB</td><td><span class="ok">OK</span></td><td>+9.2 TB / +92%</td></tr>
+          <tr><td>5 TB</td><td>4&times;</td><td>13.33 TB</td><td><span class="ok">OK</span></td><td>+5.87 TB / +44%</td></tr>
+          <tr><td>5 TB</td><td>5&times;</td><td>16.67 TB</td><td><span class="ok">OK</span></td><td>+2.53 TB / +15%</td></tr>
+          <tr><td>5 TB</td><td>5.76&times;</td><td>19.2 TB</td><td><span class="warn">edge</span></td><td>0 TB / ceiling</td></tr>
+          <tr><td>5 TB</td><td>6&times;</td><td>20.00 TB</td><td><span class="bad">FAIL</span></td><td>&minus;0.8 TB / &minus;4%</td></tr>
         </tbody>
       </table>
         <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
@@ -571,27 +572,26 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
     <details class="sub-details">
       <summary class="sub-summary">
         <span class="sub-title">+1 NVMe/NODE EXPANSION</span>
-        <span class="sub-desc">8 NVMe total · 19.20 TB scratch · ceiling rises to 5.76×</span>
+        <span class="sub-desc">8 NVMe total · 6 scratch drives JBOD/XFS · ceiling rises to 6.90×</span>
       </summary>
       <div class="sub-body">
-        <p>Adding one 3.84 TB NVMe per node — three drives total across the cluster — and allocating it to scratch gives <strong>6 scratch drives per node</strong> at 2 OSD/node (Ceph allocation unchanged). With HW RAID-5:</p>
+        <p>Adding one 3.84 TB NVMe per node — three drives total across the cluster — and allocating it to scratch gives <strong>6 scratch drives per node</strong> at 2 OSD/node (Ceph allocation unchanged). With JBOD/XFS:</p>
 
-      <div class="math-box">scratch_usable = (6 &minus; 1) &times; 3.84 TB = <strong>19.20 TB / node</strong></div>
-      <div class="math-box">max_shuffle_amp @ 5 TB = 19.20 &divide; (5 &times; 0.667) = <strong>5.76&times;</strong></div>
+      <div class="math-box">scratch_usable = 6 &times; 3.84 TB = <strong>23.04 TB / node</strong></div>
+      <div class="math-box">max_shuffle_amp @ 5 TB = 23.04 &divide; (5 &times; 0.667) = <strong>6.90&times;</strong></div>
 
       <table class="ref-table">
-        <thead><tr><th>Ingest</th><th>Shuffle Amp</th><th>Scratch Needed / Node</th><th>Config I (15.36 TB)</th><th>+1 NVMe (19.20 TB)</th><th>Gain</th></tr></thead>
+        <thead><tr><th>Ingest</th><th>Shuffle Amp</th><th>Scratch Needed / Node</th><th>Config F (19.2 TB)</th><th>+1 NVMe JBOD (23.04 TB)</th><th>Gain</th></tr></thead>
         <tbody>
-          <tr><td>5 TB</td><td>3&times;</td><td>10.00 TB</td><td><span class="ok">+54%</span></td><td><span class="ok">+92%</span></td><td>+38pp</td></tr>
-          <tr><td>5 TB</td><td>4&times;</td><td>13.33 TB</td><td><span class="ok">+15%</span></td><td><span class="ok">+44%</span></td><td>+29pp</td></tr>
-          <tr><td>5 TB</td><td>5&times;</td><td>16.67 TB</td><td><span class="bad">FAIL</span></td><td><span class="ok">+15%</span></td><td>recovered</td></tr>
-          <tr><td>5 TB</td><td>6&times;</td><td>20.00 TB</td><td><span class="bad">FAIL</span></td><td><span class="bad">FAIL</span></td><td>still fails</td></tr>
-          <tr><td>4 TB</td><td>4&times;</td><td>10.67 TB</td><td><span class="ok">+44%</span></td><td><span class="ok">+80%</span></td><td>+36pp</td></tr>
-          <tr><td>4 TB</td><td>6&times;</td><td>16.00 TB</td><td><span class="bad">FAIL</span></td><td><span class="ok">+20%</span></td><td>recovered</td></tr>
+          <tr><td>5 TB</td><td>4&times;</td><td>13.33 TB</td><td><span class="ok">+44%</span></td><td><span class="ok">+73%</span></td><td>+29pp</td></tr>
+          <tr><td>5 TB</td><td>5&times;</td><td>16.67 TB</td><td><span class="ok">+15%</span></td><td><span class="ok">+38%</span></td><td>+23pp</td></tr>
+          <tr><td>5 TB</td><td>6&times;</td><td>20.00 TB</td><td><span class="bad">FAIL</span></td><td><span class="ok">+15%</span></td><td>recovered</td></tr>
+          <tr><td>5 TB</td><td>7&times;</td><td>23.33 TB</td><td><span class="bad">FAIL</span></td><td><span class="bad">FAIL</span></td><td>still fails</td></tr>
+          <tr><td>4 TB</td><td>6&times;</td><td>16.00 TB</td><td><span class="ok">+20%</span></td><td><span class="ok">+44%</span></td><td>+24pp</td></tr>
         </tbody>
       </table>
 
-      <p>Adding one NVMe per node extends the scratch ceiling from <strong>4.61&times; to 5.76&times;</strong> at 5 TB ingest &mdash; a full shuffle-amplification tier recovered. Two chained sort-merge joins on even data (typically 4&times;&ndash;5&times;) no longer require developer intervention. Only genuinely pathological queries (6&times;+, typically involving severe data skew across multiple join stages) still exhaust scratch. Reaching 6&times; with reasonably-written queries requires either deliberate avoidance of broadcast hints on small tables or severely skewed source data that has not been addressed at the ingestion layer.</p>
+      <p>Adding one NVMe per node extends the scratch ceiling from <strong>5.76&times; to 6.90&times;</strong> at 5 TB ingest. Only genuinely pathological queries (7&times;+, typically involving severe data skew across multiple join stages) would exhaust scratch. Reaching 7&times; with reasonably-written queries requires either deliberate avoidance of broadcast hints on small tables or severely skewed source data that has not been addressed at the ingestion layer.</p>
         <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
       </div>
     </details>
@@ -602,16 +602,16 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
         <span class="sub-desc">Adding the extra NVMe as a 3rd OSD does not help scratch</span>
       </summary>
       <div class="sub-body">
-        <p>The alternative allocation &mdash; adding the extra NVMe as a 3rd OSD per node &mdash; does not help the scratch problem. With 3 OSD and 5 remaining scratch drives, HW RAID-5 scratch usable is identical to Config I at <strong>15.36 TB</strong>. The scratch ceiling is unchanged at 4.61&times;. Ceph usable increases to 17.28 TB, which is well beyond the maximum N=2 Parquet accumulation requirement of 7.24 TB. The extra Ceph capacity is not useful at current ingest scale; the extra scratch capacity is.</p>
+        <p>The alternative allocation &mdash; adding the extra NVMe as a 3rd OSD per node &mdash; does not help the scratch problem. With 3 OSD and 6 remaining scratch drives (JBOD/XFS), scratch usable increases to <strong>23.04 TB</strong> vs Config F&rsquo;s 19.2 TB &mdash; a modest gain. Ceph usable increases to 17.28 TB, which is well beyond the maximum N=2 Parquet accumulation requirement of 7.24 TB. The extra Ceph capacity is not useful at current ingest scale; the extra scratch capacity provides only a marginal ceiling improvement. Allocating the extra NVMe to scratch (not Ceph) remains the correct choice.</p>
 
       <table class="ref-table">
-        <thead><tr><th></th><th>Config I (7 NVMe, 2 OSD)</th><th>+1 as 3rd OSD (8 NVMe, 3 OSD)</th><th>+1 as scratch (8 NVMe, 2 OSD)</th></tr></thead>
+        <thead><tr><th></th><th>Config F (7 NVMe, 2 OSD)</th><th>+1 as 3rd OSD (8 NVMe, 3 OSD)</th><th>+1 as scratch (8 NVMe, 2 OSD)</th></tr></thead>
         <tbody>
           <tr><td>Scratch drives / node</td><td>5</td><td>5</td><td><strong>6</strong></td></tr>
-          <tr><td>Scratch usable / node (RAID-5)</td><td>15.36 TB</td><td>15.36 TB</td><td><strong>19.20 TB</strong></td></tr>
-          <tr><td>Scratch ceiling @ 5 TB</td><td>4.61&times;</td><td>4.61&times;</td><td><strong>5.76&times;</strong></td></tr>
+          <tr><td>Scratch usable / node (JBOD/XFS)</td><td>19.20 TB</td><td>19.20 TB</td><td><strong>23.04 TB</strong></td></tr>
+          <tr><td>Scratch ceiling @ 5 TB</td><td>5.76&times;</td><td>5.76&times;</td><td><strong>6.90&times;</strong></td></tr>
           <tr><td>Ceph usable</td><td>7.68 TB</td><td>17.28 TB</td><td>7.68 TB (unchanged)</td></tr>
-          <tr><td>Resolves scratch concern</td><td><span class="bad">No</span></td><td><span class="bad">No</span></td><td><span class="ok">Yes</span></td></tr>
+          <tr><td>Best use of extra drive</td><td><span class="na">&mdash;</span></td><td><span class="bad">No</span></td><td><span class="ok">Yes</span></td></tr>
         </tbody>
       </table>
         <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
@@ -633,8 +633,8 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
 
         <p>The practical effect: <strong>actual on-disk scratch usage is approximately 40&ndash;60%
         of the calculated ceiling value</strong> when default compression is active. At 5 TB/day,
-        Config I&rsquo;s effective ceiling under compression is closer to <strong>9&times;</strong>
-        than the formula&rsquo;s 4.61&times;.</p>
+        Config F&rsquo;s effective ceiling under compression is closer to <strong>11&times;</strong>
+        than the formula&rsquo;s 5.76&times;.</p>
 
         <p>Additionally, increasing <code>spark.io.compression.lz4.blockSize</code> from the
         default 32 KB to <strong>512 KB</strong> yields up to a <strong>20% further reduction
@@ -755,7 +755,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
   <details class="section-details" id="sec_revisions">
     <summary class="section-summary">
       <span class="section-title">Revisions</span>
-      <span class="section-sub">&middot; Document change history &middot; 2026-04-17 through 2026-04-18</span>
+      <span class="section-sub">&middot; Document change history &middot; 2026-04-17 through 2026-04-21</span>
       <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
     </summary>
     <div class="section-body">
@@ -838,12 +838,29 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
         <table>
           <thead><tr><th>Configuration</th><th>Scratch / Node</th><th>Ceiling @ 5 TB</th><th>5 TB @ 5&times;</th></tr></thead>
           <tbody>
-            <tr><td>Config I (7 NVMe, 2 OSD, 5 scratch)</td><td>15.36 TB</td><td>4.61&times;</td><td><span style="color:var(--red)">FAIL</span></td></tr>
-            <tr><td>+1 NVMe as scratch (8 NVMe, 2 OSD, 6 scratch)</td><td>19.20 TB</td><td>5.76&times;</td><td><span style="color:var(--green,#4caf50)">OK +15%</span></td></tr>
-            <tr><td>+1 NVMe as 3rd OSD (8 NVMe, 3 OSD, 5 scratch)</td><td>15.36 TB</td><td>4.61&times;</td><td><span style="color:var(--red)">FAIL</span></td></tr>
+            <tr><td>Config I (7 NVMe, 2 OSD, 5 scratch, HW RAID-5)</td><td>15.36 TB</td><td>4.61&times;</td><td><span style="color:var(--red)">FAIL</span></td></tr>
+            <tr><td>+1 NVMe as scratch (8 NVMe, 2 OSD, 6 scratch, HW RAID-5)</td><td>19.20 TB</td><td>5.76&times;</td><td><span style="color:var(--green,#4caf50)">OK +15%</span></td></tr>
+            <tr><td>+1 NVMe as 3rd OSD (8 NVMe, 3 OSD, 5 scratch, HW RAID-5)</td><td>15.36 TB</td><td>4.61&times;</td><td><span style="color:var(--red)">FAIL</span></td></tr>
           </tbody>
         </table>
         <p style="font-size:12px;color:var(--muted);margin-top:10px;">Conclusion: extra NVMe should go to scratch, not Ceph. Ceph at 17.28 TB (3 OSD) is well beyond N=2 Parquet requirement; additional Ceph headroom is not useful at current ingest scale.</p>
+      </div>
+
+      <h3>2026-04-21 — Config F (JBOD/XFS) Selected; Section G and Recommendation Updated</h3>
+      <div class="card">
+        <div class="card-title">Scratch drive configuration changed from HW RAID-5 (Config I) to JBOD/XFS (Config F)</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Decision confirmed: no hardware RAID on NVMe scratch drives. Proxmox OS SSDs remain ZFS (mirror + hot spare). Scratch drives are JBOD, formatted XFS. This changes the recommendation throughout the document from Config I to Config F.</p>
+        <table>
+          <thead><tr><th>Item</th><th>Before (Config I)</th><th>After (Config F)</th></tr></thead>
+          <tbody>
+            <tr><td>Scratch protection</td><td>HW RAID-5 (1-drive tolerance)</td><td>JBOD/XFS (no fault tolerance)</td></tr>
+            <tr><td>Scratch usable / node</td><td>15.36 TB</td><td>19.20 TB</td></tr>
+            <tr><td>Scratch ceiling @ 5 TB</td><td>4.61&times;</td><td>5.76&times;</td></tr>
+            <tr><td>CPU overhead to Spark</td><td>~0% (ASIC parity)</td><td>0% (no parity)</td></tr>
+            <tr><td>Compression effective ceiling</td><td>~9&times;</td><td>~11&times;</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;">Section A RAID Controller section updated to note JBOD/XFS. Section D scratch table recommended-row moved to JBOD/XFS. Section E analysis inputs and both configuration matrices updated. Section F recommendation and spec table replaced with Config F. Section G ceiling analysis updated to 19.2 TB / 5.76&times; baseline; +1 NVMe expansion recalculated as 23.04 TB / 6.90&times;.</p>
       </div>
 
       <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
