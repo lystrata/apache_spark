@@ -64,6 +64,25 @@ When the user identifies a question that must be forwarded to a vendor, add it t
 
 ---
 
+## Citation Rules
+
+These rules apply in the **security context** at full strength. In other contexts, citations are encouraged for non-obvious technical claims but not required at the two-source minimum.
+
+- Every substantive claim in a security document must be supported by a minimum of **two verifiable external sources**, cited at the section level.
+- A single-sentence claim that stands alone (not covered by the section's general citations) requires its own inline citation.
+- **Acceptable sources:** official framework publications (NIST, CIS, AICPA), vendor documentation, peer-reviewed papers, and industry-recognized publications.
+- **Personal blogs** carry low weight. Cite them only when multiple independent sources cluster on the same conclusion, and note that the sourcing is blog-level.
+- If fewer than two corroborating sources can be found, state explicitly: *"I cannot find corroborated evidence for this claim."* Do not assert it.
+- All citations must include a URL the user can verify directly. If a URL cannot be confirmed as live and correct, do not include it — state the source by title and publisher instead.
+
+## Compact Milestones
+
+Applies to **all contexts** (calculators, remote_services, security).
+
+When a natural stopping point is reached — a document is complete and staged, a cluster of open questions is resolved, a planning phase closes — flag it and ask the user whether to `/compact` before continuing. What constitutes a milestone is a judgment call; when uncertain, ask rather than assume.
+
+---
+
 ## Serving the Calculators
 
 Always serve via HTTP, not `file://`. localStorage scoping differs between origins and scenarios saved under one will be invisible to the other.
