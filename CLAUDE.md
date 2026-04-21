@@ -41,29 +41,29 @@ The project is organized into four context hierarchies: `calculators/`, `remote_
 
 At the start of a session the user may type `set context <name>` to declare which fork is active. Valid names and their associated directories:
 
-| Name | TODO file | Vendor questions | Documents | Staging |
-|---|---|---|---|---|
-| `calculators` | `calculators/Notes/todos_calculator.md` | `calculators/Notes/questions_for_vendors.txt` | `calculators/Document/` | `calculators/Ready_For_Review/` |
-| `remote_services` | `remote_services/Notes/todos_remote_services.md` | `remote_services/Notes/questions_for_vendors.txt` | `remote_services/Document/` | `remote_services/Ready_For_Review/` |
-| `security` | `security/Notes/todos_security.md` | `security/Notes/questions_for_vendors.txt` | `security/Document/` | `security/Ready_For_Review/` |
-| `correspondence` | `correspondence/Notes/todos_correspondence.md` | `correspondence/Notes/questions_for_vendors.txt` | `correspondence/Document/` | `correspondence/Ready_For_Review/` |
+| Name | Vendor questions | Documents | Staging |
+|---|---|---|---|
+| `calculators` | `calculators/Notes/questions_for_vendors.txt` | `calculators/Document/` | `calculators/Ready_For_Review/` |
+| `remote_services` | `remote_services/Notes/questions_for_vendors.txt` | `remote_services/Document/` | `remote_services/Ready_For_Review/` |
+| `security` | `security/Notes/questions_for_vendors.txt` | `security/Document/` | `security/Ready_For_Review/` |
+| `correspondence` | `correspondence/Notes/questions_for_vendors.txt` | `correspondence/Document/` | `correspondence/Ready_For_Review/` |
 
 When the user types `set context <name>`:
 1. Acknowledge the active context by name.
-2. Read the corresponding TODO file and surface any items in `## Next Session` or unresolved `## Open Questions`.
-3. For the remainder of the session, use that context's TODO file, vendor questions file, document directory, and staging directory exclusively.
+2. Read the master TODO file and surface items tagged `[<name>]` in `## Next Session` or unresolved `## Open Questions`.
+3. For the remainder of the session, use that context's vendor questions file, document directory, and staging directory exclusively.
 
 If no context is set, ask the user which context applies before doing any work that touches files.
 
 ## Session TODO Convention
 
-Each chat context maintains a TODO file tracking outstanding tasks, open questions, and next steps. At the end of a session — or when the user signals they are wrapping up — create or update the relevant TODO file with current status.
+All tasks across all contexts are tracked in a single master TODO file (`TODO.md` at root) with context tags (`[calculators]`, `[remote_services]`, `[security]`, `[correspondence]`) on each item.
 
 **"show todos" prompt:** When the user types `show todos`:
-- If a context is active, read and display that context's TODO file only, and note the other contexts exist.
-- If no context is set, read and display all four TODO files.
+- If a context is active, read and display the master TODO file filtering for that context's `[<name>]` tagged items only.
+- If no context is set, read and display the full master TODO file.
 
-**Format:** Each TODO file uses three sections — `## Waiting for Vendor Reply`, `## Open Questions`, `## Pending Tasks`, and `## Next Session`. Use Markdown checklist boxes (`- [ ]` unchecked, `- [x]` checked) for all items. Check items off as they are resolved rather than deleting them, so there is a record of what was completed and when.
+**Format:** The master TODO file uses four sections — `## Waiting for Vendor Reply`, `## Open Questions`, `## Pending Tasks`, and `## Next Session`. Use Markdown checklist boxes (`- [ ]` unchecked, `- [x]` checked) for all items. Check items off as they are resolved rather than deleting them, so there is a record of what was completed and when. Each item is tagged with its context in square brackets at the start of the line.
 
 ## Vendor Questions Convention
 
