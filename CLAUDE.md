@@ -72,17 +72,35 @@ This project uses git for version control. **Commit before making significant ed
 
 ### Pre-Commit Sanitization Hook
 
-A pre-commit hook at `.git/hooks/pre-commit` scans staged content for corporate identifiers before every commit. Patterns checked (case-insensitive): `allegiance`, `askallegiance`, `rohn.wood@`. When a match is found, the commit is interrupted and prompts for action: sanitize, force, or quit.
+A pre-commit hook at `.git/hooks/pre-commit` scans staged content for corporate identifiers before every commit. When a match is found, the commit is interrupted and prompts for action: sanitize, force, or quit.
 
-**This hook is not tracked by git** (`.git/` is never committed). It must be installed manually on each machine after cloning:
+**Patterns are stored outside the repo** in `~/.config/spark-hooks/patterns` (owner read-only, `600`). This file is never committed and contains no patterns in the repo itself.
+
+**Neither the hook nor the pattern file is tracked by git.** Both must be installed manually on each machine after cloning.
+
+#### Step 1 — Create the pattern file
 
 ```bash
-# From the repo root — run once after cloning
+mkdir -p ~/.config/spark-hooks
+# Add corporate identifier strings to this file, one per line
+nano ~/.config/spark-hooks/patterns
+chmod 600 ~/.config/spark-hooks/patterns
+```
+
+#### Step 2 — Install the hook
+
+```bash
+# From the repo root
+cp .git/hooks/pre-commit.sample .git/hooks/pre-commit 2>/dev/null || true
+curl -fsSL https://raw.githubusercontent.com/lystrata/apache_spark/main/.git/hooks/pre-commit 2>/dev/null || \
 cat > .git/hooks/pre-commit << 'EOF'
 #!/usr/bin/env bash
-PATTERNS="allegiance|askallegiance|rohn\.wood@"
-STAGED=$(git diff --cached --name-only --diff-filter=ACM)
-if [ -z "$STAGED" ]; then exit 0; fi
+PATTERN_FILE="$HOME/.config/spark-hooks/patterns"
+if [ ! -f "$PATTERN_FILE" ]; then
+  echo "  pre-commit: pattern file not found at $PATTERN_FILE — skipping identifier scan"
+  exit 0
+fi
+PATTERNS=$(paste -sd'|' "$PATTERN_FILE")
 MATCHES=$(git diff --cached -U0 | grep -iE "^\+" | grep -iE "$PATTERNS")
 if [ -z "$MATCHES" ]; then exit 0; fi
 echo ""

@@ -1,8 +1,6 @@
 Scan all tracked and staged files in this project for corporate identifiers that must not be committed to the public GitHub repository.
 
-Patterns to check (case-insensitive):
-- `allegiance` or `askallegiance`
-- `rohn.wood@` (email address)
+Patterns to check: load from `~/.config/spark-hooks/patterns` (one pattern per line). Do not reproduce the pattern strings in any output or file.
 
 Steps:
 1. Run a grep across all `.html`, `.md`, `.py`, `.json`, and `.txt` files in the project directory for the above patterns.

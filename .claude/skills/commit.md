@@ -3,7 +3,7 @@ Prepare and execute a git commit for the current session's changes.
 Steps:
 1. Run `git status` to show what has changed.
 2. Run `git diff --cached -U0` plus `git diff -U0` to review staged and unstaged changes.
-3. Check for corporate identifiers in changed files by grepping for: `allegiance`, `askallegiance`, `rohn.wood@` (case-insensitive). Report any matches before proceeding.
+3. Check for corporate identifiers in changed files by using patterns loaded from `~/.config/spark-hooks/patterns` (case-insensitive). Do not reproduce the pattern strings in any output or file.. Report any matches before proceeding.
 4. If matches are found: stop, report the findings, and ask the user to sanitize before continuing.
 5. If clean: propose a concise commit message based on what changed.
 6. Stage the appropriate files (`git add <specific files>` — never `git add .` or `git add -A`).
