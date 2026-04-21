@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spark Infrastructure — Operational Flows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0f12; --bg2:#13171c; --bg3:#1a1f27; --bg4:#1e2530;
+  --border:#2a3140; --border2:#3a4455;
+  --text:#d4dbe8; --muted:#6b7a92;
+  --accent:#4e9eff; --accent2:#7ec8ff;
+  --green:#3ecf8e; --yellow:#f5a623; --red:#ff5e5e; --purple:#a78bfa;
+  --mono:"IBM Plex Mono",monospace;
+  --sans:"DM Sans",sans-serif;
+  /* Layer colours */
+  --col-user:    #fff;
+  --col-bastion: #4e9eff;
+  --col-cluster: #3ecf8e;
+  --col-storage: #a78bfa;
+  --col-external:#f5a623;
+  --col-monitor: #f06292;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:var(--sans); background:var(--bg); color:var(--text); line-height:1.75; font-size:15px; }
+body::before {
+  content:''; position:fixed; inset:0;
+  background-image:linear-gradient(rgba(78,158,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(78,158,255,0.025) 1px,transparent 1px);
+  background-size:40px 40px; pointer-events:none; z-index:0;
+}
+.wrap { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:52px 28px 96px; }
+
+/* Header */
+.doc-tag { font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--accent); text-transform:uppercase; margin-bottom:10px; }
+h1 { font-family:var(--mono); font-size:28px; font-weight:600; color:#fff; letter-spacing:-.02em; margin-bottom:6px; }
+.doc-sub { color:var(--muted); font-size:13px; font-weight:300; margin-bottom:36px; }
+
+/* Collapsible sections */
+.section-details { margin-top:16px; border:1px solid var(--border2); border-radius:10px; overflow:hidden; }
+.section-summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; padding:14px 20px; background:var(--bg3); user-select:none; outline:none; transition:background 0.15s; }
+.section-summary::-webkit-details-marker { display:none; }
+.section-summary::before { content:'▶'; font-size:9px; color:var(--muted); transition:transform 0.22s; flex-shrink:0; margin-right:2px; }
+.section-details[open] > .section-summary::before { transform:rotate(90deg); }
+.section-summary:hover { background:var(--bg4); }
+.section-letter { font-family:var(--mono); font-size:10px; font-weight:700; color:var(--bg); background:var(--accent); width:20px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.section-title { font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text); white-space:nowrap; }
+.section-sub { font-size:11px; color:var(--muted); flex:1; font-family:var(--mono); }
+.btt { font-family:var(--mono); font-size:10px; color:var(--muted); text-decoration:none; letter-spacing:.06em; flex-shrink:0; padding:3px 8px; border:1px solid var(--border2); border-radius:4px; transition:color 0.15s, border-color 0.15s; }
+.btt:hover { color:var(--accent); border-color:var(--accent); }
+.section-body { padding:28px 28px 32px; background:var(--bg2); }
+.section-close { display:flex; justify-content:flex-start; margin-top:28px; padding-top:14px; border-top:1px solid var(--border); }
+.section-close a { font-family:var(--mono); font-size:10px; color:var(--yellow); text-decoration:none; letter-spacing:.06em; padding:3px 8px; border:1px solid var(--yellow); border-radius:4px; transition:color 0.15s, border-color 0.15s, background 0.15s; cursor:pointer; }
+.section-close a:hover { color:var(--bg); background:var(--yellow); }
+
+/* Legend */
+.legend { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:28px; }
+.leg { display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; color:var(--muted); }
+.leg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+/* Flow layout */
+.flow-wrap { display:flex; flex-direction:column; gap:0; }
+
+/* A single row: optional branch label + horizontal chain */
+.flow-row { display:flex; align-items:center; gap:0; }
+.flow-row.indent { margin-left:80px; }
+
+/* Node box */
+.fnode {
+  flex-shrink:0;
+  border-radius:8px;
+  padding:10px 16px;
+  min-width:140px;
+  text-align:center;
+  border:1px solid rgba(255,255,255,0.08);
+}
+.fnode .fn-label { font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:0.05em; }
+.fnode .fn-sub   { font-size:11px; color:rgba(255,255,255,0.55); margin-top:2px; line-height:1.3; }
+
+/* Node layer colours */
+.fnode.user     { background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.18); }
+.fnode.user     .fn-label { color:var(--col-user); }
+.fnode.bastion  { background:rgba(78,158,255,0.08);  border-color:rgba(78,158,255,0.35); }
+.fnode.bastion  .fn-label { color:var(--col-bastion); }
+.fnode.cluster  { background:rgba(62,207,142,0.08);  border-color:rgba(62,207,142,0.35); }
+.fnode.cluster  .fn-label { color:var(--col-cluster); }
+.fnode.storage  { background:rgba(167,139,250,0.08); border-color:rgba(167,139,250,0.35); }
+.fnode.storage  .fn-label { color:var(--col-storage); }
+.fnode.external { background:rgba(245,166,35,0.08);  border-color:rgba(245,166,35,0.35); }
+.fnode.external .fn-label { color:var(--col-external); }
+.fnode.monitor  { background:rgba(240,98,146,0.08);  border-color:rgba(240,98,146,0.35); }
+.fnode.monitor  .fn-label { color:var(--col-monitor); }
+
+/* Arrows */
+.farrow {
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:0 6px;
+  min-width:56px;
+  gap:2px;
+}
+.farrow .fa-line {
+  width:100%;
+  height:1px;
+  background:linear-gradient(90deg, var(--border2), var(--border2));
+  position:relative;
+}
+.farrow .fa-line::after {
+  content:'';
+  position:absolute;
+  right:-1px; top:-4px;
+  border:4px solid transparent;
+  border-left:6px solid var(--border2);
+}
+.farrow .fa-label { font-family:var(--mono); font-size:10px; color:var(--muted); white-space:nowrap; text-align:center; }
+
+/* Vertical connector (down arrow) */
+.fdown {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  padding-left:70px; /* indent to align with first node center */
+  gap:0;
+  margin:0;
+}
+.fdown .fd-line {
+  width:1px;
+  height:22px;
+  background:var(--border2);
+  position:relative;
+  margin-left:70px;
+}
+.fdown .fd-line::after {
+  content:'';
+  position:absolute;
+  bottom:-1px; left:-4px;
+  border:4px solid transparent;
+  border-top:6px solid var(--border2);
+}
+.fdown .fd-label { font-family:var(--mono); font-size:10px; color:var(--muted); margin-left:4px; }
+
+/* Vertical step (simplifies common pattern) */
+.fstep {
+  display:flex;
+  flex-direction:column;
+  gap:0;
+}
+
+/* Side branch connector (horizontal to a parallel node) */
+.fbranch {
+  display:flex;
+  align-items:center;
+  gap:0;
+  margin-top:8px;
+  margin-left:70px;
+}
+
+/* Callout */
+.callout { border-radius:8px; padding:14px 18px; margin:18px 0; font-size:13px; line-height:1.65; }
+.callout.info { background:rgba(78,158,255,.06); border:1px solid rgba(78,158,255,.25); }
+.callout strong { color:#fff; }
+code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2px 6px; border-radius:3px; color:var(--accent2); border:1px solid var(--border); }
+
+/* Flow section title */
+.flow-title { font-family:var(--mono); font-size:12px; font-weight:600; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin-bottom:18px; }
+
+/* Step annotation table */
+.step-table { width:100%; border-collapse:collapse; margin-top:22px; font-size:13px; }
+.step-table th { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); padding:8px 12px; border-bottom:1px solid var(--border2); text-align:left; }
+.step-table td { padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.55; }
+.step-table tr:last-child td { border-bottom:none; }
+.step-table td:first-child { font-family:var(--mono); font-size:11px; color:var(--accent2); white-space:nowrap; width:140px; }
+.step-table tr:nth-child(even) td { background:rgba(255,255,255,.015); }
+
+/* Revisions */
+.rev-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:12px; }
+.rev-table th { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); padding:8px 12px; border-bottom:1px solid var(--border2); text-align:left; }
+.rev-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+.rev-table tr:last-child td { border-bottom:none; }
+.rev-table td:first-child { font-family:var(--mono); font-size:12px; color:var(--accent); white-space:nowrap; width:170px; }
+
+p { font-size:14px; line-height:1.7; margin-bottom:12px; }
+p:last-child { margin-bottom:0; }
+strong { color:#fff; font-weight:600; }
+</style>
+</head>
+<body>
+<div id="top" class="wrap">
+
+  <div class="doc-tag">Reference Document</div>
+  <h1>Spark Infrastructure — Operational Flows</h1>
+  <div class="doc-sub">How data, jobs, and monitoring signals move through the system</div>
+
+  <!-- OVERVIEW / LEGEND -->
+  <details class="section-details" id="sec_overview" open>
+    <summary class="section-summary">
+      <span class="section-letter" style="background:var(--muted)">&#9432;</span>
+      <span class="section-title">Overview</span>
+      <span class="section-sub">· system layers · colour key · three flows</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+      <p>Three operational flows run through this infrastructure. All user interaction goes through the <strong>Bastion VM</strong> — users never access cluster nodes directly.</p>
+
+      <div class="legend">
+        <div class="leg"><div class="leg-dot" style="background:var(--col-user)"></div>User / Browser</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--col-bastion)"></div>Bastion VM Services</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--col-cluster)"></div>Spark / YARN Cluster</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--col-storage)"></div>Storage (Ceph / S3)</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--col-external)"></div>External (Snowflake)</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--col-monitor)"></div>Monitoring Stack</div>
+      </div>
+
+      <table class="step-table">
+        <thead><tr><th>Flow</th><th>Description</th><th>Trigger</th></tr></thead>
+        <tbody>
+          <tr><td>A — Production</td><td>Scheduled ETL pipeline orchestrated by Airflow</td><td>Clock / cron schedule</td></tr>
+          <tr><td>B — Development</td><td>Interactive code development and testing via JupyterHub</td><td>Developer action</td></tr>
+          <tr><td>C — Monitoring</td><td>Continuous metric scraping and log aggregation</td><td>Always on (15 s interval)</td></tr>
+        </tbody>
+      </table>
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- FLOW A: PRODUCTION -->
+  <details class="section-details" id="sec_a">
+    <summary class="section-summary">
+      <span class="section-letter">A</span>
+      <span class="section-title">Production Flow</span>
+      <span class="section-sub">· scheduled ETL · Airflow → YARN → Ceph → Snowflake</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+      <p class="flow-title">Scheduled Production ETL Pipeline</p>
+
+      <!-- Row 1: Schedule trigger -->
+      <div class="flow-wrap">
+
+        <div class="flow-row">
+          <div class="fnode user">
+            <div class="fn-label">Schedule Timer</div>
+            <div class="fn-sub">cron / clock</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">fires</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode bastion">
+            <div class="fn-label">Airflow Scheduler</div>
+            <div class="fn-sub">bastion VM</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">reads DAG</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode bastion">
+            <div class="fn-label">DAG Definition</div>
+            <div class="fn-sub">Python pipeline file</div>
+          </div>
+        </div>
+
+        <div class="fdown"><div class="fd-line" style="margin-left:222px"></div></div>
+
+        <div class="flow-row" style="margin-left:170px">
+          <div class="fnode bastion">
+            <div class="fn-label">Task 1</div>
+            <div class="fn-sub">SparkSubmitOperator</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">port 8032</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode cluster">
+            <div class="fn-label">YARN Resource­Manager</div>
+            <div class="fn-sub">cluster node</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">allocates</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode cluster">
+            <div class="fn-label">Executor VMs</div>
+            <div class="fn-sub">3 nodes × N VMs</div>
+          </div>
+        </div>
+
+        <div class="fdown"><div class="fd-line" style="margin-left:378px"></div></div>
+
+        <div class="flow-row" style="margin-left:328px">
+          <div class="fnode storage">
+            <div class="fn-label">Ceph RGW / S3</div>
+            <div class="fn-sub">read CSV ingest files</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">processes → writes</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode storage">
+            <div class="fn-label">Ceph RGW / S3</div>
+            <div class="fn-sub">output / event logs</div>
+          </div>
+        </div>
+
+        <div class="fdown"><div class="fd-line" style="margin-left:378px"></div></div>
+
+        <div class="flow-row" style="margin-left:328px">
+          <div class="fnode bastion">
+            <div class="fn-label">Task 2</div>
+            <div class="fn-sub">SnowflakeOperator</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">COPY INTO</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode external">
+            <div class="fn-label">Snowflake</div>
+            <div class="fn-sub">final destination</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">reports to</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode bastion">
+            <div class="fn-label">Airflow UI</div>
+            <div class="fn-sub">DAG run: ✓ success</div>
+          </div>
+        </div>
+
+      </div><!-- .flow-wrap -->
+
+      <table class="step-table" style="margin-top:28px">
+        <thead><tr><th>Step</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Schedule fires</td><td>Airflow scheduler evaluates the DAG on its cron schedule and queues tasks that are ready.</td></tr>
+          <tr><td>Task 1 — Spark submit</td><td><code>SparkSubmitOperator</code> runs <code>spark-submit</code> targeting YARN ResourceManager port 8032. Job submits in <strong>cluster mode</strong> — driver and executors all run inside the cluster. Airflow blocks until completion.</td></tr>
+          <tr><td>YARN allocation</td><td>ResourceManager assigns executor containers across the three nodes. Each container gets the configured vCores and memory from the sizing calculator output.</td></tr>
+          <tr><td>Spark job</td><td>Executors read compressed CSV files from Ceph S3, apply transformations, shuffle intermediate data to local NVMe scratch, and write output back to Ceph S3. Event logs are written to the S3 event log bucket.</td></tr>
+          <tr><td>Task 2 — Snowflake load</td><td>On Task 1 success, <code>SnowflakeOperator</code> fires a <code>COPY INTO</code> statement loading the output from S3 into Snowflake.</td></tr>
+          <tr><td>Completion</td><td>Airflow marks the DAG run complete (green). Failure at any task triggers the retry policy and sends an alert.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- FLOW B: INTERACTIVE DEVELOPMENT -->
+  <details class="section-details" id="sec_b">
+    <summary class="section-summary">
+      <span class="section-letter">B</span>
+      <span class="section-title">Development Flow</span>
+      <span class="section-sub">· JupyterHub · YARN client mode · History Server · YARN UI</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+      <p class="flow-title">Interactive Development &amp; Testing</p>
+
+      <div class="flow-wrap">
+
+        <div class="flow-row">
+          <div class="fnode user">
+            <div class="fn-label">Developer</div>
+            <div class="fn-sub">browser</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">HTTPS</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode bastion">
+            <div class="fn-label">JupyterHub</div>
+            <div class="fn-sub">bastion VM</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">YARN client mode</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode cluster">
+            <div class="fn-label">YARN Resource­Manager</div>
+            <div class="fn-sub">port 8032</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">allocates</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode cluster">
+            <div class="fn-label">Executor VMs</div>
+            <div class="fn-sub">3 cluster nodes</div>
+          </div>
+        </div>
+
+        <div class="fdown"><div class="fd-line" style="margin-left:222px"></div></div>
+
+        <!-- Driver stays on bastion -->
+        <div class="flow-row" style="margin-left:172px">
+          <div class="fnode bastion">
+            <div class="fn-label">Spark Driver</div>
+            <div class="fn-sub">runs on bastion VM</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">coordinates</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode cluster">
+            <div class="fn-label">Executor VMs</div>
+            <div class="fn-sub">read/write Ceph S3</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">results</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode storage">
+            <div class="fn-label">Ceph RGW / S3</div>
+            <div class="fn-sub">data in/out</div>
+          </div>
+        </div>
+
+        <div class="fdown"><div class="fd-line" style="margin-left:222px"></div></div>
+
+        <!-- Parallel: YARN UI + History Server -->
+        <div class="flow-row" style="margin-left:172px">
+          <div class="fnode bastion">
+            <div class="fn-label">Nginx Proxy</div>
+            <div class="fn-sub">bastion VM</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">rewrites URLs</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode cluster">
+            <div class="fn-label">YARN UI</div>
+            <div class="fn-sub">port 8088 — live jobs</div>
+          </div>
+        </div>
+
+        <div class="fdown"><div class="fd-line" style="margin-left:222px"></div></div>
+
+        <div class="flow-row" style="margin-left:172px">
+          <div class="fnode bastion">
+            <div class="fn-label">History Server</div>
+            <div class="fn-sub">bastion VM</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">reads event logs</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode storage">
+            <div class="fn-label">Ceph S3</div>
+            <div class="fn-sub">event log bucket</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="callout info" style="margin-top:22px">
+        <strong>Client mode vs cluster mode:</strong> In development, the Spark <strong>driver runs on the bastion VM</strong> (client mode) — output and errors appear directly in the Jupyter notebook. In production (Flow A), the driver runs inside the cluster (cluster mode) — Airflow submits and waits; the cluster is self-contained.
+      </div>
+
+      <table class="step-table">
+        <thead><tr><th>Touch point</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>JupyterHub</td><td>Browser-based notebook environment on the bastion VM. Developer writes and runs Spark code without SSH access to the cluster.</td></tr>
+          <tr><td>Spark Driver</td><td>Starts on the bastion VM when the notebook creates a <code>SparkSession</code>. Negotiates executor containers from YARN, then coordinates task execution.</td></tr>
+          <tr><td>YARN UI via Nginx</td><td>Developer opens the YARN UI in a browser tab to watch live executor allocation and task progress. Nginx rewrites cluster-internal links so all URLs resolve to the bastion.</td></tr>
+          <tr><td>History Server</td><td>After the job completes, developer opens the History Server to review stage timings, executor memory usage, shuffle volume, and skew. Used to tune before promoting to a production DAG.</td></tr>
+          <tr><td>Ceph S3</td><td>Executors read source data and write results to S3. The developer uses the same data paths as production.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- FLOW C: MONITORING -->
+  <details class="section-details" id="sec_c">
+    <summary class="section-summary">
+      <span class="section-letter">C</span>
+      <span class="section-title">Monitoring Flow</span>
+      <span class="section-sub">· Prometheus scrape · Promtail → Loki · Grafana dashboards</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+      <p class="flow-title">Continuous Metrics &amp; Log Aggregation</p>
+
+      <!-- Metrics path -->
+      <p style="font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px;">Metrics Path — every 15 seconds</p>
+      <div class="flow-wrap">
+
+        <div class="flow-row">
+          <div class="fnode cluster">
+            <div class="fn-label">3 Proxmox Nodes</div>
+            <div class="fn-sub">node_exporter · pve_exporter · ZFS</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">scrape</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode monitor">
+            <div class="fn-label">Prometheus</div>
+            <div class="fn-sub">monitoring cluster</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">datasource</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode monitor">
+            <div class="fn-label">Grafana</div>
+            <div class="fn-sub">dashboards · alerts</div>
+          </div>
+        </div>
+
+        <div class="fdown"><div class="fd-line" style="margin-left:88px"></div></div>
+
+        <div class="flow-row">
+          <div class="fnode cluster">
+            <div class="fn-label">YARN / Spark VMs</div>
+            <div class="fn-sub">node_exporter · YARN JMX</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">scrape</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode cluster">
+            <div class="fn-label">Ceph Cluster</div>
+            <div class="fn-sub">ceph_exporter</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">scrape</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode bastion">
+            <div class="fn-label">Bastion VM</div>
+            <div class="fn-sub">node_exporter · Airflow StatsD</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Log path -->
+      <p style="font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; margin-top:28px;">Log Path — continuous</p>
+      <div class="flow-wrap">
+
+        <div class="flow-row">
+          <div class="fnode cluster">
+            <div class="fn-label">Cluster Nodes</div>
+            <div class="fn-sub">YARN · Spark · Ceph · system</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">Promtail</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode monitor">
+            <div class="fn-label">Loki</div>
+            <div class="fn-sub">monitoring cluster · 21-day retention</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">datasource</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode monitor">
+            <div class="fn-label">Grafana</div>
+            <div class="fn-sub">log explorer · correlate with metrics</div>
+          </div>
+        </div>
+
+        <div class="fdown"><div class="fd-line" style="margin-left:88px"></div></div>
+
+        <div class="flow-row">
+          <div class="fnode bastion">
+            <div class="fn-label">Bastion VM</div>
+            <div class="fn-sub">Airflow · History Server · Nginx</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">Promtail</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode monitor">
+            <div class="fn-label">Loki</div>
+            <div class="fn-sub">same instance</div>
+          </div>
+        </div>
+
+      </div>
+
+      <table class="step-table" style="margin-top:28px">
+        <thead><tr><th>Component</th><th>What it exposes</th><th>Consumer</th></tr></thead>
+        <tbody>
+          <tr><td>node_exporter</td><td>CPU, RAM, disk I/O, network, filesystem per host</td><td>Prometheus → Grafana</td></tr>
+          <tr><td>pve_exporter</td><td>VM status, per-VM CPU/RAM, storage pool utilisation</td><td>Prometheus → Grafana</td></tr>
+          <tr><td>ceph_exporter</td><td>OSD health, pool usage, RGW request rates, MON quorum</td><td>Prometheus → Grafana</td></tr>
+          <tr><td>YARN JMX</td><td>Cluster capacity, running apps, container counts, NodeManager health</td><td>Prometheus → Grafana</td></tr>
+          <tr><td>Airflow StatsD</td><td>DAG run durations, task success/failure counts, scheduler heartbeat</td><td>Prometheus → Grafana</td></tr>
+          <tr><td>Promtail (all hosts)</td><td>Log lines with labels: host, service, log level</td><td>Loki → Grafana log explorer</td></tr>
+        </tbody>
+      </table>
+
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- FLOW D: COMBINED VIEW -->
+  <details class="section-details" id="sec_d">
+    <summary class="section-summary">
+      <span class="section-letter">D</span>
+      <span class="section-title">Combined Architecture</span>
+      <span class="section-sub">· all flows · failure independence · bastion as single access point</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+      <p class="flow-title">Full System — All Flows</p>
+
+      <div class="flow-wrap">
+
+        <!-- Top row: user to bastion services -->
+        <div class="flow-row">
+          <div class="fnode user">
+            <div class="fn-label">You</div>
+            <div class="fn-sub">browser</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">all access</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode bastion" style="min-width:200px">
+            <div class="fn-label">Bastion VM</div>
+            <div class="fn-sub">Airflow · JupyterHub · History Server · Nginx</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">submits / proxies</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode cluster" style="min-width:180px">
+            <div class="fn-label">3-Node Cluster</div>
+            <div class="fn-sub">YARN · Spark · Ceph</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">reads/writes</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode storage">
+            <div class="fn-label">Ceph S3</div>
+            <div class="fn-sub">data &amp; event logs</div>
+          </div>
+        </div>
+
+        <div class="fdown"><div class="fd-line" style="margin-left:400px"></div></div>
+
+        <!-- Middle row: cluster to Snowflake + monitoring -->
+        <div class="flow-row" style="margin-left:350px">
+          <div class="fnode external">
+            <div class="fn-label">Snowflake</div>
+            <div class="fn-sub">COPY INTO</div>
+          </div>
+        </div>
+
+        <div class="fdown"><div class="fd-line" style="margin-left:88px"></div></div>
+
+        <!-- Bottom row: monitoring -->
+        <div class="flow-row">
+          <div class="fnode monitor" style="min-width:220px">
+            <div class="fn-label">Monitoring Cluster</div>
+            <div class="fn-sub">Prometheus · Loki · Grafana</div>
+          </div>
+          <div class="farrow">
+            <div class="fa-label">scrapes all hosts</div>
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode cluster">
+            <div class="fn-label">3-Node Cluster</div>
+            <div class="fn-sub">metrics + logs</div>
+          </div>
+          <div class="farrow" style="opacity:.5">
+            <div class="fa-line"></div>
+          </div>
+          <div class="fnode bastion">
+            <div class="fn-label">Bastion VM</div>
+            <div class="fn-sub">metrics + logs</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="callout info" style="margin-top:22px">
+        <strong>Failure independence:</strong> The monitoring cluster and the Spark cluster run on separate Proxmox hardware. If the Spark cluster fails, Grafana continues running and shows the cluster going dark. If the bastion VM fails, the cluster keeps processing — no new job submissions until the bastion recovers, but data already in flight completes safely.
+      </div>
+
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- REVISIONS -->
+  <details class="section-details" id="sec_revisions">
+    <summary class="section-summary">
+      <span class="section-letter" style="background:var(--muted)">R</span>
+      <span class="section-title">Revisions</span>
+      <span class="section-sub">· change history</span>
+      <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+    </summary>
+    <div class="section-body">
+      <table class="rev-table">
+        <thead><tr><th>Date</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>2026-04-20 16:30</td>
+            <td>Initial version — three flows (Production, Development, Monitoring) plus combined architecture view.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('details.section-details').forEach(function(d) {
+    if (d.id !== 'sec_overview') d.open = false;
+  });
+});
+</script>
+</body>
+</html>
