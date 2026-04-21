@@ -161,6 +161,8 @@ Then open `http://localhost:8000/calculators/Document/production_spark_calculato
 
 This applies to: new HTML documents, calculator updates, reference document updates, and any file where content changes are being made. It does not apply to CLAUDE.md, memory files, or minor in-place fixes explicitly approved by the user.
 
+**Index update rule:** When any new HTML file is promoted to `calculators/Document/`, add a corresponding entry to `calculators/Document/index.html` in the appropriate section (Calculators, Guides, Reference, or Research & Correspondence) as part of the same commit. The index must always reflect the current contents of `Document/`.
+
 ## Editing Rules
 
 This project uses git for version control. **Commit before making significant edits** so any state can be restored.
