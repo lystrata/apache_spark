@@ -25,17 +25,30 @@ All working HTML documents live in `Document/`. Scripts live in `Scripts/`. Rese
 | `Notes_security/` | Research notes and planning for security context — on-site revision control only |
 | `Ready_For_Review_security/` | Staging for security documents |
 
+## Session Context Convention
+
+At the start of a session the user may type `set context <name>` to declare which fork is active. Valid names and their associated directories:
+
+| Name | TODO file | Vendor questions | Documents | Staging |
+|---|---|---|---|---|
+| `calculators` | `Notes/todos_calculator.md` | `Notes/questions_for_vendors.txt` | `Document/` | `Ready_For_Review/` |
+| `remote_services` | `Notes_remote_services/todos_remote_services.md` | `Notes_remote_services/questions_for_vendors.txt` | `Document_remote_services/` | `Ready_For_Review_remote_services/` |
+| `security` | `Notes_security/todos_security.md` | `Notes_security/questions_for_vendors.txt` | `Document_security/` | `Ready_For_Review_security/` |
+
+When the user types `set context <name>`:
+1. Acknowledge the active context by name.
+2. Read the corresponding TODO file and surface any items in `## Next Session` or unresolved `## Open Questions`.
+3. For the remainder of the session, use that context's TODO file, vendor questions file, document directory, and staging directory exclusively.
+
+If no context is set, ask the user which context applies before doing any work that touches files.
+
 ## Session TODO Convention
 
 Each chat context maintains a TODO file tracking outstanding tasks, open questions, and next steps. At the end of a session — or when the user signals they are wrapping up — create or update the relevant TODO file with current status.
 
-| Context | TODO file |
-|---|---|
-| Spark calculators and cluster sizing | `Notes/todos_calculator.md` |
-| Remote services (Airflow, monitoring, bastion) | `Notes_remote_services/todos_remote_services.md` |
-| Security | `Notes_security/todos_security.md` |
-
-**"show todos" prompt:** When the user types `show todos`, read and display the contents of both TODO files. If only one context is active in the current session, display that one and note the other exists.
+**"show todos" prompt:** When the user types `show todos`:
+- If a context is active, read and display that context's TODO file only, and note the other contexts exist.
+- If no context is set, read and display all three TODO files.
 
 **Format:** Each TODO file uses three sections — `## Waiting for Vendor Reply`, `## Open Questions`, `## Pending Tasks`, and `## Next Session`. Use Markdown checklist boxes (`- [ ]` unchecked, `- [x]` checked) for all items. Check items off as they are resolved rather than deleting them, so there is a record of what was completed and when.
 
