@@ -126,11 +126,11 @@
     every downstream task that reads it has finished. Unlike memory pressure, which degrades
     performance gradually, scratch exhaustion terminates the job.</p>
 
-    <p>On this cluster, scratch is the binding constraint. Each node has 7 NVMe drives; 3 are
-    dedicated to Ceph OSDs, leaving <strong>4 drives × 3.84 TB = 15.36 TB usable scratch per node</strong>
-    (Config I, RAID-5 + hot spare). The sizing model accounts for map-side shuffle output and
+    <p>On this cluster, scratch is the binding constraint. Each node has 7 NVMe drives; 2 are
+    dedicated to Ceph OSDs, leaving <strong>5 drives × 3.84 TB = 19.2 TB usable scratch per node</strong>
+    (Config F, JBOD/XFS — no hardware RAID). The sizing model accounts for map-side shuffle output and
     reduce-side spill existing on disk simultaneously — a 2× factor on the raw shuffle volume.
-    At 5 TB/day ingest, this yields a shuffle amplification ceiling of <strong>4.61×</strong>
+    At 5 TB/day ingest, this yields a shuffle amplification ceiling of <strong>5.76×</strong>
     before scratch is exhausted.</p>
 
     <div class="callout callout-bad">
@@ -232,29 +232,31 @@
   <summary class="section-summary">
     <span class="section-letter">B</span>
     <span class="section-title">The Scratch Budget</span>
-    <span class="section-sub">· Config I ceiling · Amplification table · Compression buffer vs. planning budget</span>
+    <span class="section-sub">· Config F ceiling · Amplification table · Compression buffer vs. planning budget</span>
     <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
   </summary>
   <div class="section-body">
 
-    <h2>Config I scratch allocation</h2>
-    <p>7 NVMe drives per node. 3 are Ceph OSDs. The remaining 4 drives form a RAID-5 array with
-    1 hot spare, yielding:</p>
+    <h2>Config F scratch allocation</h2>
+    <p>7 NVMe drives per node. 2 are Ceph OSDs. The remaining 5 drives are JBOD (individual
+    pass-through devices), each formatted XFS — no hardware RAID, yielding:</p>
 
-    <pre>Scratch per node  = 4 drives × 3.84 TB  = 15.36 TB
+    <pre>Scratch per node  = 5 drives × 3.84 TB  = 19.2 TB
 Scratch formula:    scratch_needed_per_node = daily_TB × shuffle_amp × 2 / nodes
 Ceiling:            shuffle_amp_max         = (scratch_per_node × nodes) / (daily_TB × 2)
-                                            = (15.36 × 3) / (daily_TB × 2)</pre>
+                                            = (19.2 × 3) / (daily_TB × 2)</pre>
 
-    <p>At 2 TB/day: ceiling = 46.08 / 4 = <strong>11.52×</strong><br>
-    At 5 TB/day: ceiling = 46.08 / 10 = <strong>4.61×</strong></p>
+    <p>At 2 TB/day: ceiling = 57.6 / 4 = <strong>14.4×</strong><br>
+    At 5 TB/day: ceiling = 57.6 / 10 = <strong>5.76×</strong></p>
 
     <p>The ceiling drops sharply as ingest volume increases. At 5 TB/day there is less than one
-    stop of margin between "well-written job" (2–3×) and "scratch exhausted" (4.61×).</p>
+    stop of margin between "poorly-written job" (4–5×) and "scratch exhausted" (5.76×). A drive
+    failure under JBOD terminates any job using that drive; resubmit once the drive is replaced
+    and reformatted XFS.</p>
 
     <h2>Amplification budget by scenario</h2>
-    <p>Scratch consumed per node at various amplification factors. Red cells exceed the 15.36 TB
-    Config I ceiling. The 2× factor for simultaneous map-write + reduce-spill is included.</p>
+    <p>Scratch consumed per node at various amplification factors. Red cells exceed the 19.2 TB
+    Config F (JBOD/XFS) ceiling. The 2× factor for simultaneous map-write + reduce-spill is included.</p>
 
     <table>
       <tr>
@@ -283,19 +285,19 @@ Ceiling:            shuffle_amp_max         = (scratch_per_node × nodes) / (dai
         <td>4.00 TB</td>
         <td class="td-low">OK</td>
         <td>10.00 TB</td>
-        <td class="td-med">Caution</td>
+        <td class="td-low">OK</td>
       </tr>
       <tr>
         <td>5× &nbsp;<span style="color:var(--muted);font-size:11px">(wide joins, some groupByKey)</span></td>
         <td>6.67 TB</td>
         <td class="td-low">OK</td>
         <td>16.67 TB</td>
-        <td class="td-high">Exceeds ceiling</td>
+        <td class="td-med">Caution</td>
       </tr>
       <tr>
         <td>8× &nbsp;<span style="color:var(--muted);font-size:11px">(groupByKey, unoptimized)</span></td>
         <td>10.67 TB</td>
-        <td class="td-med">Caution</td>
+        <td class="td-low">OK</td>
         <td>26.67 TB</td>
         <td class="td-high">Exceeds ceiling</td>
       </tr>

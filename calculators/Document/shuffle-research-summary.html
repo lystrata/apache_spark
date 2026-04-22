@@ -86,19 +86,22 @@
     in the review sessions.</p>
 
     <h3>The Hardware Constraint</h3>
-    <p>The immediate trigger was a specific constraint in the development cluster sizing. Config I
-    allocates 4 NVMe drives per node to scratch (RAID-5 with one hot spare), yielding
-    <strong>15.36 TB usable per node</strong>. The project's scratch sizing model computes
+    <p>The immediate trigger was a specific constraint in the development cluster scratch sizing.
+    Config F (the confirmed configuration) allocates 5 NVMe drives per node to scratch as
+    JBOD — individual pass-through devices formatted XFS, no hardware RAID — yielding
+    <strong>19.2 TB usable per node</strong>. The project's scratch sizing model computes
     a <em>ceiling</em> — the shuffle amplification factor at which scratch fills up under
     worst-case conditions:</p>
 
     <pre>scratch_needed_per_node = daily_TB &times; shuffle_amp &times; 2 / nodes
 ceiling                 = scratch_per_node / (daily_TB &times; 2 / nodes)</pre>
 
-    <p>At the baseline ingest target of 2 TB/day, Config I yields a ceiling of
-    <strong>4.61&times;</strong>. At a higher ingest rate of 5 TB/day the ceiling falls to
-    <strong>1.84&times;</strong> — uncomfortably close to the assumed worst-case shuffle
-    amplification for unoptimized ETL workloads.</p>
+    <p>At the baseline ingest target of 2 TB/day, Config F yields a ceiling of
+    <strong>14.4&times;</strong>. At a higher ingest rate of 5 TB/day the ceiling falls to
+    <strong>5.76&times;</strong> — meaningful margin above the assumed worst-case shuffle
+    amplification for unoptimized ETL workloads (4–5×), but not unlimited. This research was
+    initiated while an earlier RAID-5 configuration was under evaluation; the parameter
+    recommendations it produced are equally applicable to the JBOD/XFS configuration.</p>
 
     <h3>Questions the Research Was Designed to Answer</h3>
     <ul>
