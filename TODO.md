@@ -5,17 +5,17 @@ _Last updated 2026-04-21_
 
 ## Waiting for Vendor Reply
 
-- [ ] [remote_services] Q1 — Airflow executor type (LocalExecutor vs CeleryExecutor) — see `remote_services/Notes/questions_for_vendors.txt`
+- [x] [remote_services] Q1 — Airflow executor type — CeleryExecutor confirmed (Ksolves directory walkthrough 2026-04-22)
 
 ---
 
 ## Open Questions
 
 - [x] [calculators] Review any calculator changes pending in Ready_For_Review/
-- [ ] [remote_services] Airflow executor type — LocalExecutor assumed; pending vendor reply
+- [x] [remote_services] Airflow executor type — CeleryExecutor confirmed (Ksolves directory walkthrough 2026-04-22)
 - [ ] [remote_services] "Monitoring Apache" — Airflow dashboards, Spark dashboards, or both? Scopes Grafana build-out
 - [ ] [remote_services] Second Proxmox host specs (vCPU, RAM, storage) — sets VM allocation ceiling
-- [ ] [remote_services] Spark event log location — S3 bucket name or HDFS path; required for History Server config
+- [x] [remote_services] Spark event log location — s3a://spark-history/ confirmed (Ksolves directory walkthrough 2026-04-22)
 - [ ] [remote_services] Max concurrent Airflow task slots — drives scheduler RAM and CPU floor
 - [ ] [remote_services] Concurrent Jupyter users expected — drives driver memory reservation
 - [ ] [remote_services] Ingest batch window timing — validates job concurrency assumptions
