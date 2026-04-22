@@ -1,5 +1,5 @@
 #  Master TODO — All Contexts
-_Last updated 2026-04-21_
+_Last updated 2026-04-22_
 
 ---
 
@@ -36,7 +36,7 @@ _Last updated 2026-04-21_
 - [x] [correspondence] Confirm Spark version 3.5.3 in production calculator
 - [x] [calculators] Dev cluster: no hardware RAID — NVMe scratch drives run JBOD; only Proxmox OS SSDs use ZFS — see `calculators/Document/dev-cluster-storage-reference.html`
 - [x] [calculators] Dev cluster: scratch OSDs formatted with XFS — see `calculators/Document/dev-cluster-storage-reference.html`
-- [x] [calculators] Update all related dev HTML files to reflect JBOD/XFS storage decisions (dev-cluster-storage-reference.html, dev_cluster_math_reference.html, development_spark_calculator.html, dev_slider_guide.html)
+- [x] [calculators] Update all related HTML files to reflect JBOD/XFS storage decisions (dev-cluster-storage-reference.html, dev_cluster_math_reference.html, development_spark_calculator.html, dev_slider_guide.html, production_spark_calculator.html, spark-shuffle-developer-guide.html, shuffle-research-summary.html — extended 2026-04-22)
 
 **Correspondence & Project Coordination:**
 - [ ] [correspondence] Work on Proxmox access method (screen sharing vs. direct) — target completion this week
