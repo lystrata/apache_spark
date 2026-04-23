@@ -65,6 +65,8 @@ All tasks across all contexts are tracked in a single master TODO file (`TODO.md
 
 **Format:** The master TODO file uses four sections — `## Waiting for Vendor Reply`, `## Open Questions`, `## Pending Tasks`, and `## Next Session`. Use Markdown checklist boxes (`- [ ]` unchecked, `- [x]` checked) for all items. Check items off as they are resolved rather than deleting them, so there is a record of what was completed and when. Each item is tagged with its context in square brackets at the start of the line.
 
+**Source document rule:** When a TODO item is derived from a specific document, include the document's project-relative path in the item text so the user can locate it for context. Example: `- [ ] [calculators] Review OSD allocation strategy — see calculators/Document/dev-cluster-storage-reference.html`
+
 ## Vendor Questions Convention
 
 When the user identifies a question that must be forwarded to a vendor, add it to the relevant `questions_for_vendors.txt` file with full context and a `- [ ]` entry under `## Waiting for Vendor Reply` in the TODO file. When a vendor reply is received, check off the TODO item and note the answer in `questions_for_vendors.txt`.
@@ -166,6 +168,16 @@ This applies to: new HTML documents, calculator updates, reference document upda
 ## Editing Rules
 
 This project uses git for version control. **Commit before making significant edits** so any state can be restored.
+
+### Corporate Identifier Sanitization
+
+Before committing any file, replace corporate identifiers with the literal placeholder `fqdn`. The exact patterns to match are stored in `~/.config/spark-hooks/patterns` (never committed).
+
+**Rule:** any occurrence of the corporate FQDN or company name (standalone, any case) must be replaced with `fqdn` before staging. This applies to all file types: HTML, Markdown, config files, and scripts.
+
+Example: a Keycloak realm export filename containing the company name becomes `fqdn-realm.json`.
+
+The pre-commit hook detects any remaining matches and blocks the commit. Apply substitutions before staging rather than relying on the hook to catch them.
 
 ### Pre-Commit Sanitization Hook
 
