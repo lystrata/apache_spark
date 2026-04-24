@@ -5,6 +5,29 @@ _Last updated 2026-04-24_
 
 ## PHASE 1 — PRIORITY ITEMS
 
+### BLOCKING — Ksolves Remote Access (Must Complete Before P0)
+
+- [ ] [Phase1] [correspondence] Establish Ksolves Webex desktop access for Phase 1A interim infrastructure provisioning
+  - User action: Create temporary Proxmox credentials, schedule/initiate Webex share with Karthik Hegde
+  - Phase 1A (interim): Shared Webex desktop with fqdn team oversight (can begin immediately)
+  - Phase 1B (permanent): VMware Horizon desktops (pending fqdn Cyber Security approval — non-blocking for Phase 1 work)
+  - See: phases/phase1/Ready_For_Review/Phase1_Detailed_TODO.md § BLOCKER.1
+
+### BLOCKING — RHEL ISO Provisioning (Must Complete Before P0.1–P0.2 VM Creation)
+
+- [ ] [Phase1] [correspondence] Confirm RHEL version: 9.4 (current assumption) vs. 9.7 (pending Ksolves Spark compatibility research)
+  - Awaiting Ksolves research on Apache Spark 3.5.3 compatibility with RHEL 9.7
+  - Current assumption: RHEL 9.4 (confirmed compatible)
+  - Decision required before ISO download and placement
+  - See: phases/phase1/vendor_comms/phase1_vendor_questions.txt § RHEL Version Decision
+
+- [ ] [Phase1] [remote_services] Provision RHEL ISO to Proxmox local storage (user action — local provisioning after OSD setup)
+  - **Dependency:** Requires Ceph OSD configuration completion on all three nodes
+  - User downloads and uploads RHEL ISO to Proxmox local storage **after OSDs fully configured**
+  - Ksolves works remotely from India; user performs local ISO placement
+  - Timeline: Starts after OSD setup complete, must finish before P0.1 VM provisioning begins
+  - See: phases/phase1/Ready_For_Review/Phase1_Detailed_TODO.md § BLOCKER.2
+
 ### P0 — Critical Path (This Week)
 
 - [ ] [Phase1] [correspondence] Confirm cloud staging target — Azure Blob or AWS S3 — for Snowflake COPY INTO path
@@ -18,8 +41,12 @@ _Last updated 2026-04-24_
 - [ ] [Phase1] [remote_services] Validate WAN egress throughput (1 Gbps ≈ 125 MB/s) is sufficient for Parquet → cloud staging transfer
 - [ ] [Phase1] [remote_services] Monitor Ceph OSD memory under peak ingest — increase osd_memory_target if latency spikes
 - [ ] [Phase1] [remote_services] Deploy Spark History Server on Node02 (1 vCPU / 4 GB VM — confirmed in Phase 1 report)
+- [ ] [Phase1] [remote_services] Deploy ZooKeeper ensemble for YARN RM automatic failover (**REQUIRED PREREQUISITE** — must complete before P1.2)
+  - Per Apache Hadoop docs: ZooKeeper is a mandatory prerequisite for YARN RM HA
+  - See: phases/phase1/Ready_For_Review/Phase1_Detailed_TODO.md § P1.3
 - [ ] [Phase1] [remote_services] Deploy YARN ResourceManager HA: active VM on Node01, standby VM on Node03 (vendor requirement)
-- [ ] [Phase1] [remote_services] Deploy ZooKeeper ensemble for YARN RM automatic failover
+  - **Depends on P1.3 (ZooKeeper) being operational first**
+  - See: phases/phase1/Ready_For_Review/Phase1_Detailed_TODO.md § P1.2
 - [ ] [Phase1] [remote_services] Deploy Nginx reverse proxy on remote Airflow host for YARN RM HA stable endpoint
 - [ ] [Phase1] [remote_services] Deploy Ansible control node on remote Airflow host
 
@@ -27,7 +54,11 @@ _Last updated 2026-04-24_
 
 ## Waiting for Vendor Reply
 
-_(No pending vendor replies)_
+- [ ] [Phase1] RHEL version compatibility: Is Apache Spark 3.5.3 compatible with RHEL 9.7? (Ksolves researching)
+  - Current assumption: RHEL 9.4 (confirmed compatible)
+  - Under research: RHEL 9.7 (penultimate RHEL9 version)
+  - Impact: Determines which RHEL ISO to download and provision
+  - See: phases/phase1/vendor_comms/phase1_vendor_questions.txt § RHEL Version Decision
 
 ---
 

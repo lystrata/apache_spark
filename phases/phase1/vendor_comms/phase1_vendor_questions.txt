@@ -7,6 +7,16 @@ _(Pulled from master TODO — see root TODO.md for updates)_
 
 ## Phase 1 Critical Questions
 
+### RHEL Version Decision
+- Status: PENDING KSOLVES RESEARCH
+- Question: Is Apache Spark 3.5.3 compatible with RHEL 9.7? (or must we use RHEL 9.4?)
+- Current Assumption: RHEL 9.4 (confirmed compatible with Phase 1 requirements)
+- Under Research: RHEL 9.7 (penultimate RHEL9 version — preferred if compatible)
+- Impact: Determines which RHEL ISO to download and provision locally before P0.1 VM creation
+- Context: User will place RHEL ISO in Proxmox local storage; Ksolves boots all VMs from this ISO
+- Timeline: Decision required before ISO selection and provisioning (BLOCKER.2)
+
+
 ### Cloud Staging Target
 - Status: OPEN
 - Question: Azure Blob or AWS S3 for Snowflake COPY INTO path?
@@ -27,6 +37,36 @@ _(Pulled from master TODO — see root TODO.md for updates)_
 - Impact: Phase 1 report flags this as planning dependency
 - Context: Current 3-node cluster insufficient for target workload
 
+
+## Ksolves Remote Access Strategy
+
+### Phase 1A — Interim Shared Webex Desktop Access
+- Status: READY TO IMPLEMENT
+- Method: fqdn infrastructure team shares Webex desktop with Ksolves Karthik Hegde
+- Ksolves executes all Phase 1 infrastructure provisioning through shared desktop
+- fqdn team provides oversight; Webex recording captures all actions for audit trail
+- Duration: Temporary until Phase 1B Horizon desktops are ready
+- Timeline: Can begin immediately; no infrastructure dependencies
+- Actions:
+  1. fqdn creates temporary Proxmox root or owner credentials for Webex session
+  2. fqdn schedules and initiates Webex share with Ksolves
+  3. Ksolves confirms access and begins Phase 1 P0 infrastructure provisioning
+
+### Phase 1B — Permanent VMware Horizon Desktop Access
+- Status: PENDING fqdn CYBER SECURITY APPROVAL
+- Method: Two dedicated VMware Horizon desktops for Ksolves team
+- Full owner-level Proxmox access via Horizon desktop environment
+- fqdn Cyber Security must approve Horizons deployment (compliance gate)
+- Timeline: Estimated 2–4 weeks after security approval
+- Non-blocking: Phase 1B approval does not block Phase 1A (Webex) access or Phase 1 work
+- Actions:
+  1. fqdn submits Horizons Teams infrastructure request (if not already done)
+  2. fqdn Cyber Security reviews and approves Horizons deployment
+  3. Upon approval, fqdn provisions two Horizon desktop sessions
+  4. Ksolves migrates from Webex interim to permanent Horizon access
+  5. Webex session retired once Horizon is live
+
+---
 
 ## Phase 1 Meeting Notes
 
