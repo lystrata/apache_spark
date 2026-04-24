@@ -27,17 +27,14 @@ _Last updated 2026-04-24_
 
 ## Waiting for Vendor Reply
 
-- [x] [remote_services] Q1 — Airflow executor type — CeleryExecutor confirmed (Ksolves directory walkthrough 2026-04-22)
+_(No pending vendor replies)_
 
 ---
 
 ## Open Questions
 
-- [x] [calculators] Review any calculator changes pending in Ready_For_Review/
-- [x] [remote_services] Airflow executor type — CeleryExecutor confirmed (Ksolves directory walkthrough 2026-04-22)
 - [ ] [remote_services] "Monitoring Apache" — Airflow dashboards, Spark dashboards, or both? Scopes Grafana build-out
 - [ ] [remote_services] Second Proxmox host specs (vCPU, RAM, storage) — sets VM allocation ceiling
-- [x] [remote_services] Spark event log location — s3a://spark-history/ confirmed (Ksolves directory walkthrough 2026-04-22)
 - [ ] [remote_services] Max concurrent Airflow task slots — drives scheduler RAM and CPU floor
 - [ ] [remote_services] Concurrent Jupyter users expected — drives driver memory reservation
 - [ ] [remote_services] Ingest batch window timing — validates job concurrency assumptions
@@ -52,21 +49,13 @@ _Last updated 2026-04-24_
 ## Pending Tasks
 
 **Configuration & Hardware Updates:**
-- [x] [correspondence] Update YARN Node Manager core allocation from 14 to 18 cores
-- [x] [correspondence] Confirm 3-OSD storage allocation strategy (OSD utilization max 80%) — see `calculators/Document/dev-cluster-storage-reference.html`
-- [x] [correspondence] Revisit and confirm JBOD vs. RAID 5 for scratch drives decision — see `calculators/Document/dev-cluster-storage-reference.html`
-- [x] [correspondence] Confirm Spark version 3.5.3 in production calculator
-- [x] [calculators] Dev cluster: no hardware RAID — NVMe scratch drives run JBOD; only Proxmox OS SSDs use ZFS — see `calculators/Document/dev-cluster-storage-reference.html`
-- [x] [calculators] Dev cluster: scratch OSDs formatted with XFS — see `calculators/Document/dev-cluster-storage-reference.html`
-- [x] [calculators] Update all related HTML files to reflect JBOD/XFS storage decisions (dev-cluster-storage-reference.html, dev_cluster_math_reference.html, development_spark_calculator.html, dev_slider_guide.html, production_spark_calculator.html, spark-shuffle-developer-guide.html, shuffle-research-summary.html — extended 2026-04-22)
+_(All configuration items completed - see Completed section)_
 
 **Correspondence & Project Coordination:**
 - [ ] [correspondence] Work on Proxmox access method (screen sharing vs. direct) — target completion this week
 - [ ] [correspondence] Define required interconnections between remote Airflow server and Spark cluster — coordinate with Sean Klette
 - [ ] [correspondence] Review updated resource calculation document from Karthik (pending receipt)
-- [x] [correspondence] Provide answers to Production Cluster Q&A questionnaire — address data sizing, SLA, ingestion rate, transformation complexity, and cluster constraints — see `calculators/Document/production_spark_calculator.html`
 - [ ] [correspondence] Review and provide feedback on dev cluster resource calculations and mappings — see `calculators/Document/dev_cluster_math_reference.html`
-- [x] [correspondence] Confirm JBOD + XFS as final disk strategy for dev — see `calculators/Document/dev-cluster-storage-reference.html`
 - [ ] [correspondence] Confirm directory structure for incoming and archived CSV files (date-based vs. flat)
 - [ ] [correspondence] Identify where in the pipeline CSV compression occurs and update mapping logic — see `calculators/Document/etl-data-flow-diagram.html`
 - [ ] [correspondence] Resolve authentication approach (Keycloak vs. Okta) with Cyber/Security
@@ -106,16 +95,15 @@ _Last updated 2026-04-24_
 
 ## Completed
 
+- [x] [calculators] Review any calculator changes pending in Ready_For_Review/
+- [x] [remote_services] Airflow executor type — CeleryExecutor confirmed (Ksolves directory walkthrough 2026-04-22)
+- [x] [remote_services] Spark event log location — s3a://spark-history/ confirmed (Ksolves directory walkthrough 2026-04-22)
 - [x] [correspondence] Update YARN Node Manager core allocation from 14 to 18 cores
 - [x] [correspondence] Confirm 3-OSD storage allocation strategy (OSD utilization max 80%)
 - [x] [correspondence] Revisit and confirm JBOD vs. RAID 5 for scratch drives decision
 - [x] [correspondence] Confirm Spark version 3.5.3 in production calculator
+- [x] [correspondence] Provide answers to Production Cluster Q&A questionnaire
+- [x] [correspondence] Confirm JBOD + XFS as final disk strategy for dev
 - [x] [calculators] Dev cluster: no hardware RAID — NVMe scratch drives run JBOD; only Proxmox OS SSDs use ZFS
 - [x] [calculators] Dev cluster: scratch OSDs formatted with XFS
 - [x] [calculators] Update all related HTML files to reflect JBOD/XFS storage decisions
-- [x] [correspondence] Provide answers to Production Cluster Q&A questionnaire
-- [x] [correspondence] Confirm JBOD + XFS as final disk strategy for dev
-- [x] [remote_services] Q1 — Airflow executor type — CeleryExecutor confirmed
-- [x] [calculators] Review any calculator changes pending in Ready_For_Review/
-- [x] [remote_services] Airflow executor type — CeleryExecutor confirmed
-- [x] [remote_services] Spark event log location — s3a://spark-history/ confirmed
