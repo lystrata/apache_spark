@@ -305,7 +305,7 @@ Exception: reference documents may have one section open by default (e.g. Overvi
 
 - Set `data-theme="dark"` on the `<html>` element as the default.
 - Place the toggle button in the page header alongside the title (use `page-header-inner` flex layout with `.header-text` and `.btn-theme`).
-- Use the warm amber palette for light mode — defined in `phases/phase1/reference/html-css-style-guide.html` Section B.
+- Use the warm amber palette for light mode — defined in `Shared_References/html-css-style-guide.html` Section B.
 - Use a unique `localStorage` key per file using the pattern `spark_theme_<context>` to avoid cross-page conflicts.
 - Existing keys in use: `spark_theme` (dev calc), `spark_theme_prod` (prod calc), `spark_theme_phase1` (phase1 model), `spark_theme_styleguide` (style guide).
 
@@ -324,7 +324,7 @@ applyTheme(localStorage.getItem('spark_theme_<context>') || 'dark');
 
 The `applyTheme()` call must run immediately (not inside DOMContentLoaded) to prevent a flash of the wrong theme on load.
 
-**Style guide:** `Shared_References/html-css-style-guide.html` — contains the complete CSS variable palette, component patterns, light/dark overrides, and JS patterns. Consult it instead of grepping existing calculators when building new files.
+**Style guide:** `Shared_References/html-css-style-guide.html` — global reference containing the complete CSS variable palette, component patterns, light/dark overrides, and JS patterns. Consult it instead of grepping existing calculators when building new files.
 
 ### Sub-Section Pattern (within a section)
 
