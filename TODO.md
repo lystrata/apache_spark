@@ -1,5 +1,5 @@
 #  Master TODO — All Contexts
-_Last updated 2026-04-22_
+_Last updated 2026-04-23_
 
 ---
 
@@ -53,8 +53,11 @@ _Last updated 2026-04-22_
 - [ ] [remote_services] Provision bastion VM on second Proxmox cluster (pending host specs)
 - [ ] [remote_services] Provision Grafana + Prometheus VM on monitoring cluster
 - [ ] [remote_services] Deploy Airflow (webserver, scheduler, PostgreSQL)
-- [ ] [remote_services] Deploy Spark History Server
-- [ ] [remote_services] Deploy Nginx reverse proxy
+- [ ] [remote_services] Deploy Spark History Server on Node02 (1 vCPU / 4 GB VM — confirmed in Phase 1 report and vendor daily meeting 2026-04-23)
+- [ ] [remote_services] Deploy YARN ResourceManager HA: active VM on Node01, standby VM on Node03 (2 vCPU / 4 GB each) — vendor requirement 2026-04-23; not in Phase 1 report
+- [ ] [remote_services] Deploy ZooKeeper ensemble for YARN RM automatic failover — assumed required for unattended overnight batch runs; confirm process placement with Ksolves (1 ZooKeeper process per node, runs on host or in a small VM)
+- [ ] [remote_services] Deploy Nginx reverse proxy on remote Airflow host — required by YARN RM HA placement (active Node01 / standby Node03); Nginx provides stable single endpoint for YARN RM web UI and client routing regardless of which node is active (confirmed 2026-04-23 daily meeting)
+- [ ] [remote_services] Deploy Ansible control node on remote Airflow host — install playbooks, configure SSH key + Proxmox API token access (confirmed 2026-04-23 daily meeting)
 - [ ] [remote_services] Deploy Promtail agent on bastion VM
 - [ ] [remote_services] Deploy Promtail agents on 3-node Spark cluster
 - [ ] [remote_services] Deploy Promtail agents on monitoring cluster VMs
@@ -64,6 +67,15 @@ _Last updated 2026-04-22_
 - [ ] [remote_services] Verify network path: bastion → Ceph RGW floating IP
 - [ ] [remote_services] Verify network path: Promtail → Loki port 3100
 - [ ] [remote_services] Add CLAUDE.md entry for remote_services directory structure
+
+**Phase 1 Report Open Items (Ksolves 2026-04-21):**
+- [ ] [correspondence] Confirm cloud staging target — Azure Blob or AWS S3 — for Snowflake COPY INTO path; required before Phase 0 completion
+- [ ] [correspondence] Confirm RHEL 9.4 subscriptions active on all Worker VMs and YARN RM VM — required for package installation
+- [ ] [correspondence] Evaluate Phase 1 node addition timeline — 40-job SLA fails without a 4th node; Phase 1 report flags this as a planning dependency
+- [ ] [remote_services] Validate WAN egress throughput (1 Gbps ≈ 125 MB/s) is sufficient for Parquet → cloud staging transfer between batches
+- [ ] [remote_services] Install Hadoop 3.4.1 separately on all Worker VMs and configure HADOOP_HOME — required before spark-submit; not bundled with Spark 3.5.3
+- [ ] [remote_services] Monitor Ceph OSD memory under peak ingest — increase osd_memory_target if latency spikes; default is conservative
+- [ ] [calculators] Run first 5 production jobs and measure actual shuffle amplification factor — current calculator uses 7× (Phase 1 assumption); update dev_cluster_phase1_model.html default once measured
 
 **Security & Compliance:**
 - [ ] [security] Review and promote security/Ready_For_Review/compliance_frameworks_reference.html → security/Document/

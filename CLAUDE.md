@@ -443,4 +443,4 @@ All scripts live in `Scripts/`.
 | SSD/node | 3× 480 GB (ZFS mirror + hot spare) | 3× 480 GB |
 | RAM slider step | 32 GB (one DIMM) | 32 GB |
 
-Infrastructure reservations per node: Proxmox 2c/8 GB, ZFS ARC —/8 GB (zfs_arc_max=8589934592), Ceph RGW 4c/8 GB, Ceph MON 2c/6 GB, Ceph OSD 1c/3 GB each.
+Infrastructure reservations per node: Proxmox 2c/8 GB, ZFS ARC —/8 GB (zfs_arc_max=8589934592), Ceph RGW 4c/8 GB, Ceph MON 2c/6 GB, Ceph OSD 1c/3 GB each, Ceph MGR 1c/2 GB (active Node01 · standby Node02/03). Total: **12c / 33 GB** per node · leaves 20c / 351 GB for VM allocation.
