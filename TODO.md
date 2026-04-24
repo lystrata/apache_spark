@@ -1,5 +1,27 @@
 #  Master TODO — All Contexts
-_Last updated 2026-04-23_
+_Last updated 2026-04-24_
+
+---
+
+## PHASE 1 — PRIORITY ITEMS
+
+### P0 — Critical Path (This Week)
+
+- [ ] [Phase1] [correspondence] Confirm cloud staging target — Azure Blob or AWS S3 — for Snowflake COPY INTO path
+- [ ] [Phase1] [correspondence] Confirm RHEL 9.4 subscriptions active on all Worker VMs and YARN RM VM
+- [ ] [Phase1] [remote_services] Install Hadoop 3.4.1 separately on all Worker VMs and configure HADOOP_HOME
+- [ ] [Phase1] [calculators] Run first 5 production jobs and measure actual shuffle amplification factor (update dev_cluster_phase1_model.html default once measured)
+
+### P1 — Phase 1 Support & Validation
+
+- [ ] [Phase1] [correspondence] Evaluate Phase 1 node addition timeline — 40-job SLA fails without a 4th node
+- [ ] [Phase1] [remote_services] Validate WAN egress throughput (1 Gbps ≈ 125 MB/s) is sufficient for Parquet → cloud staging transfer
+- [ ] [Phase1] [remote_services] Monitor Ceph OSD memory under peak ingest — increase osd_memory_target if latency spikes
+- [ ] [Phase1] [remote_services] Deploy Spark History Server on Node02 (1 vCPU / 4 GB VM — confirmed in Phase 1 report)
+- [ ] [Phase1] [remote_services] Deploy YARN ResourceManager HA: active VM on Node01, standby VM on Node03 (vendor requirement)
+- [ ] [Phase1] [remote_services] Deploy ZooKeeper ensemble for YARN RM automatic failover
+- [ ] [Phase1] [remote_services] Deploy Nginx reverse proxy on remote Airflow host for YARN RM HA stable endpoint
+- [ ] [Phase1] [remote_services] Deploy Ansible control node on remote Airflow host
 
 ---
 
@@ -53,11 +75,9 @@ _Last updated 2026-04-23_
 - [ ] [remote_services] Provision bastion VM on second Proxmox cluster (pending host specs)
 - [ ] [remote_services] Provision Grafana + Prometheus VM on monitoring cluster
 - [ ] [remote_services] Deploy Airflow (webserver, scheduler, PostgreSQL)
-- [ ] [remote_services] Deploy Spark History Server on Node02 (1 vCPU / 4 GB VM — confirmed in Phase 1 report and vendor daily meeting 2026-04-23)
-- [ ] [remote_services] Deploy YARN ResourceManager HA: active VM on Node01, standby VM on Node03 (2 vCPU / 4 GB each) — vendor requirement 2026-04-23; not in Phase 1 report
-- [ ] [remote_services] Deploy ZooKeeper ensemble for YARN RM automatic failover — assumed required for unattended overnight batch runs; confirm process placement with Ksolves (1 ZooKeeper process per node, runs on host or in a small VM)
-- [ ] [remote_services] Deploy Nginx reverse proxy on remote Airflow host — required by YARN RM HA placement (active Node01 / standby Node03); Nginx provides stable single endpoint for YARN RM web UI and client routing regardless of which node is active (confirmed 2026-04-23 daily meeting)
-- [ ] [remote_services] Deploy Ansible control node on remote Airflow host — install playbooks, configure SSH key + Proxmox API token access (confirmed 2026-04-23 daily meeting)
+- [ ] [Phase1] [remote_services] Deploy ZooKeeper ensemble for YARN RM automatic failover — 1 ZooKeeper process per node (confirmed 2026-04-23)
+- [ ] [Phase1] [remote_services] Deploy Nginx reverse proxy on remote Airflow host — required by YARN RM HA placement for stable endpoint (confirmed 2026-04-23)
+- [ ] [Phase1] [remote_services] Deploy Ansible control node on remote Airflow host — install playbooks, configure SSH key + Proxmox API token access (confirmed 2026-04-23)
 - [ ] [remote_services] Deploy Promtail agent on bastion VM
 - [ ] [remote_services] Deploy Promtail agents on 3-node Spark cluster
 - [ ] [remote_services] Deploy Promtail agents on monitoring cluster VMs
@@ -67,15 +87,6 @@ _Last updated 2026-04-23_
 - [ ] [remote_services] Verify network path: bastion → Ceph RGW floating IP
 - [ ] [remote_services] Verify network path: Promtail → Loki port 3100
 - [ ] [remote_services] Add CLAUDE.md entry for remote_services directory structure
-
-**Phase 1 Report Open Items (Ksolves 2026-04-21):**
-- [ ] [correspondence] Confirm cloud staging target — Azure Blob or AWS S3 — for Snowflake COPY INTO path; required before Phase 0 completion
-- [ ] [correspondence] Confirm RHEL 9.4 subscriptions active on all Worker VMs and YARN RM VM — required for package installation
-- [ ] [correspondence] Evaluate Phase 1 node addition timeline — 40-job SLA fails without a 4th node; Phase 1 report flags this as a planning dependency
-- [ ] [remote_services] Validate WAN egress throughput (1 Gbps ≈ 125 MB/s) is sufficient for Parquet → cloud staging transfer between batches
-- [ ] [remote_services] Install Hadoop 3.4.1 separately on all Worker VMs and configure HADOOP_HOME — required before spark-submit; not bundled with Spark 3.5.3
-- [ ] [remote_services] Monitor Ceph OSD memory under peak ingest — increase osd_memory_target if latency spikes; default is conservative
-- [ ] [calculators] Run first 5 production jobs and measure actual shuffle amplification factor — current calculator uses 7× (Phase 1 assumption); update dev_cluster_phase1_model.html default once measured
 
 **Security & Compliance:**
 - [ ] [security] Review and promote security/Ready_For_Review/compliance_frameworks_reference.html → security/Document/
@@ -90,3 +101,21 @@ _Last updated 2026-04-23_
 - [remote_services] Resolve open questions (host specs, executor type, event log location) to finalize VM sizing; decide on Grafana dashboard scope
 - [security] Promote compliance_frameworks_reference.html after review; define document categories for authentication scope — see `security/Ready_For_Review/compliance_frameworks_reference.html`
 - [correspondence] Follow up on vendor replies and finalize configuration decisions
+
+---
+
+## Completed
+
+- [x] [correspondence] Update YARN Node Manager core allocation from 14 to 18 cores
+- [x] [correspondence] Confirm 3-OSD storage allocation strategy (OSD utilization max 80%)
+- [x] [correspondence] Revisit and confirm JBOD vs. RAID 5 for scratch drives decision
+- [x] [correspondence] Confirm Spark version 3.5.3 in production calculator
+- [x] [calculators] Dev cluster: no hardware RAID — NVMe scratch drives run JBOD; only Proxmox OS SSDs use ZFS
+- [x] [calculators] Dev cluster: scratch OSDs formatted with XFS
+- [x] [calculators] Update all related HTML files to reflect JBOD/XFS storage decisions
+- [x] [correspondence] Provide answers to Production Cluster Q&A questionnaire
+- [x] [correspondence] Confirm JBOD + XFS as final disk strategy for dev
+- [x] [remote_services] Q1 — Airflow executor type — CeleryExecutor confirmed
+- [x] [calculators] Review any calculator changes pending in Ready_For_Review/
+- [x] [remote_services] Airflow executor type — CeleryExecutor confirmed
+- [x] [remote_services] Spark event log location — s3a://spark-history/ confirmed
