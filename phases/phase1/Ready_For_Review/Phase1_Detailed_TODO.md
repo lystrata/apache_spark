@@ -5,6 +5,20 @@ _Phases 1–2 detailed plan from fqdn Phase 1 Report (Ksolves) — April 2026_
 _Report Source: phases/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf_  
 _Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING BLOCKER.1 · Out-of-scope items flagged for vendor clarification_
 
+## Table of Contents
+
+- [Phase 1 — Planning & Discovery (Completed)](#phase-1--planning--discovery-completed)
+- [Phase 2 — Implementation (Pending BLOCKER.1)](#phase-2--implementation-pending-blocker1)
+  - [BLOCKER.1 — Establish Ksolves Remote Access](#blocker1--establish-ksolves-remote-access-to-both-proxmox-clusters)
+  - [BLOCKER.2 — Provision RHEL ISO](#blocker2--provision-rhel-iso-to-proxmox-local-storage-user-action)
+  - [Phase 2A — Critical Path: VM Provisioning & Foundational Software (P0)](#phase-2a--critical-path-vm-provisioning--foundational-software-p0)
+  - [Phase 2B — High Priority: Infrastructure Services & HA (P1)](#phase-2b--high-priority-infrastructure-services--ha-p1)
+  - [Phase 2C — Medium Priority: Configuration, Validation & Integration (P2)](#phase-2c--medium-priority-configuration-validation--integration-p2)
+- [Actions Outside Present Known Scope](#actions-outside-present-known-scope)
+- [Assumptions & Dependencies](#assumptions--dependencies)
+- [Reference Documents](#reference-documents)
+- [Footnotes](#footnotes)
+
 ---
 
 ## PHASE 1 — PLANNING & DISCOVERY (COMPLETED)
