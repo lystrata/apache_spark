@@ -1,4 +1,6 @@
 
+
+
 # Phase 1–2 Infrastructure Plan — fqdn Development Cluster
 
 _Phases 1–2 detailed plan from fqdn Phase 1 Report (Ksolves) — April 2026_  
@@ -7,19 +9,21 @@ _Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING
 
 ## Table of Contents
 
-- [Phase 1 — Planning & Discovery (Completed)](#phase-1--planning--discovery-completed)
-- [Phase 2 — Implementation (Pending BLOCKER.1)](#phase-2--implementation-pending-blocker1)
-  - [BLOCKER.1 — Establish Ksolves Remote Access](#blocker1--establish-ksolves-remote-access-to-both-proxmox-clusters)
-  - [BLOCKER.2 — Provision RHEL ISO](#blocker2--provision-rhel-iso-to-proxmox-local-storage-user-action)
-  - [Phase 2A — Critical Path: VM Provisioning & Foundational Software (P0)](#phase-2a--critical-path-vm-provisioning--foundational-software-p0)
-  - [Phase 2B — High Priority: Infrastructure Services & HA (P1)](#phase-2b--high-priority-infrastructure-services--ha-p1)
-  - [Phase 2C — Medium Priority: Configuration, Validation & Integration (P2)](#phase-2c--medium-priority-configuration-validation--integration-p2)
+- [Phase 1 — Planning & Discovery (Completed)](#phase-1-planning-discovery-completed)
+- [Phase 2 — Implementation (Pending BLOCKER.1)](#phase-2-implementation-pending-blocker1)
+  - [BLOCKER.1 — Establish Ksolves Remote Access](#blocker1-establish-ksolves-remote-access)
+  - [BLOCKER.2 — Provision RHEL ISO](#blocker2-provision-rhel-iso)
+  - [Phase 2A — Critical Path: VM Provisioning & Foundational Software (P0)](#phase-2a-critical-path-vm-provisioning)
+  - [Phase 2B — High Priority: Infrastructure Services & HA (P1)](#phase-2b-high-priority-infrastructure-services)
+  - [Phase 2C — Medium Priority: Configuration, Validation & Integration (P2)](#phase-2c-medium-priority-configuration-validation)
 - [Actions Outside Present Known Scope](#actions-outside-present-known-scope)
-- [Assumptions & Dependencies](#assumptions--dependencies)
+- [Assumptions & Dependencies](#assumptions-dependencies)
 - [Reference Documents](#reference-documents)
 - [Footnotes](#footnotes)
 
 ---
+
+<a id="phase-1-planning-discovery-completed"></a>
 
 ## PHASE 1 — PLANNING & DISCOVERY (COMPLETED)
 
@@ -39,9 +43,13 @@ Per Ksolves April 24 status report, Phase 1 planning is **COMPLETE**. All discov
 
 ---
 
+<a id="phase-2-implementation-pending-blocker1"></a>
+
 ## PHASE 2 — IMPLEMENTATION (PENDING BLOCKER.1)
 
 All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once interim Phase 1A access (Webex) is established, Ksolves can execute all P0–P2 items in sequence.
+
+<a id="blocker1-establish-ksolves-remote-access"></a>
 
 ### 🔒 BLOCKER.1 — Establish Ksolves Remote Access to Both Proxmox Clusters
 
@@ -100,6 +108,8 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ---
 
+<a id="blocker2-provision-rhel-iso"></a>
+
 ### 🔒 BLOCKER.2 — Provision RHEL ISO to Proxmox Local Storage (User Action)
 
 - **Status:** PENDING OSD CONFIGURATION
@@ -126,6 +136,8 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Dependency:** Blocks P0.1, P0.2 — Ksolves cannot proceed with VM provisioning without RHEL ISO available
 
 ---
+
+<a id="phase-2a-critical-path-vm-provisioning"></a>
 
 ### Phase 2A — Critical Path: VM Provisioning & Foundational Software (P0)
 
@@ -222,6 +234,8 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Estimated Effort:** 2-4 hours
 
 ---
+
+<a id="phase-2b-high-priority-infrastructure-services"></a>
 
 ### Phase 2B — High Priority: Infrastructure Services & HA (P1)
 
@@ -340,6 +354,8 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Estimated Effort:** 1-2 hours (measurement during load test)
 
 ---
+
+<a id="phase-2c-medium-priority-configuration-validation"></a>
 
 ### Phase 2C — Medium Priority: Configuration, Validation & Integration (P2)
 
@@ -462,6 +478,8 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ---
 
+<a id="actions-outside-present-known-scope"></a>
+
 ## ACTIONS OUTSIDE PRESENT KNOWN SCOPE
 
 The following items are derived from Phase 1 report findings but are not explicitly assigned as Ksolves Phase 1 or Phase 2 responsibilities. Clarification from Ksolves required.
@@ -488,6 +506,8 @@ The following items are derived from Phase 1 report findings but are not explici
 - **Owner:** TBD (awaiting Ksolves clarification)
 
 ---
+
+<a id="assumptions-dependencies"></a>
 
 ## ASSUMPTIONS & DEPENDENCIES
 
@@ -531,6 +551,8 @@ The following items are derived from Phase 1 report findings but are not explici
 
 ---
 
+<a id="reference-documents"></a>
+
 ## REFERENCE DOCUMENTS
 
 - **Main Report:** phases/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf
@@ -541,6 +563,8 @@ The following items are derived from Phase 1 report findings but are not explici
 - **Vendor Questions:** phases/phase1/vendor_comms/phase1_vendor_questions.txt
 
 ---
+
+<a id="footnotes"></a>
 
 ## FOOTNOTES
 
