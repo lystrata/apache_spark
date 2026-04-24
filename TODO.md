@@ -10,7 +10,7 @@ _Last updated 2026-04-24_
 - [ ] [Phase1] [correspondence] Confirm cloud staging target — Azure Blob or AWS S3 — for Snowflake COPY INTO path
 - [ ] [Phase1] [correspondence] Confirm RHEL 9.4 subscriptions active on all Worker VMs and YARN RM VM
 - [ ] [Phase1] [remote_services] Install Hadoop 3.4.1 separately on all Worker VMs and configure HADOOP_HOME
-- [ ] [Phase1] [calculators] Run first 5 production jobs and measure actual shuffle amplification factor (update dev_cluster_phase1_model.html default once measured)
+- [ ] [Phase1] [calculators] Run first 5 production jobs and measure actual shuffle amplification factor (update phases/phase1/deliverables/dev_cluster_phase1_model.html default once measured)
 
 ### P1 — Phase 1 Support & Validation
 

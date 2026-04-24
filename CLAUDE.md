@@ -256,7 +256,7 @@ Files with Revisions sections:
 - `calculators/Document/production_spark_calculator.html` — section id `sec_revisions`
 - `calculators/Document/dev_cluster_math_reference.html` — section id `revisions`
 - `calculators/Document/dev-cluster-storage-reference.html` — section id `sec_revisions`
-- `calculators/Document/dev_cluster_phase1_model.html` — section id `sec_revisions`
+- `phases/phase1/deliverables/dev_cluster_phase1_model.html` — section id `sec_revisions`
 
 When a change is made to either calculator, the corresponding guide file (`calculators/Document/prod_calculator_guide.html`, `calculators/Document/dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
 
@@ -305,7 +305,7 @@ Exception: reference documents may have one section open by default (e.g. Overvi
 
 - Set `data-theme="dark"` on the `<html>` element as the default.
 - Place the toggle button in the page header alongside the title (use `page-header-inner` flex layout with `.header-text` and `.btn-theme`).
-- Use the warm amber palette for light mode — defined in `Shared_References/html-css-style-guide.html` Section B.
+- Use the warm amber palette for light mode — defined in `phases/phase1/reference/html-css-style-guide.html` Section B.
 - Use a unique `localStorage` key per file using the pattern `spark_theme_<context>` to avoid cross-page conflicts.
 - Existing keys in use: `spark_theme` (dev calc), `spark_theme_prod` (prod calc), `spark_theme_phase1` (phase1 model), `spark_theme_styleguide` (style guide).
 
