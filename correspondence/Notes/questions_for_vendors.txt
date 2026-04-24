@@ -6,9 +6,9 @@ Updated 2026-04-21 00:00
 
 PRODUCTION CLUSTER Q&A QUESTIONNAIRE
 Source: Meeting 2026-04-20, Karthik Hedger H A (Ksolves)
-Status: Pending completion by Ask Allegiance team
+Status: Pending completion by fqdn team
 
-Karthik provided a comprehensive questionnaire (Allegiance Production Cluster QnA.xlsx) with
+Karthik provided a comprehensive questionnaire (fqdn Production Cluster QnA.xlsx) with
 the following required answers to finalize resource sizing:
 
 PHASE 1: Data Sizing & High-Level Requirements
@@ -43,7 +43,7 @@ CLUSTER & RESOURCE CONSTRAINTS
 - Disk type for storage/scratch (NVMe/SSD/HDD)
 - Shared cluster resources (other workloads on same cluster?)
 
-Action: Coordinate with Murali/Ask Allegiance team to complete answers; Karthik will send
+Action: Coordinate with Murali/fqdn team to complete answers; Karthik will send
 follow-up email with detailed questions to Murali/team.
 
 ---------------------------------------------------------------

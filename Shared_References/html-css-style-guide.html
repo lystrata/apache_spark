@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML · CSS · JS Style Guide — Spark Infrastructure Calculators</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+       background: var(--bg); color: var(--text); line-height: 1.6; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── CSS variables — dark (default) ──────────────────────────────────────── */
+:root {
+  --bg:       #0f1117;
+  --bg2:      #141720;
+  --bg3:      #1a1d2e;
+  --bg4:      #1e2238;
+  --border:   #2a2d3a;
+  --border2:  #1e2130;
+  --text:     #d4d4d4;
+  --text2:    #c9d1e0;
+  --text-hi:  #e8eaf0;
+  --accent:   #7ab3e0;
+  --accent2:  #2d5a8e;
+  --muted:    #7a8298;
+  --muted2:   #8b97aa;
+  --label:    #8b93a8;
+  --label2:   #6b7280;
+  --ok:       #4ade80;
+  --warn:     #f59e0b;
+  --crit:     #f87171;
+  --purple:   #b482ff;
+  --mono:     'Cascadia Code', 'Fira Mono', 'Consolas', monospace;
+}
+
+/* ── CSS variables — light (warm amber) ──────────────────────────────────── */
+[data-theme="light"] {
+  --bg:       #e6dfd0;
+  --bg2:      #f7f2e8;
+  --bg3:      #ede7da;
+  --bg4:      #ddd6c8;
+  --border:   #c8bfad;
+  --border2:  #d4ccbd;
+  --text:     #2a2318;
+  --text2:    #3a3028;
+  --text-hi:  #1a1510;
+  --accent:   #2d5a8e;
+  --accent2:  #2d5a8e;
+  --muted:    #8a7d6a;
+  --muted2:   #9a8d7a;
+  --label:    #6a6055;
+  --label2:   #7a7065;
+  --ok:       #1a5430;
+  --warn:     #7a4a00;
+  --crit:     #981818;
+  --purple:   #7040b8;
+}
+
+/* ── page header ──────────────────────────────────────────────────────────── */
+.page-header {
+  background: linear-gradient(135deg, var(--bg3) 0%, var(--bg) 100%);
+  border-bottom: 2px solid var(--accent2);
+}
+.page-header-inner {
+  max-width: 1100px; margin: 0 auto; padding: 26px 36px 18px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+.header-text { flex: 1; }
+.page-header h1 { font-size: 1.55rem; font-weight: 700; color: var(--text-hi); }
+.page-header h2 { font-size: 0.95rem; font-weight: 400; color: var(--accent); margin-top: 3px; }
+.page-header p  { font-size: 0.78rem; color: var(--muted2); margin-top: 6px; }
+
+/* ── page wrapper ─────────────────────────────────────────────────────────── */
+.page-wrap { max-width: 1100px; margin: 0 auto; padding: 14px 36px 60px; }
+
+/* ── section (collapsible) ────────────────────────────────────────────────── */
+.section-details {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: 10px; overflow: hidden;
+}
+.section-summary {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 18px; cursor: pointer; list-style: none;
+  background: var(--bg3); user-select: none;
+}
+.section-summary::-webkit-details-marker { display: none; }
+.section-summary::before {
+  content: '▶'; font-size: 9px; color: var(--muted);
+  transition: transform 0.2s; flex-shrink: 0;
+}
+details[open] > .section-summary::before { transform: rotate(90deg); }
+.section-letter {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent2); color: var(--text-hi);
+  font-size: 0.74rem; font-weight: 700; flex-shrink: 0;
+}
+.section-title { font-weight: 600; color: var(--text2); font-size: 0.9rem; }
+.section-sub   { font-size: 0.76rem; color: var(--muted2); flex: 1; }
+.btt           { font-size: 0.7rem; color: var(--muted); margin-left: auto; flex-shrink: 0; }
+.section-body  { padding: 18px 22px 22px; }
+.section-close {
+  text-align: center; padding-top: 16px;
+  border-top: 1px solid var(--border); margin-top: 18px;
+}
+.section-close a { font-size: 0.74rem; color: var(--muted); cursor: pointer; }
+
+/* ── card ─────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 6px; padding: 14px 18px; margin-bottom: 12px;
+}
+.card-title {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--muted); text-transform: uppercase;
+  margin-bottom: 10px; padding-bottom: 7px; border-bottom: 1px solid var(--border);
+}
+
+/* ── two-col layout ───────────────────────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ── sub-section (nested collapsible) ────────────────────────────────────── */
+.sub-details {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 5px; margin-bottom: 8px; overflow: hidden;
+}
+.sub-summary {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; cursor: pointer; list-style: none;
+  background: var(--bg2); user-select: none;
+}
+.sub-summary::-webkit-details-marker { display: none; }
+.sub-summary::before {
+  content: '▶'; font-size: 8px; color: var(--muted); transition: transform 0.2s; flex-shrink: 0;
+}
+details.sub-details[open] > .sub-summary::before { transform: rotate(90deg); }
+.sub-title { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.06em;
+             text-transform: uppercase; color: var(--label); }
+.sub-desc  { font-size: 0.73rem; color: var(--muted2); flex: 1; }
+.sub-body  { padding: 12px 16px 14px; }
+.sub-close { text-align: center; padding-top: 10px;
+             border-top: 1px solid var(--border); margin-top: 12px; }
+.sub-close a { font-size: 0.72rem; color: var(--muted); cursor: pointer; }
+
+/* ── slider row ───────────────────────────────────────────────────────────── */
+.sl-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sl-row:last-child { margin-bottom: 0; }
+.sl-lbl { font-size: 0.78rem; color: var(--text); min-width: 220px; }
+.sl-lbl small { display: block; font-size: 0.68rem; color: var(--muted2); font-family: var(--mono); }
+.sl-row input[type=range] { flex: 1; }
+.sl-val { font-size: 0.82rem; font-weight: 700; color: var(--accent); min-width: 60px; text-align: right; font-family: var(--mono); }
+
+/* ── output row ───────────────────────────────────────────────────────────── */
+.out-row { display: flex; justify-content: space-between; align-items: baseline;
+           padding: 5px 0; border-bottom: 1px solid var(--border2); }
+.out-row:last-child { border-bottom: none; }
+.out-lbl { font-size: 0.78rem; color: var(--label); }
+.out-val { font-size: 0.82rem; font-weight: 600; color: var(--accent); font-family: var(--mono); }
+.out-val.warn { color: var(--warn); }
+.out-val.crit { color: var(--crit); }
+
+/* ── status / value classes ───────────────────────────────────────────────── */
+.ok     { color: var(--ok); }
+.warn   { color: var(--warn); }
+.crit   { color: var(--crit); }
+.avail  { color: var(--ok); }
+.exec   { color: var(--accent); }
+.deduct { color: var(--warn); }
+
+/* ── warn items (diagnostics panel) ──────────────────────────────────────── */
+.warn-item {
+  display: flex; gap: 10px; padding: 8px 12px; border-radius: 5px;
+  border: 1px solid; margin-bottom: 6px; font-size: 0.8rem; line-height: 1.4;
+}
+.warn-item:last-child { margin-bottom: 0; }
+.warn-item.error   { background: rgba(248,113,113,0.07); border-color: rgba(248,113,113,0.3);  color: #fca5a5; }
+.warn-item.warning { background: rgba(251,191,36,0.07);  border-color: rgba(251,191,36,0.28);  color: #fde68a; }
+.warn-item.ok      { background: rgba(74,222,128,0.06);  border-color: rgba(74,222,128,0.22);  color: #86efac; }
+.warn-item.info    { background: rgba(122,179,224,0.07); border-color: rgba(122,179,224,0.25); color: #bae6fd; }
+.wi-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.wi-msg  { flex: 1; }
+[data-theme="light"] .warn-item.error   { background: rgba(192,40,40,0.07);  border-color: rgba(192,40,40,0.35);  color: #981818; }
+[data-theme="light"] .warn-item.warning { background: rgba(168,112,0,0.07);  border-color: rgba(168,112,0,0.35);  color: #7a4a00; }
+[data-theme="light"] .warn-item.ok      { background: rgba(42,112,64,0.07);  border-color: rgba(42,112,64,0.3);   color: #1a5430; }
+[data-theme="light"] .warn-item.info    { background: rgba(176,104,32,0.07); border-color: rgba(176,104,32,0.3);  color: #7a4c10; }
+
+/* ── reference table ──────────────────────────────────────────────────────── */
+.ref-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.ref-table th {
+  text-align: left; padding: 6px 10px; font-size: 0.68rem; font-weight: 700;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
+}
+.ref-table td { padding: 6px 10px; border-bottom: 1px solid var(--border2); }
+.ref-table tr:last-child td { border-bottom: none; }
+.ref-table .v   { color: var(--accent); font-weight: 500; font-family: var(--mono); }
+.ref-table .lbl { color: var(--label); }
+.ref-table .nt  { color: var(--muted); font-size: 0.74rem; }
+.ref-table tfoot td { color: var(--accent); font-weight: 600; border-top: 1px solid var(--border); }
+
+/* ── spark conf pre ───────────────────────────────────────────────────────── */
+.spark-conf-pre {
+  font-family: var(--mono); font-size: 12px; line-height: 1.6;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 5px; padding: 14px 16px;
+  white-space: pre; overflow-x: auto;
+}
+.cc { color: var(--muted2); }
+.ck { color: var(--accent); }
+.cv { color: var(--ok); }
+
+/* ── theme button ─────────────────────────────────────────────────────────── */
+.btn-theme {
+  font-size: 11px; font-weight: 500; padding: 6px 14px; border-radius: 6px;
+  cursor: pointer; border: 1px solid var(--border); background: var(--bg3);
+  color: var(--muted2); letter-spacing: 0.06em; transition: background 0.15s, color 0.15s;
+  margin-top: 4px; flex-shrink: 0;
+}
+.btn-theme:hover { background: var(--border); color: var(--text); }
+
+/* ── style guide specific ─────────────────────────────────────────────────── */
+.sg-demo  { border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin: 10px 0; background: var(--bg2); }
+.sg-code  { font-family: var(--mono); font-size: 12px; line-height: 1.7;
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 5px; padding: 14px 16px; margin: 8px 0;
+            white-space: pre; overflow-x: auto; color: var(--text2); }
+.sg-h2    { font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--muted); margin: 18px 0 6px; }
+.swatch   { display: inline-block; width: 16px; height: 16px; border-radius: 3px;
+            vertical-align: middle; margin-right: 6px; border: 1px solid rgba(0,0,0,0.1); }
+.palette  { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.pal-item { display: flex; align-items: center; font-size: 0.76rem;
+            font-family: var(--mono); color: var(--label); min-width: 220px; }
+.note-box { background: rgba(122,179,224,0.07); border: 1px solid rgba(122,179,224,0.25);
+            border-radius: 5px; padding: 8px 14px; font-size: 0.8rem; color: #bae6fd;
+            margin: 8px 0; }
+[data-theme="light"] .note-box { background: rgba(45,90,142,0.07); border-color: rgba(45,90,142,0.25); color: #2d5a8e; }
+[data-theme="light"] .sg-code  { background: #f0ead8; border-color: #c8bfad; color: #2a2318; }
+[data-theme="light"] .sg-demo  { background: #f0ead8; border-color: #c8bfad; }
+
+/* ── utility ──────────────────────────────────────────────────────────────── */
+.note { font-size: 0.74rem; color: var(--muted); font-style: italic; margin-top: 6px; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+</style>
+</head>
+<body id="top">
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="header-text">
+      <h1>HTML · CSS · JS Style Guide</h1>
+      <h2>Spark Infrastructure Calculators &nbsp;·&nbsp; Shared Reference</h2>
+      <p>Patterns, components, and conventions for all calculator and reference HTML files</p>
+    </div>
+    <button class="btn-theme" id="btn_theme" onclick="toggleTheme()">&#9728; Light</button>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION A — File Structure & Setup
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_a">
+  <summary class="section-summary">
+    <span class="section-letter">A</span>
+    <span class="section-title">File Structure &amp; Setup</span>
+    <span class="section-sub">· HTML skeleton · CSS variables · serving rules</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <div class="card">
+      <div class="card-title">HTML Skeleton</div>
+      <p class="note">All files are single-file HTML with no external dependencies. No build step.</p>
+      <div class="sg-code">&lt;!DOCTYPE html&gt;
+&lt;html lang="en" data-theme="dark"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Page Title&lt;/title&gt;
+&lt;style&gt;
+  /* All CSS inline */
+  :root { ... }                /* CSS variables — dark defaults */
+  [data-theme="light"] { ... } /* CSS variables — light overrides */
+  /* component styles */
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body id="top"&gt;
+
+&lt;div class="page-header"&gt;
+  &lt;div class="page-header-inner"&gt;
+    &lt;div class="header-text"&gt;
+      &lt;h1&gt;Title&lt;/h1&gt;
+      &lt;h2&gt;Subtitle&lt;/h2&gt;
+      &lt;p&gt;Description&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;button class="btn-theme" id="btn_theme" onclick="toggleTheme()"&gt;&amp;#9728; Light&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="page-wrap"&gt;
+  &lt;!-- sections --&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  /* All JS inline — recalc(), theme, state, etc. */
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Serving Rule</div>
+      <p>Always serve via HTTP — never open as <code>file://</code>. localStorage scoping differs between origins.</p>
+      <div class="sg-code">python3 -m http.server 8000
+# then open http://localhost:8000/calculators/Document/filename.html</div>
+      <p class="note">Port 8080 is also used in some sessions. Either works — pick one per session and stay consistent.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Staging Rule</div>
+      <p>All new and refactored files go to <code>Ready_For_Review/</code> first. After user approval, copy to <code>Document/</code> and delete from staging. Update <code>calculators/Document/index.html</code> when promoting any new file to <code>Document/</code>.</p>
+    </div>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION B — CSS Variables (Color System)
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_b">
+  <summary class="section-summary">
+    <span class="section-letter">B</span>
+    <span class="section-title">CSS Variable System</span>
+    <span class="section-sub">· dark defaults · light overrides · color palette</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <div class="card">
+      <div class="card-title">Dark Theme — Root Defaults</div>
+      <div class="sg-code">:root {
+  --bg:       #0f1117;   /* page background */
+  --bg2:      #141720;   /* card / cell background */
+  --bg3:      #1a1d2e;   /* section header / card */
+  --bg4:      #1e2238;   /* node card header, slightly lighter */
+  --border:   #2a2d3a;   /* primary border */
+  --border2:  #1e2130;   /* secondary border (table rows) */
+  --text:     #d4d4d4;   /* body text */
+  --text2:    #c9d1e0;   /* section title, slightly brighter */
+  --text-hi:  #e8eaf0;   /* h1, high-contrast labels */
+  --accent:   #7ab3e0;   /* links, values, active state */
+  --accent2:  #2d5a8e;   /* section letter background, borders */
+  --muted:    #7a8298;   /* icons, close links, muted labels */
+  --muted2:   #8b97aa;   /* subtitles, helper text */
+  --label:    #8b93a8;   /* table label column */
+  --label2:   #6b7280;   /* grid label cells */
+  --ok:       #4ade80;   /* success / available */
+  --warn:     #f59e0b;   /* warning / tight */
+  --crit:     #f87171;   /* error / binding */
+  --purple:   #b482ff;   /* scenario view, optional accent */
+  --mono:     'Cascadia Code', 'Fira Mono', 'Consolas', monospace;
+}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Light Theme — Warm Amber Overrides</div>
+      <div class="note-box">Apply the same variable names — only the values change. All component CSS uses <code>var(--xxx)</code> and inherits light mode automatically.</div>
+      <div class="sg-code">[data-theme="light"] {
+  --bg:       #e6dfd0;   /* warm parchment background */
+  --bg2:      #f7f2e8;   /* card / cell */
+  --bg3:      #ede7da;   /* section header */
+  --bg4:      #ddd6c8;   /* node header */
+  --border:   #c8bfad;   /* primary border */
+  --border2:  #d4ccbd;   /* secondary border */
+  --text:     #2a2318;   /* body text */
+  --text2:    #3a3028;
+  --text-hi:  #1a1510;
+  --accent:   #2d5a8e;   /* links, values */
+  --accent2:  #2d5a8e;
+  --muted:    #8a7d6a;
+  --muted2:   #9a8d7a;
+  --label:    #6a6055;
+  --label2:   #7a7065;
+  --ok:       #1a5430;
+  --warn:     #7a4a00;
+  --crit:     #981818;
+  --purple:   #7040b8;
+}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Elements That Need Manual Light Overrides</div>
+      <p>Some elements use hardcoded RGBA or fixed colors that don't pick up variable changes automatically. Always add explicit <code>[data-theme="light"]</code> rules for:</p>
+      <ul style="margin:8px 0 0 18px; font-size:0.82rem; color:var(--label); line-height:1.8;">
+        <li><code>.warn-item.error/warning/ok/info</code> — RGBA backgrounds</li>
+        <li>Bar segments with <code>!important</code> background overrides</li>
+        <li><code>.spark-conf-pre</code> token colors (<code>.cc</code>, <code>.ck</code>, <code>.cv</code>)</li>
+        <li>Badge backgrounds (<code>.badge-ok</code>, <code>.badge-warn</code>, <code>.badge-crit</code>)</li>
+        <li>Body grid pattern (<code>background-image</code>)</li>
+        <li>Page header gradient</li>
+        <li><code>input[type=range]</code> accent color</li>
+        <li><code>select</code> and <code>input[type=number]</code> backgrounds</li>
+      </ul>
+    </div>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION C — Components
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_c">
+  <summary class="section-summary">
+    <span class="section-letter">C</span>
+    <span class="section-title">Components</span>
+    <span class="section-sub">· sections · sub-sections · cards · sliders · outputs · tables</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Section (Collapsible)</span>
+        <span class="sub-desc">Top-level content block with letter badge, title, subtitle, back-to-top</span>
+      </summary>
+      <div class="sub-body">
+        <div class="note-box">All sections default <strong>closed</strong> on page load via DOMContentLoaded handler. Exception: diagnostics/warnings may open by default.</div>
+        <div class="sg-code">&lt;details class="section-details" id="sec_x"&gt;
+  &lt;summary class="section-summary"&gt;
+    &lt;span class="section-letter"&gt;X&lt;/span&gt;
+    &lt;span class="section-title"&gt;Section Title&lt;/span&gt;
+    &lt;span class="section-sub"&gt;&amp;middot; subtitle &amp;middot; description&lt;/span&gt;
+    &lt;a href="#top" class="btt" onclick="event.stopPropagation()"&gt;&amp;#8593; Top&lt;/a&gt;
+  &lt;/summary&gt;
+  &lt;div class="section-body"&gt;
+    &lt;!-- cards go here --&gt;
+    &lt;div class="section-close"&gt;
+      &lt;a onclick="this.closest('details').open=false"&gt;&amp;#x25B2; Close section&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/details&gt;</div>
+        <div class="sg-code">/* DOMContentLoaded — close all sections except diagnostics */
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('details.section-details').forEach(function(d) {
+    if (d.id !== 'sec_g') d.open = false; /* sec_g = Diagnostics, stays open */
+  });
+  recalc();
+});</div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Sub-Section (Nested Collapsible)</span>
+        <span class="sub-desc">Use within sections for grouping related topics</span>
+      </summary>
+      <div class="sub-body">
+        <div class="sg-code">&lt;details class="sub-details"&gt;
+  &lt;summary class="sub-summary"&gt;
+    &lt;span class="sub-title"&gt;SUB-SECTION TITLE&lt;/span&gt;
+    &lt;span class="sub-desc"&gt;short description&lt;/span&gt;
+  &lt;/summary&gt;
+  &lt;div class="sub-body"&gt;
+    &lt;!-- content --&gt;
+    &lt;div class="sub-close"&gt;&lt;a onclick="closeSub(this)"&gt;&amp;#x25B2; Close&lt;/a&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/details&gt;</div>
+        <div class="sg-code">function closeSub(el) {
+  var d = el.closest('details');
+  d.open = false;
+  setTimeout(function() {
+    d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'});
+  }, 30);
+}</div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Card</span>
+        <span class="sub-desc">Primary content container within a section</span>
+      </summary>
+      <div class="sub-body">
+        <div class="sg-code">&lt;div class="card"&gt;
+  &lt;div class="card-title"&gt;CARD TITLE&lt;/div&gt;
+  &lt;!-- content --&gt;
+&lt;/div&gt;</div>
+        <div class="sg-demo">
+          <div class="card-title">EXAMPLE CARD TITLE</div>
+          <p style="font-size:0.82rem; color:var(--label);">Card content goes here.</p>
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Slider Row</span>
+        <span class="sub-desc">sl-row · sl-lbl · range input · sl-val</span>
+      </summary>
+      <div class="sub-body">
+        <div class="sg-code">&lt;div class="sl-row"&gt;
+  &lt;span class="sl-lbl"&gt;
+    Label text
+    &lt;small&gt;spark.property.name&lt;/small&gt;  &lt;!-- optional --&gt;
+  &lt;/span&gt;
+  &lt;input type="range" id="my_slider" min="8" max="64" step="4" value="28" oninput="recalc()"&gt;
+  &lt;span class="sl-val" id="out_my_slider"&gt;28 GB&lt;/span&gt;
+&lt;/div&gt;</div>
+        <p class="note">Always use <code>oninput</code> (not <code>onchange</code>) so display updates while dragging. Use <code>onchange</code> via event listener for <code>saveState()</code>.</p>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Output Row</span>
+        <span class="sub-desc">out-row · out-lbl · out-val with status classes</span>
+      </summary>
+      <div class="sub-body">
+        <div class="sg-code">&lt;div class="out-row"&gt;
+  &lt;span class="out-lbl"&gt;Label&lt;/span&gt;
+  &lt;span class="out-val" id="some_output"&gt;value&lt;/span&gt;
+&lt;/div&gt;
+
+/* status classes on out-val */
+.out-val        /* default — accent color */
+.out-val.warn   /* amber — at-risk condition */
+.out-val.crit   /* red — binding or error */</div>
+        <p class="note">Set class dynamically from JS: <code>el('some_output').className = 'out-val' + (cls ? ' ' + cls : '');</code></p>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Diagnostics / Warn Items</span>
+        <span class="sub-desc">warn-item with error · warning · ok · info variants</span>
+      </summary>
+      <div class="sub-body">
+        <div class="sg-code">&lt;div class="warn-item error"&gt;
+  &lt;span class="wi-icon"&gt;&amp;#x2717;&lt;/span&gt;
+  &lt;span class="wi-msg"&gt;Error message text&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class="warn-item warning"&gt; ... &lt;/div&gt;
+&lt;div class="warn-item ok"&gt; ... &lt;/div&gt;
+&lt;div class="warn-item info"&gt; ... &lt;/div&gt;
+
+/* Icons by severity */
+error:   &#x2717;  (✗)
+warning: &#x25B2;  (▲)
+ok:      &#x2713;  (✓)
+info:    &amp;#x2139; (ℹ)</div>
+        <div class="sg-demo">
+          <div class="warn-item error"><span class="wi-icon">✗</span><span class="wi-msg">Error: configuration exceeds hardware limits</span></div>
+          <div class="warn-item warning"><span class="wi-icon">▲</span><span class="wi-msg">Warning: OOM margin is less than 4 GB</span></div>
+          <div class="warn-item ok"><span class="wi-icon">✓</span><span class="wi-msg">All checks passed — configuration looks healthy</span></div>
+          <div class="warn-item info"><span class="wi-icon">ℹ</span><span class="wi-msg">Info: executor count varies due to asymmetric placement</span></div>
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Reference Table</span>
+        <span class="sub-desc">ref-table with .v · .lbl · .nt column classes</span>
+      </summary>
+      <div class="sub-body">
+        <div class="sg-code">&lt;table class="ref-table"&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;Label&lt;/th&gt;&lt;th&gt;Value&lt;/th&gt;&lt;th&gt;Notes&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td class="lbl"&gt;Row label&lt;/td&gt;
+      &lt;td class="v"&gt;value&lt;/td&gt;
+      &lt;td class="nt"&gt;footnote / context&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+  &lt;tfoot&gt;
+    &lt;tr&gt;&lt;td colspan="3"&gt;Total / summary row&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tfoot&gt;
+&lt;/table&gt;</div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Spark Config Pre Block</span>
+        <span class="sub-desc">spark-conf-pre · .cc comment · .ck key · .cv value</span>
+      </summary>
+      <div class="sub-body">
+        <div class="sg-code">&lt;pre class="spark-conf-pre" id="spark_conf_out"&gt;&lt;/pre&gt;
+
+/* Token classes */
+.cc  /* comment — muted color */
+.ck  /* key     — accent color */
+.cv  /* value   — ok/green color */
+
+/* renderSparkConf pattern */
+function renderSparkConf(ec, em, eo, dc, te) {
+  var lines = [
+    ['# comment','c'],
+    ['spark.executor.cores', ec, 'k'],
+    ...
+  ];
+  var html = '';
+  lines.forEach(function(row) {
+    if (!row[1]) { html += '\n'; return; }
+    if (row[1] === 'c') { html += '&lt;span class="cc"&gt;' + esc(row[0]) + '&lt;/span&gt;\n'; return; }
+    var padded = row[0].padEnd(48, ' ');
+    html += '&lt;span class="ck"&gt;' + esc(padded) + '&lt;/span&gt;  &lt;span class="cv"&gt;' + esc(row[1]) + '&lt;/span&gt;\n';
+  });
+  setHTML('spark_conf_out', html);
+}</div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION D — JavaScript Patterns
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_d">
+  <summary class="section-summary">
+    <span class="section-letter">D</span>
+    <span class="section-title">JavaScript Patterns</span>
+    <span class="section-sub">· recalc · theme · state persistence · navigation</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">recalc() Execution Order</span>
+        <span class="sub-desc">Critical load order for slider reads and derived math</span>
+      </summary>
+      <div class="sub-body">
+        <div class="note-box">This order is load-bearing. Pre-scale block must run before any reads.</div>
+        <div class="sg-code">function recalc() {
+  /* 1. Pre-scale block (must be first)
+        Recompute dependent slider max from parent slider, then rescale value
+        to maintain percentage position.
+        Example: ram_per_vm max depends on ram_node current value. */
+  var ramNode = parseInt(el('ram_node').value);
+  var ramPerVmEl = el('ram_per_vm');
+  var pct = ramPerVmEl.value / ramPerVmEl.max;
+  ramPerVmEl.max = ramNode - INFRA_RAM;
+  ramPerVmEl.value = Math.round(pct * ramPerVmEl.max);
+
+  /* 2. Slider display updates */
+  setVal('ram_node', ramNode + ' GB');
+  setVal('ram_per_vm', parseInt(el('ram_per_vm').value) + ' GB');
+
+  /* 3. Read all inputs into constants */
+  var VMS_NODE = parseInt(el('vms_node').value);
+  var VCPU_VM  = parseInt(el('vcpu_vm').value);
+  /* ... */
+
+  /* 4. Infrastructure reservation math */
+  /* 5. Executor math */
+  /* 6. UI updates (bars, metrics, tables, warnings) */
+  renderWarnings(...);
+}</div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Theme Toggle</span>
+        <span class="sub-desc">applyTheme · toggleTheme · localStorage persistence</span>
+      </summary>
+      <div class="sub-body">
+        <div class="note-box">Each calculator uses a unique localStorage key to avoid cross-page theme conflicts. Use <code>spark_theme_&lt;context&gt;</code>.</div>
+        <div class="sg-code">/* HTML — place in page-header-inner, sibling of .header-text */
+&lt;button class="btn-theme" id="btn_theme" onclick="toggleTheme()"&gt;&amp;#9728; Light&lt;/button&gt;
+
+/* JS — place at end of script block */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('spark_theme_&lt;context&gt;', theme);
+  document.getElementById('btn_theme').textContent =
+    theme === 'dark' ? '\u2600 Light' : '\u263e Dark';
+}
+function toggleTheme() {
+  var current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+/* Run immediately — before DOMContentLoaded — to avoid flash */
+applyTheme(localStorage.getItem('spark_theme_&lt;context&gt;') || 'dark');</div>
+        <p class="note">localStorage keys in use: <code>spark_theme</code> (dev calc), <code>spark_theme_prod</code> (prod calc), <code>spark_theme_phase1</code> (phase1 model).</p>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">State Persistence (localStorage)</span>
+        <span class="sub-desc">saveState · loadState · key conventions</span>
+      </summary>
+      <div class="sub-body">
+        <div class="sg-code">/* localStorage key convention */
+spark_calc_dev         /* dev calculator session continuity */
+spark_calc_prod        /* prod calculator session continuity */
+spark_calc_dev_phase1  /* phase1 model session continuity */
+spark_calc_dev_scenarios   /* dev named scenarios */
+spark_calc_prod_scenarios  /* prod named scenarios */
+
+/* State save — only on explicit Save button or slider change */
+function saveState() {
+  try {
+    var sliders = {};
+    document.querySelectorAll('input[type=range]').forEach(function(s) {
+      sliders[s.id] = s.value;
+    });
+    localStorage.setItem(LS_KEY, JSON.stringify({sliders: sliders}));
+  } catch(e) {}
+}
+
+/* State restore — ram_node MUST be restored before other sliders
+   because the pre-scale block in recalc() reads it to set ram_per_vm max */
+function loadState() {
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    var state = JSON.parse(raw);
+    if (state.sliders) {
+      /* restore ram_node first */
+      if (state.sliders.ram_node !== undefined)
+        el('ram_node').value = state.sliders.ram_node;
+      /* then all others */
+      document.querySelectorAll('input[type=range]').forEach(function(s) {
+        if (s.id !== 'ram_node' && state.sliders[s.id] !== undefined)
+          s.value = state.sliders[s.id];
+      });
+    }
+  } catch(e) {}
+}</div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Cross-Section Jump Links</span>
+        <span class="sub-desc">jumpTo() — open target section and scroll to anchor</span>
+      </summary>
+      <div class="sub-body">
+        <div class="note-box">Never use bare <code>href="#anchor"</code> for cross-section links — target section will be closed and anchor invisible.</div>
+        <div class="sg-code">&lt;a href="#anchor-id" onclick="jumpTo('anchor-id', 'sec_target')"&gt;link text&lt;/a&gt;
+
+/* anchor target — add id to the element being linked to */
+&lt;h3 id="anchor-id"&gt;Target Heading&lt;/h3&gt;
+
+/* JS — one copy per file */
+var _jumpedTo = null;
+function jumpTo(hash, sectionId) {
+  event.preventDefault();
+  _jumpedTo = {hash: hash, sectionId: sectionId};
+  history.pushState(null, '', '#' + hash);
+  var d = document.getElementById(sectionId);
+  if (d) d.open = true;
+  setTimeout(function() {
+    var t = document.getElementById(hash);
+    if (t) t.scrollIntoView({behavior:'smooth'});
+  }, 50);
+}
+window.addEventListener('popstate', function() {
+  if (_jumpedTo && location.hash !== '#' + _jumpedTo.hash) {
+    var sec = document.getElementById(_jumpedTo.sectionId);
+    if (sec) sec.open = false;
+    _jumpedTo = null;
+  }
+});</div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">Security Helper — _escHtml()</span>
+        <span class="sub-desc">Required for any user-supplied string injected into innerHTML</span>
+      </summary>
+      <div class="sub-body">
+        <div class="note-box">Apply to scenario names, file names, or any user input before <code>innerHTML</code> injection.</div>
+        <div class="sg-code">function _escHtml(s) {
+  return String(s)
+    .replace(/&amp;/g, '&amp;amp;')
+    .replace(/&lt;/g, '&amp;lt;')
+    .replace(/&gt;/g, '&amp;gt;')
+    .replace(/"/g, '&amp;quot;');
+}
+
+/* short alias used inside renderSparkConf / similar */
+function esc(s) { return _escHtml(s); }</div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="sub-title">DOM Helpers</span>
+        <span class="sub-desc">el · setTxt · setVal · setHTML</span>
+      </summary>
+      <div class="sub-body">
+        <div class="sg-code">function el(id) { return document.getElementById(id); }
+function setTxt(id, v)  { var e = el(id); if (e) e.textContent = v; }
+function setVal(id, v)  { var e = el(id); if (e) e.textContent = v; } /* alias */
+function setHTML(id, v) { var e = el(id); if (e) e.innerHTML = v; }</div>
+        <p class="note"><code>setHTML</code> is for trusted content only. User-supplied strings must go through <code>_escHtml()</code> before being passed to <code>setHTML</code>.</p>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION E — Calculator Math Reference
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_e">
+  <summary class="section-summary">
+    <span class="section-letter">E</span>
+    <span class="section-title">Calculator Math Reference</span>
+    <span class="section-sub">· key sizing formulas · thresholds · hardware constants</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <div class="card">
+      <div class="card-title">Hardware Constants — Top of Script Block</div>
+      <p class="note">Define at module level, not inside recalc(). Update here when specs change.</p>
+      <table class="ref-table">
+        <thead><tr><th>Constant</th><th>Production</th><th>Development</th></tr></thead>
+        <tbody>
+          <tr><td class="lbl">NODES</td><td class="v">3</td><td class="v">3</td></tr>
+          <tr><td class="lbl">CORES_NODE</td><td class="v">64 (2×32c, dual NUMA)</td><td class="v">32 (1×32c)</td></tr>
+          <tr><td class="lbl">RAM_NODE (GB)</td><td class="v">768</td><td class="v">384</td></tr>
+          <tr><td class="lbl">NVME_COUNT</td><td class="v">9</td><td class="v">7</td></tr>
+          <tr><td class="lbl">NVME_TB</td><td class="v">3.2</td><td class="v">3.84</td></tr>
+          <tr><td class="lbl">OSD_PER_NODE</td><td class="v">3</td><td class="v">3</td></tr>
+          <tr><td class="lbl">SCRATCH_PER</td><td class="v">6</td><td class="v">4</td></tr>
+          <tr><td class="lbl">INFRA_VCPU</td><td class="v">12</td><td class="v">12</td></tr>
+          <tr><td class="lbl">INFRA_RAM (GB)</td><td class="v">33</td><td class="v">33</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Infra Reservation Breakdown (per node)</div>
+      <table class="ref-table">
+        <thead><tr><th>Service</th><th>vCPU</th><th>RAM</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="lbl">Proxmox VE</td><td class="v">2c</td><td class="v">8 GB</td><td class="nt">host hypervisor</td></tr>
+          <tr><td class="lbl">ZFS ARC</td><td class="v">—</td><td class="v">8 GB</td><td class="nt">zfs_arc_max=8589934592; no CPU reservation</td></tr>
+          <tr><td class="lbl">Ceph RGW</td><td class="v">4c</td><td class="v">8 GB</td><td class="nt">S3 gateway</td></tr>
+          <tr><td class="lbl">Ceph MON</td><td class="v">2c</td><td class="v">6 GB</td><td class="nt">one per node</td></tr>
+          <tr><td class="lbl">Ceph OSD ×3</td><td class="v">3c</td><td class="v">9 GB</td><td class="nt">1c/3GB each; 3 OSDs per node (dev &amp; prod)</td></tr>
+          <tr><td class="lbl">Ceph MGR</td><td class="v">1c</td><td class="v">2 GB</td><td class="nt">active Node01, standby Node02/03</td></tr>
+        </tbody>
+        <tfoot><tr><td><strong>Total</strong></td><td class="v"><strong>12c</strong></td><td class="v"><strong>33 GB</strong></td><td class="nt">leaves 20c / 351 GB for VM allocation (dev)</td></tr></tfoot>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Key Sizing Formulas</div>
+      <div class="sg-code">/* Executor memory sizing */
+SLOT_GB      = (RAM_VM - 2) / EXEC_PER_VM    /* 2 GB = NodeManager headroom */
+MAX_EXEC_MEM = (SLOT_GB - OFFHEAP) / (1 + OVH_PCT)
+EXEC_MEM     = floor(MAX_EXEC_MEM * 0.95)    /* 5% safety margin */
+OOM_MARGIN   = SLOT_GB - (EXEC_MEM * (1 + OVH_PCT) + OFFHEAP)
+
+/* Executor count */
+EXEC_PER_VM  = floor((VCPU_VM - 2) / EXEC_CORES)  /* 2 vCPUs: OS + NodeManager */
+TOTAL_EXEC   = max(1, EXEC_PER_VM * TOTAL_VMS - 1) /* -1 = YARN cluster-mode driver */
+
+/* Storage */
+CEPH_USABLE    = OSD_NODE * NVME_TB * NODES / CEPH_REP   /* ÷3 for 3× replication */
+SCRATCH_PER_VM = (NVME_COUNT - OSD_NODE) / VMS_NODE * NVME_TB</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Warning Thresholds</div>
+      <table class="ref-table">
+        <thead><tr><th>Metric</th><th>Warning</th><th>Error</th></tr></thead>
+        <tbody>
+          <tr><td class="lbl">OOM margin</td><td class="v">&lt; 4 GB</td><td class="v">&lt; 0 GB</td></tr>
+          <tr><td class="lbl">vCPU buffer</td><td class="v">= 1c</td><td class="v">≤ 0c (binding)</td></tr>
+          <tr><td class="lbl">Scratch headroom</td><td class="v">&lt; 2.5×</td><td class="v">&lt; 1.0×</td></tr>
+          <tr><td class="lbl">Worker vCPU (phase1)</td><td class="v">&lt; 14c</td><td class="v">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">NUMA Constraint (Production only)</div>
+      <p style="font-size:0.82rem; color:var(--label); margin-top:6px;">Max <strong>32 vCPUs per VM</strong> with NUMA pinning enabled. One NUMA domain = one CPU socket = 32 cores on production hardware. Exceeding this causes NUMA boundary crossed error.</p>
+    </div>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION F — Conventions & Rules
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_f">
+  <summary class="section-summary">
+    <span class="section-letter">F</span>
+    <span class="section-title">Conventions &amp; Rules</span>
+    <span class="section-sub">· revisions section · git · sanitization · index update</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <div class="card">
+      <div class="card-title">Revisions Section — When to Update</div>
+      <p style="font-size:0.82rem; color:var(--label); margin-top:6px;">Any HTML file with a <code>sec_revisions</code> or <code>revisions</code> section must have that section updated in the same edit whenever a formula, calculation, or content change is made.</p>
+      <p class="note">Do not update for navigation, layout, or styling changes alone.</p>
+      <p style="font-size:0.82rem; color:var(--label); margin-top:8px;">Files with Revisions sections: <code>development_spark_calculator.html</code> · <code>production_spark_calculator.html</code> · <code>dev_cluster_math_reference.html</code> · <code>dev-cluster-storage-reference.html</code></p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Corporate Identifier Sanitization</div>
+      <p style="font-size:0.82rem; color:var(--label); margin-top:6px;">Before committing any file, replace corporate identifiers (FQDN, company name) with the literal placeholder <code>fqdn</code>. Patterns stored in <code>~/.config/spark-hooks/patterns</code>. A pre-commit hook enforces this and will block commits with matches.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Index Update Rule</div>
+      <p style="font-size:0.82rem; color:var(--label); margin-top:6px;">When any new HTML file is promoted to <code>calculators/Document/</code>, add a corresponding entry to <code>calculators/Document/index.html</code> in the appropriate section (Calculators, Guides, Reference, or Research &amp; Correspondence) as part of the same commit.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Theme Toggle Rule</div>
+      <p style="font-size:0.82rem; color:var(--label); margin-top:6px;">All new calculator and reference HTML files must include the light/dark theme toggle. Use <code>data-theme="dark"</code> on <code>&lt;html&gt;</code> as default. Use the warm amber palette for light mode (defined in Section B). Use a unique <code>localStorage</code> key per file (<code>spark_theme_&lt;context&gt;</code>).</p>
+    </div>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+</div><!-- .page-wrap -->
+
+<script>
+function el(id) { return document.getElementById(id); }
+
+function closeSub(el) {
+  var d = el.closest('details');
+  d.open = false;
+  setTimeout(function() {
+    d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'});
+  }, 30);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('details.section-details').forEach(function(d) { d.open = false; });
+});
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('spark_theme_styleguide', theme);
+  document.getElementById('btn_theme').textContent = theme === 'dark' ? '\u2600 Light' : '\u263e Dark';
+}
+function toggleTheme() {
+  var current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+applyTheme(localStorage.getItem('spark_theme_styleguide') || 'dark');
+</script>
+</body>
+</html>

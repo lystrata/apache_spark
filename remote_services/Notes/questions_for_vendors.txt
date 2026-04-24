@@ -4,7 +4,48 @@ Updated 2026-04-20 16:30
 
 ===============================================================
 
+ANSWERED ITEMS
+
+Q — Ansible control node location
+Date resolved: 2026-04-23 (daily meeting)
+Answer: Ansible control node will run on the remote Airflow host (same server).
+Nginx reverse proxy will also be installed on the same host.
+Remote host now confirmed to serve: Airflow · Nginx · Ansible · (Spark History Server on Node02 per Phase 1 report)
+
+---------------------------------------------------------------
+
 [ ] WAITING FOR VENDOR REPLY
+
+Q — YARN ResourceManager HA configuration
+Date added: 2026-04-23 (daily meeting)
+
+Vendor confirmed YARN RM will be installed on Node01 (active) and Node03 (standby).
+This was not in the Phase 1 report, which showed RM on Node01 only.
+
+Question: What failover mechanism is planned?
+  - Automatic HA via ZooKeeper (requires ZooKeeper ensemble — additional VMs or processes)
+  - Manual failover only (yarn rmadmin -transitionToActive)
+
+Working assumption: ZooKeeper automatic failover — pipeline runs unattended overnight;
+manual failover is not viable when no one is on-call. Confirm with Ksolves.
+
+Note: Nginx on the remote Airflow host is a direct consequence of this HA layout —
+it provides a stable single endpoint for YARN RM routing so clients don't need to
+track which node holds the active RM.
+
+Impact on sizing: Node03 will need an additional 2 vCPU / 4 GB VM for the standby RM,
+reducing its Spark Worker headroom to match Node01 (18c effective, same as after the
+vCPU fix). ZooKeeper HA will require 3 ZooKeeper processes for quorum (one per node).
+
+Question: Where will the ZooKeeper ensemble run?
+  - As a process directly on each Proxmox host (bare metal, no VM slot consumed)
+  - As a dedicated VM on each node (additional vCPU/RAM reservation required)
+
+The cluster is already tight on vCPU after the 14→18 vCPU worker fix. Running ZooKeeper
+as a host process rather than a VM avoids consuming additional VM slots. Confirm preferred
+placement with Ksolves.
+
+---------------------------------------------------------------
 
 Q1 — Airflow Executor Type
 Date asked: 2026-04-20

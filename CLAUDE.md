@@ -256,6 +256,7 @@ Files with Revisions sections:
 - `calculators/Document/production_spark_calculator.html` — section id `sec_revisions`
 - `calculators/Document/dev_cluster_math_reference.html` — section id `revisions`
 - `calculators/Document/dev-cluster-storage-reference.html` — section id `sec_revisions`
+- `calculators/Document/dev_cluster_phase1_model.html` — section id `sec_revisions`
 
 When a change is made to either calculator, the corresponding guide file (`calculators/Document/prod_calculator_guide.html`, `calculators/Document/dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
 
@@ -297,6 +298,33 @@ document.addEventListener('DOMContentLoaded', function() {
 ```
 
 Exception: reference documents may have one section open by default (e.g. Overview & Assumptions). Add its `id` to the exclusion condition: `if (d.id !== 'sec_overview') d.open = false;`
+
+### Theme Toggle
+
+**All new calculator and reference HTML files must include a light/dark theme toggle.** This is a project-wide requirement.
+
+- Set `data-theme="dark"` on the `<html>` element as the default.
+- Place the toggle button in the page header alongside the title (use `page-header-inner` flex layout with `.header-text` and `.btn-theme`).
+- Use the warm amber palette for light mode — defined in `Shared_References/html-css-style-guide.html` Section B.
+- Use a unique `localStorage` key per file using the pattern `spark_theme_<context>` to avoid cross-page conflicts.
+- Existing keys in use: `spark_theme` (dev calc), `spark_theme_prod` (prod calc), `spark_theme_phase1` (phase1 model), `spark_theme_styleguide` (style guide).
+
+```js
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('spark_theme_<context>', theme);
+  document.getElementById('btn_theme').textContent = theme === 'dark' ? '\u2600 Light' : '\u263e Dark';
+}
+function toggleTheme() {
+  var current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+applyTheme(localStorage.getItem('spark_theme_<context>') || 'dark');
+```
+
+The `applyTheme()` call must run immediately (not inside DOMContentLoaded) to prevent a flash of the wrong theme on load.
+
+**Style guide:** `Shared_References/html-css-style-guide.html` — contains the complete CSS variable palette, component patterns, light/dark overrides, and JS patterns. Consult it instead of grepping existing calculators when building new files.
 
 ### Sub-Section Pattern (within a section)
 
