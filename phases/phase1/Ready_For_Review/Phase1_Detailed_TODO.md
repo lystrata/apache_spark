@@ -230,7 +230,7 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 - **Status:** PENDING INFRASTRUCTURE (P0.2)
 - **Priority:** HIGH — **REQUIRED PREREQUISITE for P1.2** (YARN RM HA cannot be configured until ZooKeeper is operational)
-- **Context:** ZooKeeper ensemble (1 instance per node) coordinates YARN ResourceManager failover. Paxos quorum requires 2-of-3 agreement for cluster decisions. Per Apache Hadoop documentation, ZooKeeper must be deployed and running before YARN RM HA configuration begins.
+- **Context:** ZooKeeper ensemble (1 instance per node) coordinates YARN ResourceManager failover. Paxos quorum requires 2-of-3 agreement for cluster decisions. Per Apache Hadoop documentation,¹ ZooKeeper must be deployed and running before YARN RM HA configuration begins.
 - **Ksolves Actions:**
   1. Install ZooKeeper 3.8+ on all three nodes (Node01, Node02, Node03)
   2. Configure ensemble: each instance knows about the other two (zoo.cfg server.1/2/3 entries)
@@ -246,7 +246,7 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 - **Status:** PENDING P1.3 COMPLETION (ZooKeeper must be operational first)
 - **Priority:** HIGH — Phase 1 stability requirement
-- **Context:** YARN ResourceManager runs as VM on Node01 (active) with standby on Node03. Requires ZooKeeper ensemble quorum (1 per node, 3 total) for automatic failover. Per Apache Hadoop documentation, ZooKeeper is a mandatory prerequisite for YARN RM HA. Phase 1 assumes HA for unattended overnight batch runs.
+- **Context:** YARN ResourceManager runs as VM on Node01 (active) with standby on Node03. Requires ZooKeeper ensemble quorum (1 per node, 3 total) for automatic failover. Per Apache Hadoop documentation,¹ ZooKeeper is a mandatory prerequisite for YARN RM HA. Phase 1 assumes HA for unattended overnight batch runs.
 - **Ksolves Actions:**
   1. Install YARN ResourceManager on GKPR-YARN-RM-01 (Node01, active) and GKPR-YARN-RM-02 (Node03, standby)
   2. Configure YARN RM to use ZooKeeper for HA: `yarn.resourcemanager.ha.enabled=true`, `yarn.resourcemanager.zk-address=<zk-quorum>`
@@ -525,6 +525,12 @@ The following items are derived from Phase 1 report findings but are not explici
 - **Calculator:** phases/phase1/deliverables/dev_cluster_phase1_model.html
 - **Ksolves Walkthrough:** phases/phase1/research/ksolves-directory-walkthrough.md
 - **Vendor Questions:** phases/phase1/vendor_comms/phase1_vendor_questions.txt
+
+---
+
+## FOOTNOTES
+
+¹ Apache Software Foundation, "ResourceManager High Availability," in *Apache Hadoop 3.4.1 Documentation*, accessed April 24, 2026, https://hadoop.apache.org/docs/r3.4.1/hadoop-yarn/hadoop-yarn-site/ResourceManagerHA.html. ZooKeeper is documented as a required prerequisite for YARN ResourceManager High Availability. The documentation explicitly states: "ZooKeeper is a required prerequisite for deploying YARN ResourceManager High Availability" and notes that "The RMs have an option to embed the Zookeeper-based ActiveStandbyElector to decide which RM should be the Active."
 
 ---
 
