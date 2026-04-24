@@ -260,6 +260,41 @@ Files with Revisions sections:
 
 When a change is made to either calculator, the corresponding guide file (`calculators/Document/prod_calculator_guide.html`, `calculators/Document/dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
 
+## Markdown Documents
+
+This project uses Markdown extensively for planning, specification, and documentation. Follow these standards for consistency and cross-editor compatibility.
+
+### Table of Contents and Anchor Generation
+
+**Rule:** Use explicit HTML anchor tags `<a id="anchor-name"></a>` for markdown tables of contents, not auto-generated markdown anchors.
+
+**Why:** Markdown editors auto-generate anchor IDs differently. Emojis, special characters (—, &), and heading case handling vary across Obsidian, GitHub, VS Code, and other viewers. Explicit HTML anchors are universal and work identically across all platforms and tools (including PDF conversion via Pandoc).
+
+**Pattern:**
+```markdown
+## Table of Contents
+- [Section Name](#section-anchor-id)
+
+---
+
+<a id="section-anchor-id"></a>
+
+## Section Name
+```
+
+**Anchor ID rules:**
+- Use lowercase only
+- Replace spaces with hyphens
+- Remove or simplify special characters (— becomes dash, & becomes ampersand, etc.)
+- Keep IDs short and readable
+- Example: `phase-1-planning-discovery-completed` not `phase-1-planning-discovery-completed-on-april-24`
+
+**Obsidian note:** Obsidian auto-generates anchors from headings but does not consistently honor them when viewing markdown in other tools. Always use explicit HTML anchors for any TOC intended to work cross-editor.
+
+**Markdown file version control:** As per project rules, commit markdown files each time they are updated. Do not leave markdown changes unstaged between sessions.
+
+See `Shared_References/markdown-standards.md` for detailed examples, troubleshooting, and cross-editor compatibility notes.
+
 ## HTML Document Conventions
 
 These patterns are established and must be used consistently across all HTML files in this project.
