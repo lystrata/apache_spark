@@ -110,13 +110,31 @@ Obsidian auto-generates anchors from headings and displays them in the interface
 
 3. **Special characters:** Obsidian treats em-dashes and other special characters differently than GitHub's markdown parser.
 
-### Best Practice for Obsidian Users
+### HTML Anchor Links in Obsidian
 
-If you're editing markdown in Obsidian that will be shared or converted:
-- Add explicit HTML anchors using Obsidian's editor
-- Obsidian will still show the heading link feature in the UI
-- External viewers will use the explicit anchors (which will work reliably)
-- You get the best of both: Obsidian's convenience + cross-platform reliability
+**Known limitation:** Obsidian does not reliably resolve HTML anchor tags (`<a id="..."></a>`) for internal linking, even after file reload or vault restart.
+
+**Cross-platform compatibility matrix:**
+
+| Viewer/Platform | HTML Anchors | Obsidian Native (`^anchor-id`) | Status |
+|-----------------|--------------|--------------------------------|--------|
+| Obsidian        | ❌ Broken    | ✅ Works                       | Obsidian plugin may fix |
+| GitHub          | ✅ Works     | ⚠️ Displays as text            | HTML anchors recommended |
+| VS Code         | ✅ Works     | ⚠️ Displays as text            | HTML anchors recommended |
+| OneRead         | ✅ Works     | ⚠️ Displays as text            | HTML anchors recommended |
+| Pandoc (PDF)    | ✅ Works     | ⚠️ Ignored                     | HTML anchors recommended |
+| Browser Render  | ✅ Works     | ⚠️ Displays as text            | HTML anchors recommended |
+
+**Recommendation:** Use **HTML anchors** (`<a id="..."></a>`) for documents that need broad compatibility across multiple platforms (GitHub, PDF, web, various markdown viewers). Accept that Obsidian TOC links will not work natively.
+
+### Workaround for Obsidian Users
+
+If you need TOC links to work in Obsidian:
+1. Check for an Obsidian plugin that adds HTML anchor support (search Community Plugins for "anchor", "link", or "toc")
+2. Alternative: Use Obsidian's native `^anchor-id` syntax, but note this breaks links in other viewers
+3. Alternative: Use Obsidian's built-in "link to heading" feature (right-click headings) to create links, but manually maintain the TOC
+
+**Trade-off:** Obsidian compatibility vs. broad cross-platform compatibility. This project prioritizes cross-platform compatibility.
 
 ---
 
@@ -217,14 +235,16 @@ See [YARN HA](#yarn-ha-overview) below.
 **Symptom:** Clicking a TOC link in markdown editor doesn't jump to the section.
 
 **Diagnosis:**
-1. Check if you're using auto-generated anchors. They often fail with emojis or special characters.
-2. Verify the anchor ID matches exactly (case-sensitive).
-3. Check if the heading exists (typo in anchor ID).
+1. **In Obsidian:** This is a known Obsidian limitation with HTML anchors. HTML anchors work in all other viewers (GitHub, VS Code, OneRead, browsers, PDF) but not natively in Obsidian.
+2. In other editors: Check if you're using auto-generated anchors. They often fail with emojis or special characters.
+3. Verify the anchor ID matches exactly (case-sensitive).
+4. Check if the heading exists (typo in anchor ID).
 
 **Solution:**
-- Replace auto-generated anchors with explicit HTML anchors.
-- Use the pattern: `<a id="anchor-id"></a>` placed directly before the heading.
-- Test the link in multiple editors (GitHub, VS Code, browser) to confirm it works.
+- **For cross-platform documents:** Use explicit HTML anchors `<a id="anchor-id"></a>`. They work everywhere except Obsidian. This is the recommended approach for project documents.
+- **For Obsidian-only documents:** Use Obsidian's native `^anchor-id` syntax instead (but this breaks links in other viewers).
+- **For Obsidian users on cross-platform docs:** Search Community Plugins for "anchor" or "link" support; a plugin may add HTML anchor resolution.
+- Test the link in multiple editors (GitHub, VS Code, OneRead, browser) to confirm cross-platform compatibility.
 
 ### Emoji in Heading Breaks Anchors
 
