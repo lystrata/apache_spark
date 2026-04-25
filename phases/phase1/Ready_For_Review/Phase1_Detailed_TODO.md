@@ -48,6 +48,7 @@ This document maps the **Ksolves Phase 1 Report (April 2026)** to a detailed, se
     - [P0.4b — Verify RHEL Subscriptions Post-Provisioning](#p0-4-rhel-verification-post-provisioning)
     - [P0.5 — Install Hadoop 3.4.1](#p0-5-install-hadoop)
     - [P0.6 — Run 5 Production Sample Jobs](#p0-6-run-5-production-sample-jobs)
+    - [P0.7 — Verify Network Connectivity: MSB-PMC01 ↔ MSB-PMC03](#p0-7-network-connectivity-verification)
   - [Phase 2B — High Priority: Infrastructure Services & HA (P1)](#phase-2b-high-priority-infrastructure-services)
     - [P1.0 — Provision Remote Airflow Server](#p1-0-provision-remote-airflow-host)
     - [P1.1 — Deploy Spark History Server](#p1-1-deploy-spark-history-server)
@@ -363,6 +364,34 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Owner:** Ksolves
 - **Estimated Effort:** 2-4 hours
 
+<a id="p0-7-network-connectivity-verification"></a>
+
+### 🔴 P0.7 — Verify Network Connectivity: MSB-PMC01 ↔ MSB-PMC03 (Pre-requisite for P1.0)
+
+- **Status:** OPEN (NETWORK TEAM COORDINATION)
+- **Priority:** CRITICAL — Gate for Remote Airflow Server provisioning (P1.0)
+- **Context:** Remote Airflow server will be provisioned on MSB-PMC01 cluster. Ksolves requires verified network connectivity between MSB-PMC01 and MSB-PMC03 (Spark cluster nodes) with sufficient bandwidth for:
+  - Airflow DAG submission to YARN ResourceManager (port 8032, low bandwidth)
+  - Spark driver logs and monitoring (continuous, low-moderate bandwidth)
+  - Ansible control node → cluster node SSH (key-based, low bandwidth)
+  - Nginx reverse proxy → YARN RM HA (port 8088 web UI, low bandwidth)
+- **User Actions Required:**
+  1. Coordinate with fqdn Network Team to verify/establish network path: MSB-PMC01 ↔ MSB-PMC03
+  2. Confirm routing between clusters (same VLAN, or routable via firewall)
+  3. Verify firewall rules allow:
+     - MSB-PMC01 → MSB-PMC03 nodes (TCP 8032, 8088, 22, 9095 for JMX if monitoring)
+     - MSB-PMC03 nodes → MSB-PMC01 (return traffic on same ports)
+  4. Test connectivity: ping from MSB-PMC01 to each MSB-PMC03 node; TCP port tests (`nc -zv`)
+  5. Document network topology and firewall rules for audit trail
+  6. Share verification results with Ksolves before P1.0 provisioning begins
+- **Verification:** 
+  - Network team confirms connectivity in change ticket
+  - Ping response times < 10ms (same datacenter assumed)
+  - TCP ports open: `nc -zv <node> 8032`, `nc -zv <node> 8088` succeed on all three MSB-PMC03 nodes
+- **Owner:** fqdn Network Team
+- **Estimated Effort:** 2-4 hours (coordination + testing + documentation)
+- **Critical Note:** This is a hard gate. P1.0 cannot proceed until network connectivity verified and documented.
+
 ---
 
 <a id="phase-2b-high-priority-infrastructure-services"></a>
@@ -373,26 +402,29 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### 🟠 P1.0 — Provision Remote Airflow Server (Ksolves Open Item #8)
 
-- **Status:** PENDING BLOCKER.1 (REMOTE INFRASTRUCTURE)
+- **Status:** PENDING P0.7 NETWORK VERIFICATION (REMOTE INFRASTRUCTURE)
 - **Priority:** HIGH — Prerequisite for Airflow orchestration, Ansible automation, and Nginx proxy
-- **Context:** Remote Airflow host coordinates ETL job submission to Spark cluster. Must run Airflow webserver/scheduler, Okta SSO integration, Nginx reverse proxy for YARN RM HA, and Ansible control node. Ksolves specifies minimum 6c / 24GB RAM / 500GB SSD. Located on separate network from cluster nodes.
+- **Context:** Remote Airflow host coordinates ETL job submission to Spark cluster. Must run Airflow webserver/scheduler, Okta SSO integration, Nginx reverse proxy for YARN RM HA, and Ansible control node. Ksolves specifies minimum 6c / 24GB RAM / 500GB SSD. Hosted on MSB-PMC01 cluster.
+- **Dependency:** **P0.7 (Network Connectivity) must be completed and verified first** — MSB-PMC01 and MSB-PMC03 clusters must be on same network with confirmed firewall rules.
 - **Ksolves Actions:**
-  1. Provision remote server (or VM on second Proxmox cluster if available): 6c / 24GB RAM / 500GB SSD, RHEL 9.4
+  1. After network connectivity verified (P0.7), provision remote server on MSB-PMC01: 6c / 24GB RAM / 500GB SSD, RHEL 9.4
   2. Configure hostname: `airflow-prod-01` (or fqdn-assigned name)
-  3. Network setup: routable to Spark cluster nodes (all three Proxmox nodes), to Snowflake, to cloud staging (Azure/AWS)
+  3. Network setup: routable to all three MSB-PMC03 Spark nodes, to Snowflake, to cloud staging (Azure/AWS)
   4. Install Okta SSO integration (requires OIDC client ID/secret from fqdn Okta tenant)
   5. Verify SSH key access from Ansible control node (to be installed on this host)
-  6. Verify network paths: bastion ↔ YARN RM (port 8032), bastion ↔ Ceph RGW (floating IP)
+  6. Verify network paths: Airflow → YARN RM (port 8032), Airflow → Ceph RGW (floating IP), Airflow → Snowflake
 - **User Actions:**
-  1. Decide on hosting: dedicated hardware, second Proxmox cluster, or cloud VM?
-  2. Allocate IP/hostname from fqdn network
-  3. Provide Okta OIDC credentials for Airflow SSO configuration
-  4. Coordinate network access rules (firewall, routing) with fqdn network team
-- **Prerequisites:** Network connectivity confirmed; Okta SSO client provisioned
-- **Verification:** SSH to remote host successful; RHEL subscriptions active; network paths confirmed (ping tests to cluster nodes, Snowflake, cloud staging)
+  1. Confirm MSB-PMC01 hosting and IP allocation (coordinate with Network Team)
+  2. Provide Okta OIDC credentials for Airflow SSO configuration
+  3. Ensure network connectivity verification (P0.7) complete before Ksolves begins provisioning
+- **Prerequisites:** 
+  - **P0.7 network connectivity verified and documented**
+  - Okta SSO client provisioned
+  - MSB-PMC01 networking and IP allocation finalized
+- **Verification:** SSH to remote host successful; RHEL subscriptions active; network paths confirmed (ping tests to all three cluster nodes <10ms, TCP port tests succeed, Snowflake/cloud routing confirmed)
 - **Owner:** Ksolves (provisioning) + fqdn (networking, SSO setup)
 - **Estimated Effort:** 2-3 hours (provisioning + network setup)
-- **Critical Note:** P1.4 (Nginx), P1.5 (Ansible), and later P2 items depend on this host being live
+- **Critical Note:** P1.4 (Nginx), P1.5 (Ansible), and later P2 items depend on this host being live and network-connected
 
 ---
 
