@@ -150,6 +150,22 @@ python3 -m http.server 8000
 
 Then open `http://localhost:8000/calculators/Document/production_spark_calculator.html` or the dev equivalent.
 
+## PDF Generation from Markdown
+
+When converting markdown documents to PDF using Pandoc, always include the `--toc` flag to generate a clickable table of contents in the PDF (appears as bookmarks/outline in PDF readers).
+
+**Standard command:**
+```bash
+eval "$(brew shellenv)" && export PATH="/Library/TeX/texbin:$PATH" && \
+pandoc <input.md> -o <output.pdf> --toc --pdf-engine=lualatex -V geometry:margin=1in
+```
+
+**Benefits:**
+- Auto-generates TOC from markdown headings
+- Creates clickable bookmarks/outline in PDF readers (Acrobat, Preview, etc.)
+- Readers can navigate via sidebar
+- No manual anchor maintenance needed in PDF
+
 ## Ready_For_Review Staging Rule
 
 **All new files and refactored existing files must be written to `Ready_For_Review/` first.** Do not write directly to the working location. The workflow is:

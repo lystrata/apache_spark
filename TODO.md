@@ -30,6 +30,13 @@ _Last updated 2026-04-24_
 
 ### P0 — Critical Path (This Week)
 
+- [ ] [Phase1] [correspondence] Gather CSV file information for Ksolves storage/shuffle verification
+  - Count total CSV files in production source
+  - Measure size distribution (breakdown by size ranges)
+  - Test ZSTD compression ratio on representative samples
+  - Share metrics with Ksolves before P0.1 VM provisioning
+  - See: phases/phase1/Ready_For_Review/Phase1_Detailed_TODO.md § P0.0a
+
 - [ ] [Phase1] [correspondence] Confirm cloud staging target — Azure Blob or AWS S3 — for Snowflake COPY INTO path
 - [ ] [Phase1] [correspondence] Confirm RHEL 9.4 subscriptions active on all Worker VMs and YARN RM VM
 - [ ] [Phase1] [remote_services] Install Hadoop 3.4.1 separately on all Worker VMs and configure HADOOP_HOME

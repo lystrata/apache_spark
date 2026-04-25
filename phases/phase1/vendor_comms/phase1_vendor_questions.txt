@@ -1,5 +1,14 @@
 # Phase 1 Vendor Questions & Correspondence
 
+## Waiting for User Data Delivery (Required by Ksolves)
+
+- [ ] CSV File Information (for storage/shuffle verification)
+  - Status: PENDING USER DATA GATHERING
+  - Required: Total CSV file count, size distribution, ZSTD compression ratio
+  - Impact: Ksolves needs this to verify OSD capacity and shuffle amplification estimates
+  - Deadline: Before P0.1 (Worker VM provisioning)
+  - See: phases/phase1/Ready_For_Review/Phase1_Detailed_TODO.md § P0.0a
+
 ## Waiting for Vendor Reply
 
 _(Pulled from master TODO — see root TODO.md for updates)_

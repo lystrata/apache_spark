@@ -272,9 +272,16 @@ See [YARN HA](#yarn-ha-overview) below.
 **Cause:** Auto-generated anchors may not survive the conversion, or the ID format changes.
 
 **Solution:**
-- Use explicit HTML anchors
-- Pandoc converts explicit HTML anchors to PDF bookmarks
-- Links will work as clickable bookmarks in the PDF
+- Use explicit HTML anchors in markdown
+- **Use Pandoc's `--toc` flag when generating PDFs** — this automatically generates a clickable table of contents (bookmarks/outline) from markdown headings
+- The `--toc` flag is the recommended approach for PDF generation from markdown
+
+**Standard Pandoc command:**
+```bash
+pandoc input.md -o output.pdf --toc --pdf-engine=lualatex -V geometry:margin=1in
+```
+
+**Result:** PDF includes clickable bookmarks/outline with all headings, no manual anchor maintenance needed.
 
 ---
 

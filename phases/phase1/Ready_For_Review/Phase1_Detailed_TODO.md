@@ -14,6 +14,13 @@ _Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING
   - [BLOCKER.1 — Establish Ksolves Remote Access](#blocker1-establish-ksolves-remote-access)
   - [BLOCKER.2 — Provision RHEL ISO](#blocker2-provision-rhel-iso)
   - [Phase 2A — Critical Path: VM Provisioning & Foundational Software (P0)](#phase-2a-critical-path-vm-provisioning)
+    - [P0.0a — Gather CSV File Information](#p0-0a-gather-csv-file-information)
+    - [P0.1 — Worker VM Creation & vCPU Allocation](#p0-1-worker-vm-creation)
+    - [P0.2 — YARN ResourceManager VM Provisioning](#p0-2-yarn-resourcemanager-vm)
+    - [P0.3 — Confirm Cloud Staging Target](#p0-3-confirm-cloud-staging-target)
+    - [P0.4 — Validate RHEL Subscriptions](#p0-4-validate-rhel-subscriptions)
+    - [P0.5 — Install Hadoop 3.4.1](#p0-5-install-hadoop)
+    - [P0.6 — Run 5 Production Sample Jobs](#p0-6-run-5-production-sample-jobs)
   - [Phase 2B — High Priority: Infrastructure Services & HA (P1)](#phase-2b-high-priority-infrastructure-services)
   - [Phase 2C — Medium Priority: Configuration, Validation & Integration (P2)](#phase-2c-medium-priority-configuration-validation)
 - [Actions Outside Present Known Scope](#actions-outside-present-known-scope)
@@ -141,6 +148,37 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### Phase 2A — Critical Path: VM Provisioning & Foundational Software (P0)
 
+<a id="p0-0a-gather-csv-file-information"></a>
+
+### 🔴 P0.0a — Gather CSV File Information for Storage & Shuffle Verification
+
+- **Status:** OPEN (USER DATA GATHERING)
+- **Priority:** CRITICAL — Required before infrastructure sizing validation
+- **Context:** Ksolves needs production CSV file statistics to verify storage allocation and shuffle amplification estimates. This data informs OSD capacity planning and scratch drive sizing decisions. User must analyze local CSV files and provide metrics to Ksolves.
+- **User Actions Required:**
+  1. Analyze local CSV file inventory:
+     - Count total number of CSV files in production source
+     - Determine size distribution (breakdown by size ranges: <100MB, 100MB–1GB, 1GB–10GB, 10GB+, etc.)
+     - Calculate average file size
+  2. Measure compression ratio for production CSV files:
+     - Select representative sample of CSV files (10–20 files across size range)
+     - Compress samples using ZSTD codec (per Ksolves recommendation)
+     - Calculate uncompressed size vs. compressed size ratio (e.g., 4 TB → 1.2 TB = 3.3× compression)
+  3. Document and share with Ksolves:
+     - Total file count
+     - Size distribution table
+     - Measured ZSTD compression ratio
+     - Any notes on file characteristics that affect compression (data sparsity, cardinality, etc.)
+- **Deliverable:** CSV file metrics document or email summary to Ksolves (karthik.hegde@ksolves.com)
+- **Owner:** User (fqdn) — local data analysis
+- **Estimated Effort:** 2–4 hours (depends on data accessibility and tooling)
+- **Impact on Plan:** Informs P0.1 (OSD capacity allocation) and storage headroom decisions. Ksolves will reassess if actual compression differs significantly from 7× shuffle amplification assumption.
+- **Critical Note:** Compress samples with ZSTD (standard: `zstd <file>`) to match production pipeline compression strategy
+
+---
+
+<a id="p0-1-worker-vm-creation"></a>
+
 ### 🔴 P0.1 — Worker VM Creation & vCPU Allocation (14 → 18)
 
 - **Status:** PENDING REMOTE ACCESS
@@ -156,6 +194,8 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **User Sign-Off:** Confirm Ksolves has provisioned all Worker VMs before proceeding to P0.2
 - **Owner:** Ksolves
 - **Estimated Effort:** 2-3 hours
+
+<a id="p0-2-yarn-resourcemanager-vm"></a>
 
 ### 🔴 P0.2 — YARN ResourceManager VM Provisioning (Active + Standby)
 
@@ -173,6 +213,8 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Owner:** Ksolves
 - **Estimated Effort:** 3-4 hours
 
+<a id="p0-3-confirm-cloud-staging-target"></a>
+
 ### 🔴 P0.3 — Confirm Cloud Staging Target (Azure Blob vs AWS S3)
 
 - **Status:** OPEN (VENDOR DECISION)
@@ -182,6 +224,8 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Impact:** Determines IAM/SAS token configuration, network routing (exaBGP floating IP routing to Snowflake), and Snowflake COPY command syntax. Ksolves will implement credentials and network config once decision is made.
 - **Owner:** fqdn data-platform/decision-maker
 - **Deadline:** Before Ksolves begins Stage 6 implementation (P2.3, Step 6)
+
+<a id="p0-4-validate-rhel-subscriptions"></a>
 
 ### 🔴 P0.4 — Validate RHEL 9.4 Subscriptions on All VMs
 
@@ -197,6 +241,8 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Owner:** Ksolves (with fqdn subscription support)
 - **Estimated Effort:** < 1 hour
 
+<a id="p0-5-install-hadoop"></a>
+
 ### 🔴 P0.5 — Install Hadoop 3.4.1 on All Worker VMs
 
 - **Status:** PENDING VM PROVISIONING
@@ -211,6 +257,8 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Verification:** spark-submit resolves Hadoop classes without errors; `hadoop classpath` returns non-empty output
 - **Owner:** Ksolves
 - **Estimated Effort:** 1-2 hours
+
+<a id="p0-6-run-5-production-sample-jobs"></a>
 
 ### 🔴 P0.6 — Run 5 Production Sample Jobs (Shuffle Amplification Measurement)
 
