@@ -14,11 +14,12 @@ _Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING
   - [BLOCKER.1 — Establish Ksolves Remote Access](#blocker1-establish-ksolves-remote-access)
   - [BLOCKER.2 — Provision RHEL ISO](#blocker2-provision-rhel-iso)
   - [Phase 2A — Critical Path: VM Provisioning & Foundational Software (P0)](#phase-2a-critical-path-vm-provisioning)
+    - [P0.4 — Verify RHEL Subscriptions (Pre-requisite)](#p0-4-validate-rhel-subscriptions)
     - [P0.0a — Gather CSV File Information](#p0-0a-gather-csv-file-information)
     - [P0.1 — Worker VM Creation & vCPU Allocation](#p0-1-worker-vm-creation)
     - [P0.2 — YARN ResourceManager VM Provisioning](#p0-2-yarn-resourcemanager-vm)
     - [P0.3 — Confirm Cloud Staging Target](#p0-3-confirm-cloud-staging-target)
-    - [P0.4 — Validate RHEL Subscriptions](#p0-4-validate-rhel-subscriptions)
+    - [P0.4b — Verify RHEL Subscriptions Post-Provisioning](#p0-4-rhel-verification-post-provisioning)
     - [P0.5 — Install Hadoop 3.4.1](#p0-5-install-hadoop)
     - [P0.6 — Run 5 Production Sample Jobs](#p0-6-run-5-production-sample-jobs)
   - [Phase 2B — High Priority: Infrastructure Services & HA (P1)](#phase-2b-high-priority-infrastructure-services)
@@ -148,6 +149,26 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### Phase 2A — Critical Path: VM Provisioning & Foundational Software (P0)
 
+<a id="p0-4-validate-rhel-subscriptions"></a>
+
+### 🔴 P0.4 — Verify RHEL 9.4 Subscriptions Active (Pre-requisite)
+
+- **Status:** OPEN (USER VERIFICATION)
+- **Priority:** CRITICAL — Must be confirmed BEFORE VM provisioning begins
+- **Context:** RHEL 9.4 subscriptions must be active on all VMs for yum package installation, security patches, and kernel updates. Confirmation required before Ksolves begins P0.1 VM provisioning so they can proceed immediately with package installation after VM creation.
+- **User Actions Required:**
+  1. Contact RHEL subscription administrator (or check existing fqdn subscription account)
+  2. Verify subscriptions are active for at least 5 RHEL 9.4 licenses (3 Worker VMs + 2 YARN RM VMs)
+  3. Confirm subscription status: active through end of Phase 1 + buffer (minimum 6 months)
+  4. Document subscription keys or proof of active subscriptions
+  5. Share confirmation with Ksolves before they start P0.1
+- **Verification:** Subscription administrator confirms active licenses in account portal
+- **Owner:** fqdn (subscription management team)
+- **Estimated Effort:** < 30 minutes (verification call/check)
+- **Critical Note:** This is a gate — P0.1 cannot proceed until subscriptions are confirmed active
+
+---
+
 <a id="p0-0a-gather-csv-file-information"></a>
 
 ### 🔴 P0.0a — Gather CSV File Information for Storage & Shuffle Verification
@@ -225,21 +246,22 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Owner:** fqdn data-platform/decision-maker
 - **Deadline:** Before Ksolves begins Stage 6 implementation (P2.3, Step 6)
 
-<a id="p0-4-validate-rhel-subscriptions"></a>
+<a id="p0-4-rhel-verification-post-provisioning"></a>
 
-### 🔴 P0.4 — Validate RHEL 9.4 Subscriptions on All VMs
+### 🔴 P0.4 — Verify RHEL Subscriptions Post-Provisioning (Ksolves Validation)
 
-- **Status:** OPEN (VENDOR VERIFICATION)
-- **Priority:** CRITICAL — Blocking Ksolves package installation and OS patching
-- **Context:** Ksolves will configure all VMs with RHEL 9.4. Active subscriptions required for yum package installation, security patches, and kernel updates.
+- **Status:** PENDING VM PROVISIONING
+- **Priority:** CRITICAL — Confirms subscriptions working on actual VMs
+- **Context:** After P0.1 VMs are created, Ksolves verifies that subscriptions are properly registered and yum can resolve packages.
 - **Ksolves Actions:**
-  1. After VM provisioning, run `subscription-manager list` on all Worker and YARN RM VMs
-  2. If inactive, contact fqdn to activate subscriptions or provide subscription keys
-  3. Verify yum can resolve packages: `yum search java-17-openjdk`
+  1. After VM provisioning complete (P0.1), run `subscription-manager list` on all Worker and YARN RM VMs
+  2. Verify yum can resolve packages: `yum search java-17-openjdk`
+  3. If issues detected, contact fqdn with subscription error details
   4. Apply latest RHEL 9.4 patches: `yum update -y`
 - **Verification:** `yum install` succeeds without subscription warnings on all VMs
 - **Owner:** Ksolves (with fqdn subscription support)
 - **Estimated Effort:** < 1 hour
+- **Dependency:** Requires pre-flight confirmation from P0.4 (subscriptions must be active before VM provisioning)
 
 <a id="p0-5-install-hadoop"></a>
 
