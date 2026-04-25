@@ -7,6 +7,31 @@ _Phases 1–2 detailed plan from fqdn Phase 1 Report (Ksolves) — April 2026_
 _Report Source: phases/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf_  
 _Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING BLOCKER.1 · Out-of-scope items flagged for vendor clarification_
 
+---
+
+## Document Overview
+
+This document maps the **Ksolves Phase 1 Report (April 2026)** to a detailed, sequenced implementation plan. It addresses the nine Open Items from the Ksolves report and clarifies ambiguous or vague requirements through fqdn-specific research and decision-making.
+
+### Methodology
+
+**Source Mapping:** All nine Ksolves Open Items have been captured in Phase 2A–2C below. Items are categorized by criticality (CRITICAL/HIGH/MEDIUM) and sequenced by dependency.
+
+**Added Clarity:** Where Ksolves used general language or left scope ambiguous, we have:
+- **Researched dependencies** (e.g., ZooKeeper as mandatory prerequisite for YARN HA per Apache Hadoop docs)
+- **Added fqdn-specific tasks** (e.g., CSV file information gathering, RHEL subscription pre-flight verification, WAN egress validation)
+- **Resequenced for feasibility** (e.g., RHEL subscription verification moved to pre-requisite gate, not post-provisioning validation)
+- **Clarified ownership** (User actions vs. Ksolves actions, blockers requiring fqdn decision vs. vendor execution)
+
+**Expanded Scope:** Added items that are prerequisites or dependent on Ksolves' work but were implicit in their report:
+- P0.0a — CSV file information gathering (needed for Ksolves' storage/shuffle estimates)
+- P0.4 (pre-req) — RHEL subscription pre-flight check (gate for P0.1)
+- P1.3 — ZooKeeper ensemble (mandatory prerequisite for P1.2 YARN HA per Apache docs)
+
+**Cross-Reference:** All items reference the Ksolves report section or open item number. Assumptions and dependencies are documented in dedicated sections below.
+
+---
+
 ## Table of Contents
 
 - [Phase 1 — Planning & Discovery (Completed)](#phase-1-planning-discovery-completed)
@@ -19,11 +44,26 @@ _Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING
     - [P0.1 — Worker VM Creation & vCPU Allocation](#p0-1-worker-vm-creation)
     - [P0.2 — YARN ResourceManager VM Provisioning](#p0-2-yarn-resourcemanager-vm)
     - [P0.3 — Confirm Cloud Staging Target](#p0-3-confirm-cloud-staging-target)
+    - [P0.3b — Validate WAN Egress Throughput](#p0-3b-validate-wan-egress)
     - [P0.4b — Verify RHEL Subscriptions Post-Provisioning](#p0-4-rhel-verification-post-provisioning)
     - [P0.5 — Install Hadoop 3.4.1](#p0-5-install-hadoop)
     - [P0.6 — Run 5 Production Sample Jobs](#p0-6-run-5-production-sample-jobs)
   - [Phase 2B — High Priority: Infrastructure Services & HA (P1)](#phase-2b-high-priority-infrastructure-services)
+    - [P1.0 — Provision Remote Airflow Server](#p1-0-provision-remote-airflow-host)
+    - [P1.1 — Deploy Spark History Server](#p1-1-deploy-spark-history-server)
+    - [P1.3 — Deploy ZooKeeper Ensemble](#p1-3-deploy-zookeeper)
+    - [P1.2 — Deploy YARN ResourceManager HA](#p1-2-deploy-yarn-ha)
+    - [P1.4 — Deploy Nginx Reverse Proxy](#p1-4-deploy-nginx)
+    - [P1.5 — Deploy Ansible Control Node](#p1-5-deploy-ansible)
+    - [P1.6 — Monitor Ceph OSD Memory](#p1-6-monitor-ceph-osd)
+    - [P1.7 — Validate WAN Egress Throughput (Load Test)](#p1-7-validate-wan-egress)
   - [Phase 2C — Medium Priority: Configuration, Validation & Integration (P2)](#phase-2c-medium-priority-configuration-validation)
+    - [P2.2 — Deploy Apache Airflow 2.10.4](#p2-2-deploy-apache-airflow)
+    - [P2.3 — Validate 8-Stage Data Flow Pipeline](#p2-3-validate-8-stage)
+    - [P2.4 — Confirm Compression Codec Configuration](#p2-4-confirm-compression)
+    - [P2.5 — Validate JBOD Storage Configuration](#p2-5-validate-jbod)
+    - [P2.6 — Validate Network Topology](#p2-6-validate-network)
+    - [P2.7 — Evaluate Node Addition Timeline](#p2-7-evaluate-node-addition-timeline)
 - [Actions Outside Present Known Scope](#actions-outside-present-known-scope)
 - [Assumptions & Dependencies](#assumptions-dependencies)
 - [Reference Documents](#reference-documents)
@@ -246,6 +286,26 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Owner:** fqdn data-platform/decision-maker
 - **Deadline:** Before Ksolves begins Stage 6 implementation (P2.3, Step 6)
 
+<a id="p0-3b-validate-wan-egress"></a>
+
+### 🔴 P0.3b — Validate WAN Egress Throughput (Ksolves Open Item #3)
+
+- **Status:** OPEN (NETWORK TEAM VERIFICATION)
+- **Priority:** HIGH — Required before Stage 6 (Parquet → Cloud Staging) implementation
+- **Context:** Phase 1 assumes 1 Gbps WAN egress (≈125 MB/s) is sufficient for inter-batch Parquet transfers to cloud staging. Must validate this throughput is available and sustainable. Per Ksolves: "Parquet output per batch = ~0.8 TB → ~6,400 Gbits → 1.8 hours at 1 Gbps. This must complete within the inter-batch gap."
+- **User Actions Required:**
+  1. Contact network team to confirm WAN egress capacity available for production cluster
+  2. Verify 1 Gbps sustainable throughput (not burst; must handle continuous transfers)
+  3. Confirm no rate-limiting or QoS policies that would throttle inter-batch transfers
+  4. Document any limitations or constraints (e.g., scheduled maintenance windows, bandwidth sharing with other systems)
+  5. Share network validation with Ksolves before P2.3 (Parquet egress implementation)
+- **Verification:** Network team confirms 1 Gbps available and sustainable; Ksolves runs test transfer after infrastructure live
+- **Owner:** fqdn network team
+- **Estimated Effort:** 1-2 hours (network team validation call + documentation)
+- **Impact:** If actual WAN egress < 1 Gbps, inter-batch timing increases; affects Phase 1 daily ingest SLA
+
+---
+
 <a id="p0-4-rhel-verification-post-provisioning"></a>
 
 ### 🔴 P0.4 — Verify RHEL Subscriptions Post-Provisioning (Ksolves Validation)
@@ -308,6 +368,33 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 <a id="phase-2b-high-priority-infrastructure-services"></a>
 
 ### Phase 2B — High Priority: Infrastructure Services & HA (P1)
+
+<a id="p1-0-provision-remote-airflow-host"></a>
+
+### 🟠 P1.0 — Provision Remote Airflow Server (Ksolves Open Item #8)
+
+- **Status:** PENDING BLOCKER.1 (REMOTE INFRASTRUCTURE)
+- **Priority:** HIGH — Prerequisite for Airflow orchestration, Ansible automation, and Nginx proxy
+- **Context:** Remote Airflow host coordinates ETL job submission to Spark cluster. Must run Airflow webserver/scheduler, Okta SSO integration, Nginx reverse proxy for YARN RM HA, and Ansible control node. Ksolves specifies minimum 6c / 24GB RAM / 500GB SSD. Located on separate network from cluster nodes.
+- **Ksolves Actions:**
+  1. Provision remote server (or VM on second Proxmox cluster if available): 6c / 24GB RAM / 500GB SSD, RHEL 9.4
+  2. Configure hostname: `airflow-prod-01` (or fqdn-assigned name)
+  3. Network setup: routable to Spark cluster nodes (all three Proxmox nodes), to Snowflake, to cloud staging (Azure/AWS)
+  4. Install Okta SSO integration (requires OIDC client ID/secret from fqdn Okta tenant)
+  5. Verify SSH key access from Ansible control node (to be installed on this host)
+  6. Verify network paths: bastion ↔ YARN RM (port 8032), bastion ↔ Ceph RGW (floating IP)
+- **User Actions:**
+  1. Decide on hosting: dedicated hardware, second Proxmox cluster, or cloud VM?
+  2. Allocate IP/hostname from fqdn network
+  3. Provide Okta OIDC credentials for Airflow SSO configuration
+  4. Coordinate network access rules (firewall, routing) with fqdn network team
+- **Prerequisites:** Network connectivity confirmed; Okta SSO client provisioned
+- **Verification:** SSH to remote host successful; RHEL subscriptions active; network paths confirmed (ping tests to cluster nodes, Snowflake, cloud staging)
+- **Owner:** Ksolves (provisioning) + fqdn (networking, SSO setup)
+- **Estimated Effort:** 2-3 hours (provisioning + network setup)
+- **Critical Note:** P1.4 (Nginx), P1.5 (Ansible), and later P2 items depend on this host being live
+
+---
 
 ### 🟠 P1.1 — Deploy Spark History Server on Node02
 
@@ -429,22 +516,6 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### Phase 2C — Medium Priority: Configuration, Validation & Integration (P2)
 
-### 🟡 P2.1 — Provision Remote Airflow Host (6c / 24GB / 500GB SSD)
-
-- **Status:** OPEN
-- **Priority:** MEDIUM — Dependency for orchestration (P1.4, P1.5)
-- **Context:** Remote Airflow host (dedicated server or Proxmox VM) will run Apache Airflow 2.10.4, Okta (cloud-based auth), and Nginx/Ansible for cluster automation. Minimum spec: 6 vCPU, 24 GB RAM, 500 GB SSD.
-- **Ksolves Actions (if provisioning is delegated):**
-  1. Provision VM or bare-metal server per spec (6c / 24GB / 500GB SSD)
-  2. Install RHEL 9.4, configure network, SSH, and remote access
-  3. Allocate IP address and DNS A record for stable hostname
-- **Or User Actions (if user provisions):**
-  1. Allocate IP, provision VM on Proxmox or external cloud, DNS setup
-  2. Provide Ksolves with root credentials and network details
-- **Prerequisites:** IP allocation plan, DNS namespace for remote host, SSH key distribution
-- **Owner:** Ksolves (if delegated) or fqdn (if provisioned by user)
-- **Estimated Effort:** 2-4 hours
-
 ### 🟡 P2.2 — Deploy Apache Airflow 2.10.4 on Remote Host
 
 - **Status:** PENDING REMOTE HOST (P2.1)
@@ -545,6 +616,31 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Verification:** Bond status shows both NICs active; throughput targets met during load test; 0 packet loss
 - **Owner:** Ksolves
 - **Estimated Effort:** 1-2 hours (validation during load test)
+
+<a id="p2-7-evaluate-node-addition-timeline"></a>
+
+### 🟡 P2.7 — Evaluate Phase 1 Node Addition Timeline (Ksolves Open Item #9)
+
+- **Status:** PENDING PHASE 1 LOAD TEST RESULTS (P0.6)
+- **Priority:** MEDIUM — Critical for Phase 1 → Phase 2 transition planning
+- **Context:** Phase 1 report flags 40-job daily SLA as "marginal with 2.1 min buffer" on 3-node cluster. If actual shuffle amplification (P0.6) is higher than assumed 7×, or if concurrent jobs need to exceed 2, a 4th node may be required to hit the SLA reliably. Ksolves will evaluate timing after Phase 1 validation jobs run.
+- **Evaluation Criteria:**
+  - Actual shuffle amplification factor (measured in P0.6)
+  - Concurrent job capability with current 3-node setup
+  - If SLA buffer < 5 min for 40 jobs: recommend 4th node addition
+  - If SLA buffer ≥ 5 min: proceed with Phase 2 on 3 nodes
+- **Ksolves Actions:**
+  1. After Phase 1 load test (P0.6) completes, analyze:
+     - Actual shuffle amplification vs. 7× assumption
+     - Peak memory, CPU, and I/O utilization per node
+     - Concurrent job scaling (how many jobs can run simultaneously without SLA breach?)
+  2. Calculate revised SLA buffer: (inter-job gap time - job duration) / job duration
+  3. If buffer < 5 min: recommend 4th node (same spec: HPE DL385 Gen11, 32c/384GB, 7×3.84TB NVMe)
+  4. Provide timeline estimate: can 4th node be provisioned/integrated before Phase 1 production runs?
+- **Verification:** Ksolves delivers node addition evaluation report with SLA projections and recommendation
+- **Owner:** Ksolves (analysis) + fqdn (decision on 4th node budget/timeline)
+- **Estimated Effort:** 2-4 hours (analysis) + 1-2 weeks (procurement/provisioning if approved)
+- **Impact on Plan:** If 4th node approved, extends Phase 1 completion by 1-2 weeks; Phase 2 scope does not change
 
 ---
 
