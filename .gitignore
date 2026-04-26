@@ -6,6 +6,7 @@
 *.bak3
 *.bak4
 Transfer/
-*.pdf
 Images/
 Incoming/
+
+.claudecheckpoints/
