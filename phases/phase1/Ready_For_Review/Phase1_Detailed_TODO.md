@@ -49,7 +49,6 @@ This document maps the **Ksolves Phase 1 Report (April 2026)** to a detailed, se
     - [P0.4b — Verify RHEL Subscriptions Post-Provisioning](#p0-4-rhel-verification-post-provisioning)
     - [P0.5 — Install Java 11 + Hadoop 3.4.1 (YARN client only, no HDFS)](#p0-5-install-hadoop)
     - [P0.5a — Install Apache Spark 3.5.3](#p0-5a-install-spark)
-    - [P0.6 — Run 5 Production Sample Jobs](#p0-6-run-5-production-sample-jobs)
     - [P0.7 — Verify Network Connectivity: MSB-PMC01 ↔ MSB-PMC03](#p0-7-network-connectivity-verification)
   - [Phase 2B — High Priority: Infrastructure Services & HA (P1)](#phase-2b-high-priority-infrastructure-services)
     - [P1.0 — Provision Remote Airflow Server](#p1-0-provision-remote-airflow-host)
@@ -60,6 +59,7 @@ This document maps the **Ksolves Phase 1 Report (April 2026)** to a detailed, se
     - [P1.5 — Deploy Ansible Control Node](#p1-5-deploy-ansible)
     - [P1.6 — Monitor Ceph OSD Memory](#p1-6-monitor-ceph-osd)
     - [P1.7 — Validate WAN Egress Throughput (Load Test)](#p1-7-validate-wan-egress)
+    - [P1.8 — Run 5 Production Sample Jobs (Integration Milestone)](#p1-8-run-5-production-sample-jobs)
   - [Phase 2C — Medium Priority: Configuration, Validation & Integration (P2)](#phase-2c-medium-priority-configuration-validation)
     - [P2.2 — Deploy Apache Airflow 2.10.4](#p2-2-deploy-apache-airflow)
     - [P2.3 — Validate 8-Stage Data Flow Pipeline](#p2-3-validate-8-stage)
@@ -128,28 +128,28 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 ---
 
 - **User Actions Required (Immediate):**
-  1. Set up shared Webex Desktop session with Ksolves Karthik Hegde
-  2. Create temporary Proxmox root or owner credentials for Ksolves to use during Webex session
-  3. Document all Ksolves actions via Webex recording or shared notes for audit trail
-  4. Verify Webex connectivity and access permissions before Phase 1 infrastructure work begins
+  - [ ] Set up shared Webex Desktop session with Ksolves Karthik Hegde
+  - [ ] Create temporary Proxmox root or owner credentials for Ksolves to use during Webex session
+  - [ ] Document all Ksolves actions via Webex recording or shared notes for audit trail
+  - [ ] Verify Webex connectivity and access permissions before Phase 1 infrastructure work begins
 
 - **User Actions Required (Parallel — does not block interim Webex access):**
-  1. Submit fqdn Horizons Teams infrastructure request (if not already submitted)
-  2. Obtain fqdn Cyber Security approval for Horizons desktop deployment
-  3. Upon approval, provision two Horizon desktop sessions for Ksolves team
-  4. Configure Proxmox AAA integration (if desired) or issue owner-level API tokens for Horizon sessions
-  5. Migrate Ksolves access from Webex interim to permanent Horizon desktops
-  6. Retire temporary Webex session once Horizon is live
+  - [ ] Submit fqdn Horizons Teams infrastructure request (if not already submitted)
+  - [ ] Obtain fqdn Cyber Security approval for Horizons desktop deployment
+  - [ ] Upon approval, provision two Horizon desktop sessions for Ksolves team
+  - [ ] Configure Proxmox AAA integration (if desired) or issue owner-level API tokens for Horizon sessions
+  - [ ] Migrate Ksolves access from Webex interim to permanent Horizon desktops
+  - [ ] Retire temporary Webex session once Horizon is live
 
 - **Verification (Phase 1A — Interim):** 
-  - Webex desktop session successfully connects and displays Proxmox web UI
-  - Ksolves confirms Proxmox access and can execute administrative commands
-  - Webex recording captures all actions (audit trail)
+  - [ ] Webex desktop session successfully connects and displays Proxmox web UI
+  - [ ] Ksolves confirms Proxmox access and can execute administrative commands
+  - [ ] Webex recording captures all actions (audit trail)
 
 - **Verification (Phase 1B — Permanent):**
-  - Horizon desktop sessions authenticate successfully
-  - Ksolves confirms owner-level Proxmox access via Horizon
-  - Webex session retired; all future access via Horizon
+  - [ ] Horizon desktop sessions authenticate successfully
+  - [ ] Ksolves confirms owner-level Proxmox access via Horizon
+  - [ ] Webex session retired; all future access via Horizon
 
 - **Owner:** fqdn infrastructure team (User actions) + fqdn Cyber Security (approval gate for Phase 1B)
 - **Estimated Effort:** 
@@ -173,15 +173,15 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
   - **Decision Timeline:** Await Ksolves compatibility findings before finalizing ISO selection
   - **Fallback:** If RHEL 9.7 incompatible, proceed with RHEL 9.4
 - **User Actions Required:**
-  1. **Await notification from Ksolves that P0.0 (Ceph Cluster Bootstrap) is complete and HEALTH_OK** on all three nodes (9 OSDs up/in, MON quorum formed, MGR active, RGW endpoint live)
-  2. Once P0.0 confirmed complete, download appropriate RHEL ISO:
+  - [ ] **Await notification from Ksolves that P0.0 (Ceph Cluster Bootstrap) is complete and HEALTH_OK** on all three nodes (9 OSDs up/in, MON quorum formed, MGR active, RGW endpoint live)
+  - [ ] Once P0.0 confirmed complete, download appropriate RHEL ISO:
      - RHEL 9.4 ISO (if 9.7 deemed incompatible), or
      - RHEL 9.7 ISO (if Ksolves confirms Spark compatibility)
-  3. Upload ISO to Proxmox local storage (ISO directory, e.g., `/var/lib/vz/template/iso/`)
-  4. Confirm ISO placement with Ksolves before they attempt P0.1 VM creation
+  - [ ] Upload ISO to Proxmox local storage (ISO directory, e.g., `/var/lib/vz/template/iso/`)
+  - [ ] Confirm ISO placement with Ksolves before they attempt P0.1 VM creation
 - **Verification:**
-  - RHEL ISO accessible in Proxmox local storage (`/var/lib/vz/template/iso/` or equivalent)
-  - Ksolves confirms ISO visibility and boot accessibility
+  - [ ] RHEL ISO accessible in Proxmox local storage (`/var/lib/vz/template/iso/` or equivalent)
+  - [ ] Ksolves confirms ISO visibility and boot accessibility
 - **Owner:** User (fqdn) — local provisioning action
 - **Estimated Effort:** 1-2 hours (download + upload, depending on ISO size and network bandwidth)
 - **Dependency:** Blocks P0.1, P0.2 — Ksolves cannot proceed with VM provisioning without RHEL ISO available
@@ -200,43 +200,43 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Priority:** CRITICAL — Foundation for entire Phase 1 storage layer; gates BLOCKER.2 and all P0.1+ items
 - **Context:** Ceph Reef 18.2.x cluster must be bootstrapped on all three Proxmox nodes before any VM provisioning or RHEL ISO placement. The cluster spans MON daemons (Paxos quorum), MGR daemons (active/standby), OSD daemons (one per NVMe drive 1–3 per node, 9 OSDs total), and RGW (S3-compatible endpoint). This is Ksolves' **first work item** after gaining Proxmox access.
 - **Prerequisites:**
-  - BLOCKER.1 complete (Ksolves has Proxmox access)
-  - Proxmox VE 8.3 installed and clustered on all three nodes (assumed pre-existing)
-  - Network bonding (2×10G LACP) configured at Proxmox host level
-  - NVMe drives 1–3 per node available (3 OSDs/node = 9 OSDs total)
+  - [ ] BLOCKER.1 complete (Ksolves has Proxmox access)
+  - [ ] Proxmox VE 8.3 installed and clustered on all three nodes (assumed pre-existing)
+  - [ ] Network bonding (2×10G LACP) configured at Proxmox host level
+  - [ ] NVMe drives 1–3 per node available (3 OSDs/node = 9 OSDs total)
 - **Ksolves Actions:**
-  1. **Install Ceph Reef 18.2.x packages** on all three Proxmox nodes (via Proxmox PVE Ceph integration or cephadm)
-  2. **Bootstrap Ceph cluster** on Node01 with `pveceph init` or `cephadm bootstrap`; configure cluster network on bonded 10G LACP
-  3. **Deploy Ceph MON daemons** on all three nodes (Node01, Node02, Node03) — Paxos quorum requires 2-of-3 agreement; verify with `ceph mon stat`
-  4. **Deploy Ceph MGR daemons:**
+  - [ ] **Install Ceph Reef 18.2.x packages** on all three Proxmox nodes (via Proxmox PVE Ceph integration or cephadm)
+  - [ ] **Bootstrap Ceph cluster** on Node01 with `pveceph init` or `cephadm bootstrap`; configure cluster network on bonded 10G LACP
+  - [ ] **Deploy Ceph MON daemons** on all three nodes (Node01, Node02, Node03) — Paxos quorum requires 2-of-3 agreement; verify with `ceph mon stat`
+  - [ ] **Deploy Ceph MGR daemons:**
      - Active MGR on Node01
      - Standby MGR on Node02 and Node03
      - Verify with `ceph mgr services`
-  5. **Configure Ceph OSDs** (9 total, 3 per node):
+  - [ ] **Configure Ceph OSDs** (9 total, 3 per node):
      - Allocate NVMe drives 1–3 on each node as OSDs
      - Use BlueStore backend (default for Reef)
      - Set `osd_memory_target=4G` per OSD (per Ksolves Phase 1 spec)
      - Verify with `ceph osd tree` (should show 9 OSDs across 3 hosts, all `up` and `in`)
-  6. **Set replication and storage policies:**
+  - [ ] **Set replication and storage policies:**
      - Pool replication: 3× (size=3, min_size=2)
      - Verify usable capacity: ~11.52 TB after 3× replication + BlueStore overhead
-  7. **Deploy Ceph RGW (S3 endpoint):**
+  - [ ] **Deploy Ceph RGW (S3 endpoint):**
      - Install `radosgw` daemon on all three nodes
      - Configure floating IP / load balancer for S3 endpoint stability
      - Allocate 4c / 8GB per RGW instance (per infrastructure reservation)
      - Generate initial S3 access keys (admin)
      - Verify with `radosgw-admin user list`
-  8. **Verify cluster health:**
+  - [ ] **Verify cluster health:**
      - `ceph -s` shows HEALTH_OK
      - `ceph osd df` shows balanced data distribution
      - `ceph health detail` shows no warnings
 - **Verification:**
-  - Ceph cluster status: HEALTH_OK
-  - 9 OSDs `up` and `in`, 3× replication confirmed
-  - 3 MON daemons in quorum
-  - 1 active MGR + 2 standby
-  - RGW S3 endpoint accessible (test with `s3cmd` or `aws s3 ls --endpoint-url=<rgw-endpoint>`)
-  - Usable capacity: ~11.52 TB available
+  - [ ] Ceph cluster status: HEALTH_OK
+  - [ ] 9 OSDs `up` and `in`, 3× replication confirmed
+  - [ ] 3 MON daemons in quorum
+  - [ ] 1 active MGR + 2 standby
+  - [ ] RGW S3 endpoint accessible (test with `s3cmd` or `aws s3 ls --endpoint-url=<rgw-endpoint>`)
+  - [ ] Usable capacity: ~11.52 TB available
 - **User Sign-Off:** Confirm Ksolves has reported HEALTH_OK and provided S3 endpoint URL/credentials before proceeding to BLOCKER.2 (RHEL ISO placement)
 - **Owner:** Ksolves
 - **Estimated Effort:** 4-6 hours (cluster bootstrap + OSD allocation + RGW setup + verification)
@@ -252,11 +252,11 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Priority:** CRITICAL — Must be confirmed BEFORE VM provisioning begins
 - **Context:** RHEL 9.4 subscriptions must be active on all VMs for yum package installation, security patches, and kernel updates. Confirmation required before Ksolves begins P0.1 VM provisioning so they can proceed immediately with package installation after VM creation.
 - **User Actions Required:**
-  1. Contact RHEL subscription administrator (or check existing fqdn subscription account)
-  2. Verify subscriptions are active for at least 5 RHEL 9.4 licenses (3 Worker VMs + 2 YARN RM VMs)
-  3. Confirm subscription status: active through end of Phase 1 + buffer (minimum 6 months)
-  4. Document subscription keys or proof of active subscriptions
-  5. Share confirmation with Ksolves before they start P0.1
+  - [ ] Contact RHEL subscription administrator (or check existing fqdn subscription account)
+  - [ ] Verify subscriptions are active for at least 5 RHEL 9.4 licenses (3 Worker VMs + 2 YARN RM VMs)
+  - [ ] Confirm subscription status: active through end of Phase 1 + buffer (minimum 6 months)
+  - [ ] Document subscription keys or proof of active subscriptions
+  - [ ] Share confirmation with Ksolves before they start P0.1
 - **Verification:** Subscription administrator confirms active licenses in account portal
 - **Owner:** fqdn (subscription management team)
 - **Estimated Effort:** < 30 minutes (verification call/check)
@@ -272,15 +272,15 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Priority:** CRITICAL — Required before infrastructure sizing validation
 - **Context:** Ksolves needs production CSV file statistics to verify storage allocation and shuffle amplification estimates. This data informs OSD capacity planning and scratch drive sizing decisions. User must analyze local CSV files and provide metrics to Ksolves.
 - **User Actions Required:**
-  1. Analyze local CSV file inventory:
+  - [ ] Analyze local CSV file inventory:
      - Count total number of CSV files in production source
      - Determine size distribution (breakdown by size ranges: <100MB, 100MB–1GB, 1GB–10GB, 10GB+, etc.)
      - Calculate average file size
-  2. Measure compression ratio for production CSV files:
+  - [ ] Measure compression ratio for production CSV files:
      - Select representative sample of CSV files (10–20 files across size range)
      - Compress samples using ZSTD codec (per Ksolves recommendation)
      - Calculate uncompressed size vs. compressed size ratio (e.g., 4 TB → 1.2 TB = 3.3× compression)
-  3. Document and share with Ksolves:
+  - [ ] Document and share with Ksolves:
      - Total file count
      - Size distribution table
      - Measured ZSTD compression ratio
@@ -301,11 +301,11 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Priority:** CRITICAL — Blocking Phase 1 concurrency baseline
 - **Context:** Phase 1 requires 18 vCPU per Worker VM (8-core executor + 4-core driver + 6-core buffer). Current assumptions show 14 vCPU gap. No VMs exist yet; Ksolves will create and configure all three Worker VMs from scratch on Proxmox.
 - **Ksolves Actions:**
-  1. Provision three RHEL 9.4 VMs on Proxmox: GKPR-SPARK-WK-01 (Node01), GKPR-SPARK-WK-02 (Node02), GKPR-SPARK-WK-03 (Node03)
-  2. Allocate 18 vCPU per VM (respect NUMA pinning: 16 vCPU per NUMA domain max)
-  3. Allocate 384 GB RAM per VM (from dev cluster infrastructure reservation: 12c/33GB per node leaves 20c/351 GB available)
-  4. Attach NVMe drives 4-7 to scratch mount (15.36 TB per node for Spark shuffle)
-  5. Configure RHEL network, SSH, and passwordless sudo access
+  - [ ] Provision three RHEL 9.4 VMs on Proxmox: GKPR-SPARK-WK-01 (Node01), GKPR-SPARK-WK-02 (Node02), GKPR-SPARK-WK-03 (Node03)
+  - [ ] Allocate 18 vCPU per VM (dev cluster has single NUMA domain × 32 cores per node; 18 vCPU fits within one domain — NUMA pinning enabled, no boundary crossing)
+  - [ ] Allocate 384 GB RAM per VM (from dev cluster infrastructure reservation: 12c/33GB per node leaves 20c/351 GB available)
+  - [ ] Attach NVMe drives 4-7 to scratch mount (15.36 TB per node for Spark shuffle)
+  - [ ] Configure RHEL network, SSH, and passwordless sudo access
 - **Verification:** All three Worker VMs boot successfully; `lscpu` confirms 18 vCPU per VM; `mount | grep /var/spark/scratch` confirms NVMe attachment
 - **User Sign-Off:** Confirm Ksolves has provisioned all Worker VMs before proceeding to P0.2
 - **Owner:** Ksolves
@@ -319,11 +319,11 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Priority:** CRITICAL — Hardware foundation for YARN HA (deployed in P1.2)
 - **Context:** Ksolves will create two RHEL 9.4 VMs that will host the YARN ResourceManager daemons (active/standby). **This task is VM provisioning only** — ZooKeeper deployment is P1.3 and YARN HA configuration is P1.2 (per Apache Hadoop documentation, ZooKeeper must be operational before YARN HA can be configured¹).
 - **Ksolves Actions:**
-  1. Provision GKPR-YARN-RM-01 VM on Node01 (2 vCPU / 4 GB, RHEL 9.4)
-  2. Provision GKPR-YARN-RM-02 VM on Node03 (2 vCPU / 4 GB, RHEL 9.4)
-  3. Configure RHEL network, SSH, and passwordless sudo access on both VMs
-  4. Verify VMs boot successfully and accept SSH connections
-  5. Install Java 11 JDK (`yum install -y java-11-openjdk`) on both VMs (prerequisite for YARN RM daemon)
+  - [ ] Provision GKPR-YARN-RM-01 VM on Node01 (2 vCPU / 4 GB, RHEL 9.4)
+  - [ ] Provision GKPR-YARN-RM-02 VM on Node03 (2 vCPU / 4 GB, RHEL 9.4)
+  - [ ] Configure RHEL network, SSH, and passwordless sudo access on both VMs
+  - [ ] Verify VMs boot successfully and accept SSH connections
+  - [ ] Install Java 11 JDK (`yum install -y java-11-openjdk`) on both VMs (prerequisite for YARN RM daemon)
 - **Verification:** Both VMs boot successfully; `lscpu` confirms 2 vCPU and 4 GB RAM; SSH access verified; Java 11 installed
 - **User Sign-Off:** Confirm both YARN RM VMs are provisioned and accessible before P1.3 (ZooKeeper) deployment
 - **Owner:** Ksolves
@@ -350,11 +350,11 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Priority:** HIGH — Required before Stage 6 (Parquet → Cloud Staging) implementation
 - **Context:** Phase 1 assumes 1 Gbps WAN egress (≈125 MB/s) is sufficient for inter-batch Parquet transfers to cloud staging. Must validate this throughput is available and sustainable. Per Ksolves: "Parquet output per batch = ~0.8 TB → ~6,400 Gbits → 1.8 hours at 1 Gbps. This must complete within the inter-batch gap."
 - **User Actions Required:**
-  1. Contact network team to confirm WAN egress capacity available for production cluster
-  2. Verify 1 Gbps sustainable throughput (not burst; must handle continuous transfers)
-  3. Confirm no rate-limiting or QoS policies that would throttle inter-batch transfers
-  4. Document any limitations or constraints (e.g., scheduled maintenance windows, bandwidth sharing with other systems)
-  5. Share network validation with Ksolves before P2.3 (Parquet egress implementation)
+  - [ ] Contact network team to confirm WAN egress capacity available for production cluster
+  - [ ] Verify 1 Gbps sustainable throughput (not burst; must handle continuous transfers)
+  - [ ] Confirm no rate-limiting or QoS policies that would throttle inter-batch transfers
+  - [ ] Document any limitations or constraints (e.g., scheduled maintenance windows, bandwidth sharing with other systems)
+  - [ ] Share network validation with Ksolves before P2.3 (Parquet egress implementation)
 - **Verification:** Network team confirms 1 Gbps available and sustainable; Ksolves runs test transfer after infrastructure live
 - **Owner:** fqdn network team
 - **Estimated Effort:** 1-2 hours (network team validation call + documentation)
@@ -370,10 +370,10 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Priority:** CRITICAL — Confirms subscriptions working on actual VMs
 - **Context:** After P0.1 VMs are created, Ksolves verifies that subscriptions are properly registered and yum can resolve packages.
 - **Ksolves Actions:**
-  1. After VM provisioning complete (P0.1), run `subscription-manager list` on all Worker and YARN RM VMs
-  2. Verify yum can resolve packages: `yum search java-17-openjdk`
-  3. If issues detected, contact fqdn with subscription error details
-  4. Apply latest RHEL 9.4 patches: `yum update -y`
+  - [ ] After VM provisioning complete (P0.1), run `subscription-manager list` on all Worker and YARN RM VMs
+  - [ ] Verify yum can resolve packages: `yum search java-17-openjdk`
+  - [ ] If issues detected, contact fqdn with subscription error details
+  - [ ] Apply latest RHEL 9.4 patches: `yum update -y`
 - **Verification:** `yum install` succeeds without subscription warnings on all VMs
 - **Owner:** Ksolves (with fqdn subscription support)
 - **Estimated Effort:** < 1 hour
@@ -387,35 +387,35 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Priority:** CRITICAL — Foundation for Spark 3.5.3 (P0.5a); required for YARN integration
 - **Context:** Spark 3.5.3 requires Java JDK + standalone Hadoop installation on each Worker VM. Per Apache Spark documentation,² Hadoop binaries provide the YARN client libraries and Hadoop S3A connector (used to access Ceph RGW). **HDFS is NOT used** — Phase 1 storage is Ceph RGW (S3-compatible), so HDFS daemons are not deployed. Hadoop is installed solely for: (1) YARN client classpath, (2) S3A connector for Ceph RGW. **Java compatibility note:** Apache Hadoop 3.4.1 does not officially support Java 17;² Java 11 is the recommended version (compatible with both Hadoop 3.4.1 and Spark 3.5.3).
 - **Ksolves Actions:**
-  1. **Install Java 11 JDK** on all three Worker VMs:
+  - [ ] **Install Java 11 JDK** on all three Worker VMs:
      - `yum install -y java-11-openjdk java-11-openjdk-devel`
      - Set `JAVA_HOME=/usr/lib/jvm/java-11-openjdk` in `/etc/environment`
      - Verify: `java -version` shows OpenJDK 11
-  2. **Download Hadoop 3.4.1 binary** from Apache mirrors to all three Worker VMs
-  3. **Extract** to `/opt/hadoop-3.4.1` on each node
-  4. **Set environment variables** in `/etc/environment`:
+  - [ ] **Download Hadoop 3.4.1 binary** from Apache mirrors to all three Worker VMs
+  - [ ] **Extract** to `/opt/hadoop-3.4.1` on each node
+  - [ ] **Set environment variables** in `/etc/environment`:
      - `HADOOP_HOME=/opt/hadoop-3.4.1`
      - `HADOOP_CONF_DIR=/opt/hadoop-3.4.1/etc/hadoop`
      - `YARN_CONF_DIR=/opt/hadoop-3.4.1/etc/hadoop`
      - Add `$HADOOP_HOME/bin` to PATH
-  5. **Configure `core-site.xml`** for S3A (Ceph RGW) connector:
+  - [ ] **Configure `core-site.xml`** for S3A (Ceph RGW) connector:
      - `fs.s3a.endpoint=<Ceph RGW endpoint from P0.0>`
      - `fs.s3a.access.key=<from P0.0 RGW credentials>`
      - `fs.s3a.secret.key=<from P0.0 RGW credentials>`
      - `fs.s3a.path.style.access=true` (for Ceph RGW compatibility)
-  6. **Configure `yarn-site.xml`** to point to YARN ResourceManager (placeholder — will be updated after P1.2 YARN HA deployment)
-  7. **Do NOT start HDFS daemons** (NameNode, DataNode) — HDFS is not used in Phase 1
-  8. Verify with `hadoop version` on each node; verify S3A connectivity: `hadoop fs -ls s3a://ingest/`
+  - [ ] **Configure `yarn-site.xml`** to point to YARN ResourceManager (placeholder — will be updated after P1.2 YARN HA deployment)
+  - [ ] **Do NOT start HDFS daemons** (NameNode, DataNode) — HDFS is not used in Phase 1
+  - [ ] Verify with `hadoop version` on each node; verify S3A connectivity: `hadoop fs -ls s3a://ingest/`
 - **Prerequisites:**
-  - P0.1 (Worker VMs provisioned)
-  - P0.4b (RHEL subscriptions verified, yum working)
-  - P0.0 (Ceph RGW endpoint and S3 credentials available)
+  - [ ] P0.1 (Worker VMs provisioned)
+  - [ ] P0.4b (RHEL subscriptions verified, yum working)
+  - [ ] P0.0 (Ceph RGW endpoint and S3 credentials available)
 - **Verification:**
-  - `java -version` shows OpenJDK 11 on all three Worker VMs
-  - `hadoop version` returns Hadoop 3.4.1
-  - `hadoop classpath` returns non-empty output
-  - `hadoop fs -ls s3a://<bucket>/` succeeds (validates S3A → Ceph RGW connectivity)
-  - HDFS daemons NOT running (`jps` shows no NameNode/DataNode processes)
+  - [ ] `java -version` shows OpenJDK 11 on all three Worker VMs
+  - [ ] `hadoop version` returns Hadoop 3.4.1
+  - [ ] `hadoop classpath` returns non-empty output
+  - [ ] `hadoop fs -ls s3a://<bucket>/` succeeds (validates S3A → Ceph RGW connectivity)
+  - [ ] HDFS daemons NOT running (`jps` shows no NameNode/DataNode processes)
 - **Owner:** Ksolves
 - **Estimated Effort:** 2-3 hours (Java + Hadoop install + S3A configuration)
 - **Critical Note:** This task is the foundation for P0.5a (Spark install); confirm completion before proceeding
@@ -425,22 +425,22 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 ### 🔴 P0.5a — Install Apache Spark 3.5.3 on All Worker VMs
 
 - **Status:** PENDING P0.5 (HADOOP + JAVA) COMPLETION
-- **Priority:** CRITICAL — Phase 1 compute engine; required for P0.6 sample jobs and all Spark workloads
+- **Priority:** CRITICAL — Phase 1 compute engine; required for P1.8 sample jobs and all Spark workloads
 - **Context:** Per Apache Spark documentation,² installation order on YARN is: Java → Hadoop/YARN client → Spark binary distribution. Spark 3.5.3 must be installed on each Worker VM as a standalone install (not via Hadoop ecosystem packaging). The "no-hadoop" Spark distribution will be used since Hadoop 3.4.1 is already installed (P0.5) — Spark will use the existing Hadoop classpath. Spark on YARN requires `HADOOP_CONF_DIR` to locate the YARN ResourceManager.
 - **Prerequisites:**
-  - **P0.5 complete** (Java 11 + Hadoop 3.4.1 installed, `HADOOP_CONF_DIR` set)
-  - **P0.0 complete** (Ceph RGW endpoint live for S3A reads/writes)
-  - **P1.3 complete** (ZooKeeper) — required for P1.2 YARN HA which Spark connects to
+  - [ ] **P0.5 complete** (Java 11 + Hadoop 3.4.1 installed, `HADOOP_CONF_DIR` set)
+  - [ ] **P0.0 complete** (Ceph RGW endpoint live for S3A reads/writes)
+  - [ ] **P1.3 complete** (ZooKeeper) — required for P1.2 YARN HA which Spark connects to
 - **Ksolves Actions:**
-  1. **Download Spark 3.5.3** ("with-Hadoop-free" build) from Apache mirrors:
+  - [ ] **Download Spark 3.5.3** ("with-Hadoop-free" build) from Apache mirrors:
      - URL pattern: `https://archive.apache.org/dist/spark/spark-3.5.3/spark-3.5.3-bin-without-hadoop.tgz`
      - Download to all three Worker VMs
-  2. **Extract** to `/opt/spark-3.5.3` on each Worker VM
-  3. **Set environment variables** in `/etc/environment`:
+  - [ ] **Extract** to `/opt/spark-3.5.3` on each Worker VM
+  - [ ] **Set environment variables** in `/etc/environment`:
      - `SPARK_HOME=/opt/spark-3.5.3`
      - Add `$SPARK_HOME/bin` and `$SPARK_HOME/sbin` to PATH
      - Set `SPARK_DIST_CLASSPATH=$(hadoop classpath)` (required for "without-hadoop" build)
-  4. **Configure `$SPARK_HOME/conf/spark-defaults.conf`:**
+  - [ ] **Configure `$SPARK_HOME/conf/spark-defaults.conf`:**
      ```
      spark.master                          yarn
      spark.submit.deployMode               cluster
@@ -462,47 +462,24 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
      spark.hadoop.fs.s3a.access.key        <from P0.0>
      spark.hadoop.fs.s3a.secret.key        <from P0.0>
      ```
-  5. **Configure `$SPARK_HOME/conf/spark-env.sh`:**
+  - [ ] **Configure `$SPARK_HOME/conf/spark-env.sh`:**
      - `export JAVA_HOME=/usr/lib/jvm/java-11-openjdk`
      - `export HADOOP_CONF_DIR=/opt/hadoop-3.4.1/etc/hadoop`
      - `export YARN_CONF_DIR=/opt/hadoop-3.4.1/etc/hadoop`
      - `export SPARK_DIST_CLASSPATH=$(hadoop classpath)`
-  6. **Test installation** with a smoke test:
+  - [ ] **Test installation** with a smoke test:
      - `spark-submit --version` reports Spark 3.5.3 with Java 11
      - Run Pi example on YARN: `spark-submit --master yarn --deploy-mode cluster --class org.apache.spark.examples.SparkPi $SPARK_HOME/examples/jars/spark-examples_*.jar 10`
      - Verify YARN RM accepts the job and reports completion
 - **Verification:**
-  - `spark-submit --version` shows Spark 3.5.3 on all Worker VMs
-  - SparkPi example completes successfully on YARN
-  - Event log written to `s3a://spark-history/`
-  - Spark History Server (P1.1) shows the test job after job completion
-- **User Sign-Off:** Confirm SparkPi smoke test succeeds before P0.6 (5 sample production jobs)
+  - [ ] `spark-submit --version` shows Spark 3.5.3 on all Worker VMs
+  - [ ] SparkPi example completes successfully on YARN
+  - [ ] Event log written to `s3a://spark-history/`
+  - [ ] Spark History Server (P1.1) shows the test job after job completion
+- **User Sign-Off:** Confirm SparkPi smoke test succeeds before P1.8 (5 sample production jobs)
 - **Owner:** Ksolves
 - **Estimated Effort:** 2-3 hours (download, install, configure, smoke test)
 - **Critical Note:** Use the "without-hadoop" Spark distribution to leverage the existing Hadoop 3.4.1 install (avoids version conflicts). Java 11 must be set as `JAVA_HOME` for both Hadoop and Spark.
-
-<a id="p0-6-run-5-production-sample-jobs"></a>
-
-### 🔴 P0.6 — Run 5 Production Sample Jobs (Shuffle Amplification Measurement)
-
-- **Status:** PENDING INFRASTRUCTURE COMPLETION
-- **Priority:** CRITICAL — Validates Phase 1 assumptions and updates default calculator values
-- **Context:** Phase 1 assumes 7× shuffle amplification; actual measurement needed from real workload. Ksolves will execute 5 sample production jobs at varying sizes (500GB, 1TB, 2TB, 4TB, 5TB) and capture actual shuffle behavior.
-- **Ksolves Actions:**
-  1. After full infrastructure is live (P0.1–P0.5, P1.2–P1.3), prepare sample CSV datasets (500GB, 1TB, 2TB, 4TB, 5TB)
-  2. Submit 5 sequential Spark jobs (one per dataset size) via Airflow DAG or direct spark-submit
-  3. For each job, capture:
-     - Task shuffle output vs. input ratio (actual amplification factor)
-     - Shuffle write bandwidth (MB/s)
-     - Ceph RGW throughput ceiling
-     - Memory utilization under peak shuffle
-     - NVMe scratch I/O patterns
-  4. Calculate average amplification factor and update phases/phase1/deliverables/dev_cluster_phase1_model.html default
-- **Expected Output:** Actual shuffle amplification factor (e.g., 5.2× instead of assumed 7×) feeds into Phase 1 concurrency SLA
-- **Verification:** phases/phase1/deliverables/dev_cluster_phase1_model.html updated with measured value
-- **User Sign-Off:** Review measured amplification and confirm it satisfies Phase 1 SLA (40 jobs in 4 hours)
-- **Owner:** Ksolves
-- **Estimated Effort:** 2-4 hours
 
 <a id="p0-7-network-connectivity-verification"></a>
 
@@ -516,18 +493,18 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
   - Ansible control node → cluster node SSH (key-based, low bandwidth)
   - Nginx reverse proxy → YARN RM HA (port 8088 web UI, low bandwidth)
 - **User Actions Required:**
-  1. Coordinate with fqdn Network Team to verify/establish network path: MSB-PMC01 ↔ MSB-PMC03
-  2. Confirm routing between clusters (same VLAN, or routable via firewall)
-  3. Verify firewall rules allow:
+  - [ ] Coordinate with fqdn Network Team to verify/establish network path: MSB-PMC01 ↔ MSB-PMC03
+  - [ ] Confirm routing between clusters (same VLAN, or routable via firewall)
+  - [ ] Verify firewall rules allow:
      - MSB-PMC01 → MSB-PMC03 nodes (TCP 8032, 8088, 22, 9095 for JMX if monitoring)
      - MSB-PMC03 nodes → MSB-PMC01 (return traffic on same ports)
-  4. Test connectivity: ping from MSB-PMC01 to each MSB-PMC03 node; TCP port tests (`nc -zv`)
-  5. Document network topology and firewall rules for audit trail
-  6. Share verification results with Ksolves before P1.0 provisioning begins
+  - [ ] Test connectivity: ping from MSB-PMC01 to each MSB-PMC03 node; TCP port tests (`nc -zv`)
+  - [ ] Document network topology and firewall rules for audit trail
+  - [ ] Share verification results with Ksolves before P1.0 provisioning begins
 - **Verification:** 
-  - Network team confirms connectivity in change ticket
-  - Ping response times < 10ms (same datacenter assumed)
-  - TCP ports open: `nc -zv <node> 8032`, `nc -zv <node> 8088` succeed on all three MSB-PMC03 nodes
+  - [ ] Network team confirms connectivity in change ticket
+  - [ ] Ping response times < 10ms (same datacenter assumed)
+  - [ ] TCP ports open: `nc -zv <node> 8032`, `nc -zv <node> 8088` succeed on all three MSB-PMC03 nodes
 - **Owner:** fqdn Network Team
 - **Estimated Effort:** 2-4 hours (coordination + testing + documentation)
 - **Critical Note:** This is a hard gate. P1.0 cannot proceed until network connectivity verified and documented.
@@ -547,20 +524,20 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Context:** Remote Airflow host coordinates ETL job submission to Spark cluster. Must run Airflow webserver/scheduler, Okta SSO integration, Nginx reverse proxy for YARN RM HA, and Ansible control node. Ksolves specifies minimum 6c / 24GB RAM / 500GB SSD. Hosted on MSB-PMC01 cluster.
 - **Dependency:** **P0.7 (Network Connectivity) must be completed and verified first** — MSB-PMC01 and MSB-PMC03 clusters must be on same network with confirmed firewall rules.
 - **Ksolves Actions:**
-  1. After network connectivity verified (P0.7), provision remote server on MSB-PMC01: 6c / 24GB RAM / 500GB SSD, RHEL 9.4
-  2. Configure hostname: `airflow-prod-01` (or fqdn-assigned name)
-  3. Network setup: routable to all three MSB-PMC03 Spark nodes, to Snowflake, to cloud staging (Azure/AWS)
-  4. Install Okta SSO integration (requires OIDC client ID/secret from fqdn Okta tenant)
-  5. Verify SSH key access from Ansible control node (to be installed on this host)
-  6. Verify network paths: Airflow → YARN RM (port 8032), Airflow → Ceph RGW (floating IP), Airflow → Snowflake
+  - [ ] After network connectivity verified (P0.7), provision remote server on MSB-PMC01: 6c / 24GB RAM / 500GB SSD, RHEL 9.4
+  - [ ] Configure hostname: `airflow-prod-01` (or fqdn-assigned name)
+  - [ ] Network setup: routable to all three MSB-PMC03 Spark nodes, to Snowflake, to cloud staging (Azure/AWS)
+  - [ ] Install Okta SSO integration (requires OIDC client ID/secret from fqdn Okta tenant)
+  - [ ] Verify SSH key access from Ansible control node (to be installed on this host)
+  - [ ] Verify network paths: Airflow → YARN RM (port 8032), Airflow → Ceph RGW (floating IP), Airflow → Snowflake
 - **User Actions:**
-  1. Confirm MSB-PMC01 hosting and IP allocation (coordinate with Network Team)
-  2. Provide Okta OIDC credentials for Airflow SSO configuration
-  3. Ensure network connectivity verification (P0.7) complete before Ksolves begins provisioning
+  - [ ] Confirm MSB-PMC01 hosting and IP allocation (coordinate with Network Team)
+  - [ ] Provide Okta OIDC credentials for Airflow SSO configuration
+  - [ ] Ensure network connectivity verification (P0.7) complete before Ksolves begins provisioning
 - **Prerequisites:** 
-  - **P0.7 network connectivity verified and documented**
-  - Okta SSO client provisioned
-  - MSB-PMC01 networking and IP allocation finalized
+  - [ ] **P0.7 network connectivity verified and documented**
+  - [ ] Okta SSO client provisioned
+  - [ ] MSB-PMC01 networking and IP allocation finalized
 - **Verification:** SSH to remote host successful; RHEL subscriptions active; network paths confirmed (ping tests to all three cluster nodes <10ms, TCP port tests succeed, Snowflake/cloud routing confirmed)
 - **Owner:** Ksolves (provisioning) + fqdn (networking, SSO setup)
 - **Estimated Effort:** 2-3 hours (provisioning + network setup)
@@ -570,15 +547,16 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### 🟠 P1.1 — Deploy Spark History Server on Node02
 
-- **Status:** PENDING INFRASTRUCTURE (P0.1)
+- **Status:** PENDING P0.0 (CEPH RGW) + P0.1 (WORKER VMs) + P0.5a (SPARK INSTALL)
 - **Priority:** HIGH — Phase 1 observability and diagnostics
-- **Context:** Spark History Server (GKPR-SPARK-HS-01) runs as 1 vCPU / 4 GB VM on Node02. Reads event logs from s3a://spark-history/ on Ceph RGW. Required for Spark job monitoring and debugging during Phase 1 runs.
+- **Context:** Spark History Server (GKPR-SPARK-HS-01) runs as 1 vCPU / 4 GB VM on Node02. Reads event logs from `s3a://spark-history/` on Ceph RGW (RGW endpoint and credentials provisioned in P0.0). Required for Spark job monitoring and debugging during Phase 1 runs.
 - **Ksolves Actions:**
-  1. Provision Spark History Server VM on Node02 (1c / 4GB, RHEL 9.4)
-  2. Install Spark 3.5.3 and configure to read event logs: `spark.history.fs.logDirectory=s3a://spark-history/`
-  3. Create S3 bucket on Ceph RGW: s3://spark-history (Ksolves may need Ceph RGW credentials)
-  4. Start Spark History Server daemon (port 18080)
-- **Prerequisites:** Ceph RGW must be accessible; S3 credentials for spark-history bucket
+  - [ ] Provision Spark History Server VM on Node02 (1c / 4GB, RHEL 9.4)
+  - [ ] Install Spark 3.5.3 and configure to read event logs: `spark.history.fs.logDirectory=s3a://spark-history/`
+  - [ ] Create S3 bucket on Ceph RGW: `s3://spark-history` (uses RGW endpoint and S3 access/secret keys generated in P0.0)
+  - [ ] Configure S3A connector in `spark-defaults.conf` (endpoint, path-style access — see P0.5a)
+  - [ ] Start Spark History Server daemon (port 18080)
+- **Prerequisites:** Ceph RGW operational (P0.0); `spark-history` bucket created with RGW credentials from P0.0
 - **Verification:** Navigate to http://Node02:18080; confirm jobs appear after spark-submit runs
 - **Owner:** Ksolves
 - **Estimated Effort:** 1-2 hours
@@ -589,20 +567,21 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Priority:** HIGH — **REQUIRED PREREQUISITE for P1.2** (YARN RM HA cannot be configured until ZooKeeper is operational)
 - **Context:** ZooKeeper ensemble — **1 instance per node: Node01, Node02, Node03** (3 instances total) — coordinates YARN ResourceManager failover. Paxos quorum requires 2-of-3 agreement for cluster decisions. Per Apache Hadoop documentation,¹ ZooKeeper must be deployed and running before YARN RM HA configuration begins. Placement (host vs. small VM) to be confirmed with Ksolves; current assumption is host-level deployment on all three Proxmox nodes.
 - **Prerequisites:**
-  - **Java 11 JDK** installed on each ZooKeeper host (ZooKeeper requires JVM)
-  - Network connectivity between all three nodes
-  - Firewall ports open: 2181 (client), 2888 (peer), 3888 (leader election)
+  - [ ] **Java 11 JDK** installed on each ZooKeeper host (ZooKeeper requires JVM)
+  - [ ] Network connectivity between all three nodes
+  - [ ] Firewall ports open: 2181 (client), 2888 (peer), 3888 (leader election)
 - **Ksolves Actions:**
-  1. Install Java 11 JDK on each ZooKeeper host (if not already from P0.5/P0.2): `yum install -y java-11-openjdk`
-  2. Install ZooKeeper 3.8+ on all three nodes (Node01, Node02, Node03) — 1 instance per node
-  3. Configure ensemble in `zoo.cfg`: each instance knows about the other two (server.1/2/3 entries pointing to Node01/02/03)
-  4. Set unique `myid` file on each node (1, 2, 3 corresponding to Node01, Node02, Node03)
-  5. Start ZooKeeper on each node; verify quorum forms: `echo stat | nc localhost 2181`
-  6. Verify network connectivity between ZK instances on port 2888 (peer) and 3888 (leader election)
+  - [ ] Install Java 11 JDK on each ZooKeeper host (if not already from P0.5/P0.2): `yum install -y java-11-openjdk`
+  - [ ] Install ZooKeeper 3.8+ on all three nodes (Node01, Node02, Node03) — 1 instance per node
+  - [ ] Configure ensemble in `zoo.cfg`: each instance knows about the other two (server.1/2/3 entries pointing to Node01/02/03)
+  - [ ] Set unique `myid` file on each node (1, 2, 3 corresponding to Node01, Node02, Node03)
+  - [ ] Start ZooKeeper on each node; verify quorum forms: `echo stat | nc localhost 2181`
+  - [ ] Verify network connectivity between ZK instances on port 2888 (peer) and 3888 (leader election)
 - **Verification:** `echo stat | nc localhost 2181` shows "Mode: leader" or "Mode: follower" on each node; quorum status shows 2-of-3 healthy; one node shows "leader", two show "follower"
 - **Owner:** Ksolves
 - **Estimated Effort:** 1-2 hours
-- **Critical Note:** Must complete this BEFORE proceeding to P1.2 (YARN HA). Confirm ZK placement (host vs. VM) with Ksolves before installation begins.
+- **Critical Note:** Must complete this BEFORE proceeding to P1.2 (YARN HA).
+- **Open Vendor Question:** ZooKeeper placement — host-level deployment on each Proxmox node, or small dedicated ZK VM on each node? Tracked in `phases/phase1/vendor_comms/phase1_vendor_questions.txt` § Vendor Daily Meeting (2026-04-23). Confirm with Ksolves before installation begins. Default assumption: host-level (lowest overhead, fewer moving parts).
 
 ### 🟠 P1.2 — Deploy YARN ResourceManager HA (Active/Standby)
 
@@ -610,15 +589,15 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Priority:** HIGH — Phase 1 stability requirement
 - **Context:** YARN ResourceManager runs as VM on Node01 (active) with standby on Node03. Requires ZooKeeper ensemble quorum (1 per node, 3 total) for automatic failover. Per Apache Hadoop documentation,¹ ZooKeeper is a mandatory prerequisite for YARN RM HA. Phase 1 assumes HA for unattended overnight batch runs.
 - **Ksolves Actions:**
-  1. Install YARN ResourceManager on GKPR-YARN-RM-01 (Node01, active) and GKPR-YARN-RM-02 (Node03, standby)
-  2. Configure YARN RM to use ZooKeeper for HA: `yarn.resourcemanager.ha.enabled=true`, `yarn.resourcemanager.zk-address=<zk-quorum>`
-  3. Configure ZKRMStateStore (recommended for HA): `yarn.resourcemanager.store.class=org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore`
-  4. Set active RM to Node01, standby to Node03 (per vendor requirement)
-  5. Test failover: kill active RM process and verify standby takes over automatically
+  - [ ] Install YARN ResourceManager on GKPR-YARN-RM-01 (Node01, active) and GKPR-YARN-RM-02 (Node03, standby)
+  - [ ] Configure YARN RM to use ZooKeeper for HA: `yarn.resourcemanager.ha.enabled=true`, `yarn.resourcemanager.zk-address=<zk-quorum>`
+  - [ ] Configure ZKRMStateStore (recommended for HA): `yarn.resourcemanager.store.class=org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore`
+  - [ ] Set active RM to Node01, standby to Node03 (per vendor requirement)
+  - [ ] Test failover: kill active RM process and verify standby takes over automatically
 - **Prerequisites:** 
-  - **P1.3 (ZooKeeper ensemble) MUST be deployed and operational** (not optional)
-  - Network connectivity between all nodes
-  - YARN RM VMs (P0.2) must exist
+  - [ ] **P1.3 (ZooKeeper ensemble) MUST be deployed and operational** (not optional)
+  - [ ] Network connectivity between all nodes
+  - [ ] YARN RM VMs (P0.2) must exist
 - **Verification:** YARN RM web UI stable at Node01:8088; failover completes in < 30s when active RM is down
 - **User Sign-Off:** Confirm YARN RM HA is stable before Phase 1 load tests
 - **Owner:** Ksolves
@@ -626,16 +605,16 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### 🟠 P1.4 — Deploy Nginx Reverse Proxy on Remote Airflow Host
 
-- **Status:** PENDING REMOTE AIRFLOW HOST (P2.1)
+- **Status:** PENDING REMOTE AIRFLOW HOST (P1.0)
 - **Priority:** HIGH — Provides stable YARN RM endpoint for HA
 - **Context:** Nginx acts as reverse proxy for YARN ResourceManager HA, providing stable single endpoint for clients regardless of which node (Node01 or Node03) is currently active. Clients connect to Nginx floating IP; failover is transparent.
 - **Ksolves Actions:**
-  1. Provision remote Airflow host if not yet done (P2.1)
-  2. Install Nginx on remote Airflow host
-  3. Configure Nginx upstream to target GKPR-YARN-RM-01 (Node01) and GKPR-YARN-RM-02 (Node03)
-  4. Set health checks: active probes to both upstreams every 30s
-  5. Configure failover: if Node01 down, route all traffic to Node03 (passive check)
-  6. Expose stable endpoints: 
+  - [ ] Provision remote Airflow host if not yet done (P1.0)
+  - [ ] Install Nginx on remote Airflow host
+  - [ ] Configure Nginx upstream to target GKPR-YARN-RM-01 (Node01) and GKPR-YARN-RM-02 (Node03)
+  - [ ] Set health checks: active probes to both upstreams every 30s
+  - [ ] Configure failover: if Node01 down, route all traffic to Node03 (passive check)
+  - [ ] Expose stable endpoints: 
      - http://yarn-rm-proxy:8088 (web UI)
      - http://yarn-rm-proxy:8032 (Spark/Airflow client port)
 - **Verification:** Access http://yarn-rm-proxy:8088 and confirm YARN web UI; kill active RM and confirm failover within 30s
@@ -644,16 +623,16 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### 🟠 P1.5 — Deploy Ansible Control Node on Remote Airflow Host
 
-- **Status:** PENDING REMOTE AIRFLOW HOST (P2.1)
+- **Status:** PENDING REMOTE AIRFLOW HOST (P1.0)
 - **Priority:** HIGH — Required for infrastructure automation
 - **Context:** Ansible control node on remote Airflow host enables programmatic cluster management, configuration updates, and VM lifecycle operations. Must have SSH key access to all cluster nodes and Proxmox API token for VM operations.
 - **Ksolves Actions:**
-  1. Provision remote Airflow host if not yet done (P2.1)
-  2. Install Ansible 2.10+ and Python 3.11+ on remote Airflow host
-  3. Generate SSH keypair; distribute public key to all cluster nodes (Node01, Node02, Node03) for passwordless access
-  4. Store Proxmox API token securely (recommend pass or dedicated secrets manager)
-  5. Clone Ansible playbooks from git repository (if exists) or stage initial plays
-  6. Test connectivity: `ansible all -i hosts -m ping` should reach all nodes
+  - [ ] Provision remote Airflow host if not yet done (P1.0)
+  - [ ] Install Ansible 2.10+ and Python 3.11+ on remote Airflow host
+  - [ ] Generate SSH keypair; distribute public key to all cluster nodes (Node01, Node02, Node03) for passwordless access
+  - [ ] Store Proxmox API token securely (recommend pass or dedicated secrets manager)
+  - [ ] Clone Ansible playbooks from git repository (if exists) or stage initial plays
+  - [ ] Test connectivity: `ansible all -i hosts -m ping` should reach all nodes
 - **Prerequisites:** Remote Airflow host provisioned; SSH access to all cluster nodes; Proxmox API token generated
 - **Verification:** `ansible -i hosts -m command -a "uname -a" all` returns kernel info from all nodes; Proxmox API token successfully authenticates
 - **Owner:** Ksolves
@@ -661,31 +640,56 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### 🟠 P1.6 — Monitor Ceph OSD Memory Under Peak Ingest
 
-- **Status:** PENDING METRICS (Grafana, P2.x)
+- **Status:** PENDING P0.0 (CEPH BOOTSTRAP) + LOAD TEST (P1.8)
 - **Priority:** HIGH — Critical for storage stability
-- **Context:** Phase 1 assumes 3 GB per OSD (conservative default osd_memory_target=4GB per Ksolves Phase 1 Report). Must monitor actual memory consumption under peak 4 TB/batch ingest load. If OSD memory exceeds headroom, Ksolves will increase osd_memory_target and re-validate.
+- **Context:** Initial `osd_memory_target=4G` is set during Ceph bootstrap (P0.0). Phase 1 assumes ~3 GB actual usage per OSD under typical load. Must monitor actual memory consumption under peak 4 TB/batch ingest load. If OSD memory exceeds headroom, Ksolves will increase `osd_memory_target` and re-validate.
+- **Note on Metrics Collection:** Phase 1 has no dedicated Grafana setup task — the existing Grafana instance (referenced in master TODO `## Open Questions`) is on the monitoring cluster and not yet connected to this Spark cluster's Ceph metrics. For Phase 1 monitoring, capture OSD memory via direct Ceph commands (`ceph osd df`, `ceph daemon osd.<id> dump_mempools`) and node-level tools (`top`, `pidstat`). Grafana dashboard build-out is deferred to Phase 2 / monitoring cluster integration.
 - **Ksolves Actions:**
-  1. Configure Grafana dashboard for Ceph OSD memory metrics (if Grafana is ready)
-  2. During Phase 1 load test (P0.6), capture OSD memory peaks across all ingest cycles
-  3. If peak memory > 3.5 GB, incrementally increase osd_memory_target (e.g., 4.5GB → 5GB) and re-test
-  4. Document final osd_memory_target value in as-built configuration (P3.2)
-- **Success Criteria:** OSD memory stays < 3.5 GB peak during 4 TB batch
+  - [ ] During Phase 1 load test (P1.8), capture OSD memory peaks across all ingest cycles using `ceph daemon osd.<id> dump_mempools` and `ps`/`top` snapshots at 30s intervals
+  - [ ] If peak memory > 3.5 GB, incrementally increase `osd_memory_target` (e.g., 4.5GB → 5GB) via `ceph config set osd osd_memory_target <bytes>` and re-test
+  - [ ] Document final `osd_memory_target` value in as-built configuration (P3.2)
+- **Success Criteria:** OSD memory stays < 3.5 GB peak during 4 TB batch (relative to initial 4 GB target from P0.0)
 - **Owner:** Ksolves
 - **Estimated Effort:** 1-2 hours (setup) + data collection during load test
 
 ### 🟠 P1.7 — Validate WAN Egress Throughput (1 Gbps Target)
 
-- **Status:** PENDING LOAD TEST (P0.6)
+- **Status:** PENDING LOAD TEST (P1.8)
 - **Priority:** HIGH — Critical for cloud staging speed
 - **Context:** Phase 1 assumes 1 Gbps (≈125 MB/s) outbound throughput from cluster to cloud staging (Azure Blob or AWS S3, TBD at P0.3). Must validate actual achievable throughput with Parquet transfers during Phase 1 load tests.
 - **Ksolves Actions:**
-  1. During Phase 1 load test (P0.6), measure WAN egress throughput in Stage 6 (cloud egress)
-  2. Monitor exaBGP floating IP routing to Snowflake egress point; check for packet loss or latency anomalies
-  3. Capture sustained throughput over 5–10 minute transfer window
-  4. If sustained < 100 MB/s: diagnose network path (check for QoS limits, jumbo frames, MTU mismatch)
+  - [ ] During Phase 1 load test (P1.8), measure WAN egress throughput in Stage 6 (cloud egress)
+  - [ ] Monitor exaBGP floating IP routing to Snowflake egress point; check for packet loss or latency anomalies
+  - [ ] Capture sustained throughput over 5–10 minute transfer window
+  - [ ] If sustained < 100 MB/s: diagnose network path (check for QoS limits, jumbo frames, MTU mismatch)
 - **Success Criteria:** Sustained ≥100 MB/s during Parquet transfer; 0 packet loss
 - **Owner:** Ksolves
 - **Estimated Effort:** 1-2 hours (measurement during load test)
+
+<a id="p1-8-run-5-production-sample-jobs"></a>
+
+### 🟠 P1.8 — Run 5 Production Sample Jobs (Shuffle Amplification Measurement) — Phase 1 Integration Milestone
+
+- **Status:** PENDING FULL P0 + P1 INFRASTRUCTURE (P0.0–P0.5a, P1.0–P1.4)
+- **Priority:** HIGH — Validates Phase 1 assumptions and updates default calculator values; gates Phase 2C end-to-end pipeline validation (P2.3)
+- **Context:** Phase 1 assumes 7× shuffle amplification; actual measurement needed from real workload. P1.8 is the Phase 1 integration milestone — it cannot run until VMs (P0.1–P0.2), Hadoop/Spark (P0.5–P0.5a), Ceph (P0.0), ZooKeeper (P1.3), and YARN RM HA (P1.2) are all operational. Ksolves will execute 5 sample production jobs at varying sizes (500 GB, 1 TB, 2 TB, 4 TB, 5 TB) and capture actual shuffle behavior. P1.6 (OSD memory) and P1.7 (WAN egress) collect their measurements concurrently during this load test.
+- **Ksolves Actions:**
+  - [ ] Confirm full infrastructure is live: P0.0 (Ceph), P0.1 (Worker VMs), P0.2 (YARN RM VMs), P0.5 (Hadoop+Java), P0.5a (Spark), P1.2 (YARN HA), P1.3 (ZooKeeper), P1.4 (Nginx)
+  - [ ] Prepare sample CSV datasets (500 GB, 1 TB, 2 TB, 4 TB, 5 TB)
+  - [ ] Submit 5 sequential Spark jobs (one per dataset size) via direct `spark-submit` (Airflow integration is P2.2 → P2.3, not required for P1.8)
+  - [ ] For each job, capture:
+     - Task shuffle output vs. input ratio (actual amplification factor)
+     - Shuffle write bandwidth (MB/s)
+     - Ceph RGW throughput ceiling
+     - Memory utilization under peak shuffle
+     - NVMe scratch I/O patterns
+     - OSD memory peaks (feeds P1.6) and WAN egress throughput (feeds P1.7)
+  - [ ] Calculate average amplification factor and update `phases/phase1/deliverables/dev_cluster_phase1_model.html` default
+- **Expected Output:** Actual shuffle amplification factor (e.g., 5.2× instead of assumed 7×) feeds into Phase 1 concurrency SLA
+- **Verification:** `phases/phase1/deliverables/dev_cluster_phase1_model.html` updated with measured value
+- **User Sign-Off:** Review measured amplification and confirm it satisfies Phase 1 SLA (40 jobs in 4 hours)
+- **Owner:** Ksolves
+- **Estimated Effort:** 2-4 hours
 
 ---
 
@@ -695,69 +699,74 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### 🟡 P2.2 — Deploy Apache Airflow 2.10.4 on Remote Host
 
-- **Status:** PENDING REMOTE HOST (P2.1)
+- **Status:** PENDING REMOTE HOST (P1.0)
 - **Priority:** MEDIUM — Phase 1 job orchestration
 - **Context:** Airflow triggers spark-submit via DAG scheduler. CeleryExecutor confirmed for distributed job submission to YARN RM. Database can be embedded (docker-compose PostgreSQL) or standalone.
 - **Ksolves Actions:**
-  1. Install Python 3.11+, pip, and dependencies
-  2. Install Apache Airflow 2.10.4: `pip install apache-airflow[celery,postgres]`
-  3. Initialize Airflow database: `airflow db init`
-  4. Configure CeleryExecutor in airflow.cfg (broker: Redis or RabbitMQ; backend: PostgreSQL)
-  5. Create DAG for Phase 1: stage CSV ingest, trigger Spark jobs, track completion
-  6. Set up Airflow web UI (default http://host:8080) with basic auth or Okta integration
+  - [ ] Install Python 3.11+, pip, and dependencies
+  - [ ] Install Apache Airflow 2.10.4: `pip install apache-airflow[celery,postgres]`
+  - [ ] Initialize Airflow database: `airflow db init`
+  - [ ] Configure CeleryExecutor in airflow.cfg (broker: Redis or RabbitMQ; backend: PostgreSQL)
+  - [ ] Create DAG for Phase 1: stage CSV ingest, trigger Spark jobs, track completion
+  - [ ] Set up Airflow web UI (default http://host:8080) with basic auth or Okta integration
 - **Verification:** Airflow web UI accessible; DAG uploads successfully; manual trigger works
 - **Owner:** Ksolves
 - **Estimated Effort:** 2-3 hours
 
 ### 🟡 P2.3 — Validate 8-Stage Data Flow Pipeline (CSV → Snowflake)
 
-- **Status:** PENDING FULL INFRASTRUCTURE (P0.1–P0.5, P1.2–P1.3, P2.1–P2.2)
+- **Status:** PENDING FULL INFRASTRUCTURE (P0.0–P0.5a, P1.0, P1.2–P1.3, P2.2)
 - **Priority:** MEDIUM — End-to-end integration test
 - **Context:** Phase 1 data flow spans 8 sequential stages from CSV ingest through Snowflake COPY. Each stage has specific requirements (Airflow DAG, Spark containers, S3A reads/writes, cloud staging). Ksolves will validate the complete pipeline with a sample dataset.
 - **Stages to Validate:**
-  1. CSV Ingest → Ceph RGW (s3a://ingest/csv/)
-  2. Airflow DAG trigger via Airflow scheduler
-  3. YARN container scheduling (confirm executors allocated)
-  4. Spark ETL execution (CSV → Parquet, Snappy compression on shuffle)
-  5. Parquet writes to Ceph RGW (s3a://output/parquet/)
-  6. Cloud egress to Azure Blob / AWS S3 (requires cloud staging decision at P0.3)
-  7. Snowflake COPY INTO (internal stage → table)
-  8. Cleanup gate (delete Parquet from Ceph after Snowflake confirmation)
+  - [ ] CSV Ingest → Ceph RGW (s3a://ingest/csv/)
+  - [ ] Airflow DAG trigger via Airflow scheduler
+  - [ ] YARN container scheduling (confirm executors allocated)
+  - [ ] Spark ETL execution (CSV → Parquet, Snappy compression on shuffle)
+  - [ ] Parquet writes to Ceph RGW (s3a://output/parquet/)
+  - [ ] Cloud egress to Azure Blob / AWS S3 (requires cloud staging decision at P0.3)
+  - [ ] Snowflake COPY INTO (internal stage → table)
+  - [ ] Cleanup gate (delete Parquet from Ceph after Snowflake confirmation)
 - **Ksolves Actions:**
-  1. Prepare sample CSV dataset (500 GB or 1 TB)
-  2. Upload CSV to Ceph ingest bucket: s3a://ingest/csv/
-  3. Trigger Airflow DAG manually or via scheduler
-  4. Monitor Spark job execution: stages, executors, shuffle behavior
-  5. Verify Parquet output in Ceph: s3a://output/parquet/
-  6. Test cloud staging egress (once P0.3 decision made)
-  7. Verify Snowflake COPY INTO succeeds and data appears in target table
-  8. Confirm cleanup removes Parquet after Snowflake confirmation
+  - [ ] Prepare sample CSV dataset (500 GB or 1 TB)
+  - [ ] Upload CSV to Ceph ingest bucket: s3a://ingest/csv/
+  - [ ] Trigger Airflow DAG manually or via scheduler
+  - [ ] Monitor Spark job execution: stages, executors, shuffle behavior
+  - [ ] Verify Parquet output in Ceph: s3a://output/parquet/
+  - [ ] Test cloud staging egress (once P0.3 decision made)
+  - [ ] Verify Snowflake COPY INTO succeeds and data appears in target table
+  - [ ] Confirm cleanup removes Parquet after Snowflake confirmation
 - **Verification:** End-to-end single job completes successfully; data visible in Snowflake; no data loss in pipeline
 - **User Sign-Off:** Review pipeline execution logs and confirm all stages work as expected
 - **Owner:** Ksolves
+- **Snowflake Scope Note:** The Snowflake side of the pipeline is **out of scope for Ksolves and this Phase 1 plan**. fqdn is responsible for: (a) Snowflake account/warehouse provisioning and credentials, (b) target database/schema/table DDL, (c) `COPY INTO` statement authorship and stage configuration (named external stage pointing at the cloud bucket from P0.3), (d) Snowflake-side IAM/storage integration, and (e) Snowpipe or scheduled ingest if used. Ksolves' P2.3 validation ends at delivering a successful `COPY INTO` execution against fqdn-provided Snowflake objects; ongoing Snowflake operations remain a fqdn responsibility.
 - **Estimated Effort:** 3-4 hours
+
+<a id="p2-4-confirm-compression"></a>
 
 ### 🟡 P2.4 — Confirm Compression Codec Configuration
 
 - **Status:** PENDING SPARK CONFIG
 - **Priority:** MEDIUM — Performance and storage optimization
-- **Context:** Phase 1 specifies Snappy for shuffle intermediates (2.5× compression, low CPU) and ZSTD for Parquet output (5× compression, higher CPU). Ksolves will validate codec performance during Phase 1 load test (P0.6).
+- **Context:** Phase 1 specifies Snappy for shuffle intermediates (2.5× compression, low CPU) and ZSTD for Parquet output (5× compression, higher CPU). Ksolves will validate codec performance during Phase 1 load test (P1.8).
 - **Ksolves Actions:**
-  1. Configure spark-defaults.conf with compression settings:
+  - [ ] Configure spark-defaults.conf with compression settings:
      ```
      spark.shuffle.compress=true
      spark.shuffle.spill.compress=true
      spark.io.compression.codec=snappy
      spark.sql.parquet.compression.codec=zstd
      ```
-  2. During Phase 1 load test (P0.6), monitor:
+  - [ ] During Phase 1 load test (P1.8), monitor:
      - CPU usage during shuffle phase
      - Actual compression ratio (shuffle output / input)
      - Throughput impact (MB/s with vs. without compression)
-  3. If compression overhead > 5% CPU, consider codec swap (e.g., LZ4 for shuffle, ZSTD for output)
+  - [ ] If compression overhead > 5% CPU, consider codec swap (e.g., LZ4 for shuffle, ZSTD for output)
 - **Verification:** Phase 1 load test meets 4-hour SLA with compression enabled; compression ratios match expectations
 - **Owner:** Ksolves
 - **Estimated Effort:** < 1 hour (config) + observation during load test
+
+<a id="p2-5-validate-jbod"></a>
 
 ### 🟡 P2.5 — Validate JBOD Storage Configuration (NVMe Drives 4–7, XFS)
 
@@ -765,11 +774,11 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Priority:** MEDIUM — Critical for shuffle performance
 - **Context:** NVMe drives 4–7 on each node (15.36 TB per node) are configured as JBOD (not RAID) for Spark shuffle scratch using XFS filesystem. No replication. Ksolves will mount, configure permissions, and benchmark I/O during Phase 1 load test.
 - **Ksolves Actions:**
-  1. After NVMe drives attached to Worker VMs (P0.1), partition and format drives 4–7 with XFS
-  2. Mount to /var/spark/scratch (or per-node equivalent)
-  3. Set permissions for Spark process user (root or dedicated spark user): `chmod 1777 /var/spark/scratch`
-  4. Configure Spark to use scratch mount: `spark.local.dir=/var/spark/scratch`
-  5. During Phase 1 load test (P0.6), benchmark I/O:
+  - [ ] After NVMe drives attached to Worker VMs (P0.1), partition and format drives 4–7 with XFS
+  - [ ] Mount to /var/spark/scratch (or per-node equivalent)
+  - [ ] Set permissions for Spark process user (root or dedicated spark user): `chmod 1777 /var/spark/scratch`
+  - [ ] Configure Spark to use scratch mount: `spark.local.dir=/var/spark/scratch`
+  - [ ] During Phase 1 load test (P1.8), benchmark I/O:
      - Run `fio` random read/write test on mounted drives
      - Capture peak I/O throughput (target: ~3,000 MB/s aggregate across cluster)
      - Monitor for I/O bottlenecks or dropped tasks
@@ -777,19 +786,21 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Owner:** Ksolves
 - **Estimated Effort:** 1-2 hours (mount + benchmark)
 
+<a id="p2-6-validate-network"></a>
+
 ### 🟡 P2.6 — Validate Network Topology (2×10G LACP Bond)
 
 - **Status:** PENDING INFRASTRUCTURE (P0.1)
 - **Priority:** MEDIUM — Ensures cluster bandwidth availability
 - **Context:** Each node has 2×10G NICs bonded via LACP (Link Aggregation Control Protocol). Phase 1 requires 20G per node effective bandwidth for intra-cluster replication, S3A reads/writes, and WAN egress. Ksolves will verify bond status and validate throughput during Phase 1 load test.
 - **Ksolves Actions:**
-  1. After VMs provisioned (P0.1), verify LACP bond status on each node: `cat /proc/net/bonding/bond0` should show "Bonding Mode: balance-alb" and both NICs active
-  2. If bond not yet configured, set up LACP on switch and VM network stack
-  3. During Phase 1 load test (P0.6), validate throughput:
+  - [ ] After VMs provisioned (P0.1), verify LACP bond status on each node: `cat /proc/net/bonding/bond0` should show "Bonding Mode: balance-alb" and both NICs active
+  - [ ] If bond not yet configured, set up LACP on switch and VM network stack
+  - [ ] During Phase 1 load test (P1.8), validate throughput:
      - Ceph replication: Should saturate ≥95 MB/s per node (intra-cluster traffic)
      - S3A throughput: Should reach ≥284 MB/s aggregate (Ceph RGW ceiling)
      - WAN egress: Should achieve ≥125 MB/s to cloud (P1.7)
-  4. Monitor for packet loss: `ethtool -S bond0 | grep errors` should show 0 after load test
+  - [ ] Monitor for packet loss: `ethtool -S bond0 | grep errors` should show 0 after load test
 - **Verification:** Bond status shows both NICs active; throughput targets met during load test; 0 packet loss
 - **Owner:** Ksolves
 - **Estimated Effort:** 1-2 hours (validation during load test)
@@ -798,22 +809,22 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### 🟡 P2.7 — Evaluate Phase 1 Node Addition Timeline (Ksolves Open Item #9)
 
-- **Status:** PENDING PHASE 1 LOAD TEST RESULTS (P0.6)
+- **Status:** PENDING PHASE 1 LOAD TEST RESULTS (P1.8)
 - **Priority:** MEDIUM — Critical for Phase 1 → Phase 2 transition planning
-- **Context:** Phase 1 report flags 40-job daily SLA as "marginal with 2.1 min buffer" on 3-node cluster. If actual shuffle amplification (P0.6) is higher than assumed 7×, or if concurrent jobs need to exceed 2, a 4th node may be required to hit the SLA reliably. Ksolves will evaluate timing after Phase 1 validation jobs run.
+- **Context:** Phase 1 report flags 40-job daily SLA as "marginal with 2.1 min buffer" on 3-node cluster. If actual shuffle amplification (P1.8) is higher than assumed 7×, or if concurrent jobs need to exceed 2, a 4th node may be required to hit the SLA reliably. Ksolves will evaluate timing after Phase 1 validation jobs run.
 - **Evaluation Criteria:**
-  - Actual shuffle amplification factor (measured in P0.6)
+  - Actual shuffle amplification factor (measured in P1.8)
   - Concurrent job capability with current 3-node setup
   - If SLA buffer < 5 min for 40 jobs: recommend 4th node addition
   - If SLA buffer ≥ 5 min: proceed with Phase 2 on 3 nodes
 - **Ksolves Actions:**
-  1. After Phase 1 load test (P0.6) completes, analyze:
+  - [ ] After Phase 1 load test (P1.8) completes, analyze:
      - Actual shuffle amplification vs. 7× assumption
      - Peak memory, CPU, and I/O utilization per node
      - Concurrent job scaling (how many jobs can run simultaneously without SLA breach?)
-  2. Calculate revised SLA buffer: (inter-job gap time - job duration) / job duration
-  3. If buffer < 5 min: recommend 4th node (same spec: HPE DL385 Gen11, 32c/384GB, 7×3.84TB NVMe)
-  4. Provide timeline estimate: can 4th node be provisioned/integrated before Phase 1 production runs?
+  - [ ] Calculate revised SLA buffer: (inter-job gap time - job duration) / job duration
+  - [ ] If buffer < 5 min: recommend 4th node (same spec: HPE DL385 Gen11, 32c/384GB, 7×3.84TB NVMe)
+  - [ ] Provide timeline estimate: can 4th node be provisioned/integrated before Phase 1 production runs?
 - **Verification:** Ksolves delivers node addition evaluation report with SLA projections and recommendation
 - **Owner:** Ksolves (analysis) + fqdn (decision on 4th node budget/timeline)
 - **Estimated Effort:** 2-4 hours (analysis) + 1-2 weeks (procurement/provisioning if approved)
@@ -863,7 +874,7 @@ The following items are derived from Phase 1 report findings but are not explici
 - ✅ Hadoop: 3.4.1 standalone
 
 **Phase 2 Assumptions — TO BE VALIDATED:**
-- Shuffle amplification: 7× (uncompressed) — actual measurement required (P0.6)
+- Shuffle amplification: 7× (uncompressed) — actual measurement required (P1.8)
 - Concurrent jobs: 1 → 2 baseline (core-bound, not RAM-bound) — to be measured
 - WAN egress: 1 Gbps sustained (125 MB/s actual target, P1.7)
 - Cloud staging: Azure Blob or AWS S3 (TBD, P0.3 decision required)
@@ -874,23 +885,24 @@ The following items are derived from Phase 1 report findings but are not explici
 **External Dependencies:**
 - Ksolves technical contact: Karthik Hegde (karthik.hegde@ksolves.com, 8317382875)
 - Ksolves requires owner-level Proxmox access (BLOCKER.1) before any infrastructure work
-- fqdn sign-off required at user checkpoints (P0.2, P0.6, P1.2, P2.3) before proceeding to next phase
+- fqdn sign-off required at user checkpoints (P0.2, P1.8, P1.2, P2.3) before proceeding to next phase
 - Cloud staging platform decision (P0.3) blocks Stage 6 pipeline implementation
 
 **Critical Path Sequence:**
 - **Phase 1 (Planning):** ✅ COMPLETE — All discovery & architecture finalized (Apr 24)
 - **Phase 2 (Implementation):** PENDING
-  1. BLOCKER.1: Establish Ksolves remote access (user action — Phase 1A immediate, Phase 1B parallel)
-  2. **P0.0: Ksolves bootstraps Ceph cluster** (MON, MGR, 9× OSD, RGW) — first Ksolves work after access granted
-  3. BLOCKER.2: User places RHEL ISO in Proxmox local storage (user action — **after** P0.0 HEALTH_OK)
-  4. *Parallel user prerequisites:* P0.4 (RHEL subscriptions), P0.0a (CSV file info), P0.7 (network MSB-PMC01↔03)
-  5. P0.1–P0.5: Ksolves provisions all VMs and base software (requires RHEL ISO from BLOCKER.2)
-  6. **P1.3: Ksolves deploys ZooKeeper ensemble** (required prerequisite for P1.2)
-  7. **P1.2: Ksolves deploys YARN HA** (requires P1.3 ZooKeeper to be operational first)
-  8. P0.6: Run 5 sample jobs and measure actual shuffle amplification
-  9. P1.0, P1.4–P1.5: Ksolves provisions Remote Airflow Server, Nginx reverse proxy, Ansible control
-  10. P2.2–P2.3: Ksolves deploys Airflow and validates end-to-end pipeline
-  11. Phase 2 sign-off: fqdn approves for production if all P0–P2 items pass
+  - [ ] BLOCKER.1: Establish Ksolves remote access (user action — Phase 1A immediate, Phase 1B parallel)
+  - [ ] **P0.0: Ksolves bootstraps Ceph cluster** (MON, MGR, 9× OSD, RGW) — first Ksolves work after access granted
+  - [ ] BLOCKER.2: User places RHEL ISO in Proxmox local storage (user action — **after** P0.0 HEALTH_OK)
+  - [ ] *Parallel user prerequisites:* P0.4 (RHEL subscriptions), P0.0a (CSV file info), P0.7 (network MSB-PMC01↔03)
+  - [ ] P0.1–P0.5: Ksolves provisions all VMs and base software (requires RHEL ISO from BLOCKER.2)
+  - [ ] **P1.3: Ksolves deploys ZooKeeper ensemble** (required prerequisite for P1.2)
+  - [ ] **P1.2: Ksolves deploys YARN HA** (requires P1.3 ZooKeeper to be operational first)
+  - [ ] P1.0, P1.4–P1.5: Ksolves provisions Remote Airflow Server, Nginx reverse proxy, Ansible control
+  - [ ] P1.1: Spark History Server deployed on Node02 (depends on P0.0 RGW + P0.5a Spark)
+  - [ ] **P1.8: Phase 1 integration milestone — run 5 sample jobs, measure shuffle amplification, OSD memory (P1.6), and WAN egress (P1.7)**
+  - [ ] P2.2–P2.3: Ksolves deploys Airflow and validates end-to-end pipeline (Snowflake side is fqdn responsibility)
+  - [ ] Phase 2 sign-off: fqdn approves for production if all P0–P2 items pass
 - **Beyond Phase 2:** Pending Ksolves clarification — See "Actions Outside Present Known Scope"
 
 ---
