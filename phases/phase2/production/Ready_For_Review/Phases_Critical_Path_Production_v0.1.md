@@ -4,7 +4,7 @@
 # Phases Critical Path — fqdn Production Cluster
 
 _Version 0.1 · Last updated 2026-04-27_  
-_Forked from `Phases_Critical_Path_Development_v1.0.md` as a starting point — production-specific adjustments pending_  
+_Forked from `Phases_Critical_Path_Development_v1.1.md` as a starting point — production-specific adjustments pending_  
 _Report Source: phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf (development scope; production scope to be defined separately)_  
 _Status: DRAFT — production hardware specs (64-core nodes, 768 GB RAM, 9× 3.2 TB NVMe), production traffic profile, NUMA topology (dual-socket), and production-only services (e.g., HA SLOs, backup/DR) not yet reflected. Content below is inherited from the development plan and will be revised._
 

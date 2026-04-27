@@ -3,7 +3,7 @@
 
 # Phases Critical Path — fqdn Development Cluster
 
-_Version 1.0 · Last updated 2026-04-26_  
+_Version 1.1 · Last updated 2026-04-27_  
 _Phases 1–2 detailed plan from fqdn Phase 1 Report (Ksolves) — April 2026_  
 _Report Source: phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf_  
 _Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING BLOCKER.1 · Out-of-scope items flagged for vendor clarification_
@@ -19,7 +19,6 @@ This document maps the **Ksolves Phase 1 Report (April 2026)** to a detailed, se
 **Source Mapping:** All nine Ksolves Open Items have been captured in Phase 2A–2C below. Items are categorized by criticality (CRITICAL/HIGH/MEDIUM) and sequenced by dependency.
 
 **Added Clarity:** Where Ksolves used general language or left scope ambiguous, we have:
-- **Researched dependencies** (e.g., ZooKeeper as mandatory prerequisite for YARN HA per Apache Hadoop docs)
 - **Added fqdn-specific tasks** (e.g., CSV file information gathering, RHEL subscription pre-flight verification, WAN egress validation)
 - **Resequenced for feasibility** (e.g., RHEL subscription verification moved to pre-requisite gate, not post-provisioning validation)
 - **Clarified ownership** (User actions vs. Ksolves actions, blockers requiring fqdn decision vs. vendor execution)
@@ -27,7 +26,6 @@ This document maps the **Ksolves Phase 1 Report (April 2026)** to a detailed, se
 **Expanded Scope:** Added items that are prerequisites or dependent on Ksolves' work but were implicit in their report:
 - P0.0a — CSV file information gathering (needed for Ksolves' storage/shuffle estimates)
 - P0.4 (pre-req) — RHEL subscription pre-flight check (gate for P0.1)
-- P1.3 — ZooKeeper ensemble (mandatory prerequisite for P1.2 YARN HA per Apache docs)
 
 **Cross-Reference:** All items reference the Ksolves report section or open item number. Assumptions and dependencies are documented in dedicated sections below.
 
@@ -54,9 +52,7 @@ This document maps the **Ksolves Phase 1 Report (April 2026)** to a detailed, se
   - [Phase 2B — High Priority: Infrastructure Services & HA (P1)](#phase-2b-high-priority-infrastructure-services)
     - [P1.0 — Provision Remote Airflow Server](#p1-0-provision-remote-airflow-host)
     - [P1.1 — Deploy Spark History Server](#p1-1-deploy-spark-history-server)
-    - [P1.3 — Deploy ZooKeeper Ensemble](#p1-3-deploy-zookeeper)
-    - [P1.2 — Deploy YARN ResourceManager HA](#p1-2-deploy-yarn-ha)
-    - [P1.4 — Deploy Nginx Reverse Proxy](#p1-4-deploy-nginx)
+    - [P1.2 — Deploy YARN ResourceManager (Single Instance, Manual Recovery)](#p1-2-deploy-yarn)
     - [P1.5 — Deploy Ansible Control Node](#p1-5-deploy-ansible)
     - [P1.6 — Monitor Ceph OSD Memory](#p1-6-monitor-ceph-osd)
     - [P1.7 — Validate WAN Egress Throughput (Load Test)](#p1-7-validate-wan-egress)
@@ -254,7 +250,7 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Context:** RHEL 9.4 subscriptions must be active on all VMs for yum package installation, security patches, and kernel updates. Confirmation required before Ksolves begins P0.1 VM provisioning so they can proceed immediately with package installation after VM creation.
 - **User Actions Required:**
   - [ ] Contact RHEL subscription administrator (or check existing fqdn subscription account)
-  - [ ] Verify subscriptions are active for at least 5 RHEL 9.4 licenses (3 Worker VMs + 2 YARN RM VMs)
+  - [ ] Verify subscriptions are active for at least 4 RHEL 9.4 licenses (3 Worker VMs + 1 YARN RM VM)
   - [ ] Confirm subscription status: active through end of Phase 1 + buffer (minimum 6 months)
   - [ ] Document subscription keys or proof of active subscriptions
   - [ ] Share confirmation with Ksolves before they start P0.1
@@ -314,22 +310,21 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 <a id="p0-2-yarn-resourcemanager-vm"></a>
 
-### 🔴 P0.2 — YARN ResourceManager VM Provisioning (Active + Standby) — VM Creation Only
+### 🔴 P0.2 — YARN ResourceManager VM Provisioning — VM Creation Only
 
 - **Status:** PENDING REMOTE ACCESS, BLOCKER.2 (RHEL ISO)
-- **Priority:** CRITICAL — Hardware foundation for YARN HA (deployed in P1.2)
-- **Context:** Ksolves will create two RHEL 9.4 VMs that will host the YARN ResourceManager daemons (active/standby). **This task is VM provisioning only** — ZooKeeper deployment is P1.3 and YARN HA configuration is P1.2 (per Apache Hadoop documentation, ZooKeeper must be operational before YARN HA can be configured¹).
+- **Priority:** CRITICAL — Hardware foundation for YARN (deployed in P1.2)
+- **Context:** Ksolves will create one RHEL 9.4 VM to host the YARN ResourceManager daemon. **This task is VM provisioning only** — YARN ResourceManager daemon install is P1.2. Per vendor decision (2026-04-27), the YARN RM runs as a single instance with manual recovery on failure (no HA, no standby VM, no ZooKeeper).
 - **Ksolves Actions:**
   - [ ] Provision GKPR-YARN-RM-01 VM on Node01 (2 vCPU / 4 GB, RHEL 9.4)
-  - [ ] Provision GKPR-YARN-RM-02 VM on Node03 (2 vCPU / 4 GB, RHEL 9.4)
-  - [ ] Configure RHEL network, SSH, and passwordless sudo access on both VMs
-  - [ ] Verify VMs boot successfully and accept SSH connections
-  - [ ] Install Java 11 JDK (`yum install -y java-11-openjdk`) on both VMs (prerequisite for YARN RM daemon)
-- **Verification:** Both VMs boot successfully; `lscpu` confirms 2 vCPU and 4 GB RAM; SSH access verified; Java 11 installed
-- **User Sign-Off:** Confirm both YARN RM VMs are provisioned and accessible before P1.3 (ZooKeeper) deployment
+  - [ ] Configure RHEL network, SSH, and passwordless sudo access on the VM
+  - [ ] Verify VM boots successfully and accepts SSH connections
+  - [ ] Install Java 11 JDK (`yum install -y java-11-openjdk`) on the VM (prerequisite for YARN RM daemon)
+- **Verification:** VM boots successfully; `lscpu` confirms 2 vCPU and 4 GB RAM; SSH access verified; Java 11 installed
+- **User Sign-Off:** Confirm YARN RM VM is provisioned and accessible before P1.2 deployment
 - **Owner:** Ksolves
-- **Estimated Effort:** 1-2 hours (VM provisioning + base RHEL config + Java install)
-- **Note:** ZooKeeper installation/configuration → P1.3; YARN ResourceManager daemon install + HA failover → P1.2
+- **Estimated Effort:** 1 hour (VM provisioning + base RHEL config + Java install)
+- **Note:** YARN ResourceManager daemon install → P1.2. Manual-recovery posture: if the RM VM fails, it must be restarted manually; no automatic failover.
 
 <a id="p0-3-confirm-cloud-staging-target"></a>
 
@@ -386,7 +381,7 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 - **Status:** PENDING VM PROVISIONING (P0.1)
 - **Priority:** CRITICAL — Foundation for Spark 3.5.3 (P0.5a); required for YARN integration
-- **Context:** Spark 3.5.3 requires Java JDK + standalone Hadoop installation on each Worker VM. Per Apache Spark documentation,² Hadoop binaries provide the YARN client libraries and Hadoop S3A connector (used to access Ceph RGW). **HDFS is NOT used** — Phase 1 storage is Ceph RGW (S3-compatible), so HDFS daemons are not deployed. Hadoop is installed solely for: (1) YARN client classpath, (2) S3A connector for Ceph RGW. **Java compatibility note:** Apache Hadoop 3.4.1 does not officially support Java 17;² Java 11 is the recommended version (compatible with both Hadoop 3.4.1 and Spark 3.5.3).
+- **Context:** Spark 3.5.3 requires Java JDK + standalone Hadoop installation on each Worker VM. Per Apache Spark documentation,¹ Hadoop binaries provide the YARN client libraries and Hadoop S3A connector (used to access Ceph RGW). **HDFS is NOT used** — Phase 1 storage is Ceph RGW (S3-compatible), so HDFS daemons are not deployed. Hadoop is installed solely for: (1) YARN client classpath, (2) S3A connector for Ceph RGW. **Java compatibility note:** Apache Hadoop 3.4.1 does not officially support Java 17;¹ Java 11 is the recommended version (compatible with both Hadoop 3.4.1 and Spark 3.5.3).
 - **Ksolves Actions:**
   - [ ] **Install Java 11 JDK** on all three Worker VMs:
      - `yum install -y java-11-openjdk java-11-openjdk-devel`
@@ -404,7 +399,7 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
      - `fs.s3a.access.key=<from P0.0 RGW credentials>`
      - `fs.s3a.secret.key=<from P0.0 RGW credentials>`
      - `fs.s3a.path.style.access=true` (for Ceph RGW compatibility)
-  - [ ] **Configure `yarn-site.xml`** to point to YARN ResourceManager (placeholder — will be updated after P1.2 YARN HA deployment)
+  - [ ] **Configure `yarn-site.xml`** to point to YARN ResourceManager on GKPR-YARN-RM-01 (placeholder — will be finalized in P1.2)
   - [ ] **Do NOT start HDFS daemons** (NameNode, DataNode) — HDFS is not used in Phase 1
   - [ ] Verify with `hadoop version` on each node; verify S3A connectivity: `hadoop fs -ls s3a://ingest/`
 - **Prerequisites:**
@@ -427,11 +422,11 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 - **Status:** PENDING P0.5 (HADOOP + JAVA) COMPLETION
 - **Priority:** CRITICAL — Phase 1 compute engine; required for P1.8 sample jobs and all Spark workloads
-- **Context:** Per Apache Spark documentation,² installation order on YARN is: Java → Hadoop/YARN client → Spark binary distribution. Spark 3.5.3 must be installed on each Worker VM as a standalone install (not via Hadoop ecosystem packaging). The "no-hadoop" Spark distribution will be used since Hadoop 3.4.1 is already installed (P0.5) — Spark will use the existing Hadoop classpath. Spark on YARN requires `HADOOP_CONF_DIR` to locate the YARN ResourceManager.
+- **Context:** Per Apache Spark documentation,¹ installation order on YARN is: Java → Hadoop/YARN client → Spark binary distribution. Spark 3.5.3 must be installed on each Worker VM as a standalone install (not via Hadoop ecosystem packaging). The "no-hadoop" Spark distribution will be used since Hadoop 3.4.1 is already installed (P0.5) — Spark will use the existing Hadoop classpath. Spark on YARN requires `HADOOP_CONF_DIR` to locate the YARN ResourceManager.
 - **Prerequisites:**
   - [ ] **P0.5 complete** (Java 11 + Hadoop 3.4.1 installed, `HADOOP_CONF_DIR` set)
   - [ ] **P0.0 complete** (Ceph RGW endpoint live for S3A reads/writes)
-  - [ ] **P1.3 complete** (ZooKeeper) — required for P1.2 YARN HA which Spark connects to
+  - [ ] **P1.2 complete** (YARN ResourceManager running) — required for `spark-submit --master yarn`
 - **Ksolves Actions:**
   - [ ] **Download Spark 3.5.3** ("with-Hadoop-free" build) from Apache mirrors:
      - URL pattern: `https://archive.apache.org/dist/spark/spark-3.5.3/spark-3.5.3-bin-without-hadoop.tgz`
@@ -492,7 +487,6 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
   - Airflow DAG submission to YARN ResourceManager (port 8032, low bandwidth)
   - Spark driver logs and monitoring (continuous, low-moderate bandwidth)
   - Ansible control node → cluster node SSH (key-based, low bandwidth)
-  - Nginx reverse proxy → YARN RM HA (port 8088 web UI, low bandwidth)
 - **User Actions Required:**
   - [ ] Coordinate with fqdn Network Team to verify/establish network path: MSB-PMC01 ↔ MSB-PMC03
   - [ ] Confirm routing between clusters (same VLAN, or routable via firewall)
@@ -521,8 +515,8 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 ### 🟠 P1.0 — Provision Remote Airflow Server (Ksolves Open Item #8)
 
 - **Status:** PENDING P0.7 NETWORK VERIFICATION (REMOTE INFRASTRUCTURE)
-- **Priority:** HIGH — Prerequisite for Airflow orchestration, Ansible automation, and Nginx proxy
-- **Context:** Remote Airflow host coordinates ETL job submission to Spark cluster. Must run Airflow webserver/scheduler, Okta SSO integration, Nginx reverse proxy for YARN RM HA, and Ansible control node. Ksolves specifies minimum 6c / 24GB RAM / 500GB SSD. Hosted on MSB-PMC01 cluster.
+- **Priority:** HIGH — Prerequisite for Airflow orchestration and Ansible automation
+- **Context:** Remote Airflow host coordinates ETL job submission to Spark cluster. Must run Airflow webserver/scheduler, Okta SSO integration, and Ansible control node. Ksolves specifies minimum 6c / 24GB RAM / 500GB SSD. Hosted on MSB-PMC01 cluster.
 - **Dependency:** **P0.7 (Network Connectivity) must be completed and verified first** — MSB-PMC01 and MSB-PMC03 clusters must be on same network with confirmed firewall rules.
 - **Ksolves Actions:**
   - [ ] After network connectivity verified (P0.7), provision remote server on MSB-PMC01: 6c / 24GB RAM / 500GB SSD, RHEL 9.4
@@ -542,7 +536,7 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Verification:** SSH to remote host successful; RHEL subscriptions active; network paths confirmed (ping tests to all three cluster nodes <10ms, TCP port tests succeed, Snowflake/cloud routing confirmed)
 - **Owner:** Ksolves (provisioning) + fqdn (networking, SSO setup)
 - **Estimated Effort:** 2-3 hours (provisioning + network setup)
-- **Critical Note:** P1.4 (Nginx), P1.5 (Ansible), and later P2 items depend on this host being live and network-connected
+- **Critical Note:** P1.5 (Ansible) and later P2 items depend on this host being live and network-connected
 
 ---
 
@@ -562,63 +556,25 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Owner:** Ksolves
 - **Estimated Effort:** 1-2 hours
 
-### 🟠 P1.3 — Deploy ZooKeeper Ensemble for YARN RM Failover
+<a id="p1-2-deploy-yarn"></a>
 
-- **Status:** PENDING P0.0 (CEPH BOOTSTRAP) + P0.1 (WORKER VMs) + P0.2 (YARN RM VMs)
-- **Priority:** HIGH — **REQUIRED PREREQUISITE for P1.2** (YARN RM HA cannot be configured until ZooKeeper is operational)
-- **Context:** ZooKeeper ensemble — **1 instance per node: Node01, Node02, Node03** (3 instances total) — coordinates YARN ResourceManager failover. Paxos quorum requires 2-of-3 agreement for cluster decisions. Per Apache Hadoop documentation,¹ ZooKeeper must be deployed and running before YARN RM HA configuration begins. Placement (host vs. small VM) to be confirmed with Ksolves; current assumption is host-level deployment on all three Proxmox nodes.
+### 🟠 P1.2 — Deploy YARN ResourceManager (Single Instance, Manual Recovery)
+
+- **Status:** PENDING P0.2 (YARN RM VM) + P0.5 (HADOOP) ON WORKER VMs
+- **Priority:** HIGH — Phase 1 compute orchestration
+- **Context:** YARN ResourceManager runs as a single daemon on `GKPR-YARN-RM-01` (Node01). Per vendor decision (2026-04-27), the development cluster does not run an HA pair; if the RM VM or daemon fails, recovery is manual (operator restarts the daemon or the VM). No standby VM, no ZooKeeper ensemble, and no nginx reverse proxy. Spark drivers and Airflow clients connect directly to the RM endpoint.
+- **Ksolves Actions:**
+  - [ ] Install YARN ResourceManager on GKPR-YARN-RM-01 (Node01)
+  - [ ] Configure `yarn-site.xml` with single-RM settings: `yarn.resourcemanager.hostname=<GKPR-YARN-RM-01 FQDN>`; leave `yarn.resourcemanager.ha.enabled=false` (default)
+  - [ ] Update `yarn-site.xml` on every Worker VM (P0.5) to point to GKPR-YARN-RM-01
+  - [ ] Start the ResourceManager service and verify it accepts NodeManager registrations from all three Worker VMs
+  - [ ] Document the manual recovery runbook (how to restart the RM daemon and the VM) and hand it to fqdn ops
 - **Prerequisites:**
-  - [ ] **Java 11 JDK** installed on each ZooKeeper host (ZooKeeper requires JVM)
-  - [ ] Network connectivity between all three nodes
-  - [ ] Firewall ports open: 2181 (client), 2888 (peer), 3888 (leader election)
-- **Ksolves Actions:**
-  - [ ] Install Java 11 JDK on each ZooKeeper host (if not already from P0.5/P0.2): `yum install -y java-11-openjdk`
-  - [ ] Install ZooKeeper 3.8+ on all three nodes (Node01, Node02, Node03) — 1 instance per node
-  - [ ] Configure ensemble in `zoo.cfg`: each instance knows about the other two (server.1/2/3 entries pointing to Node01/02/03)
-  - [ ] Set unique `myid` file on each node (1, 2, 3 corresponding to Node01, Node02, Node03)
-  - [ ] Start ZooKeeper on each node; verify quorum forms: `echo stat | nc localhost 2181`
-  - [ ] Verify network connectivity between ZK instances on port 2888 (peer) and 3888 (leader election)
-- **Verification:** `echo stat | nc localhost 2181` shows "Mode: leader" or "Mode: follower" on each node; quorum status shows 2-of-3 healthy; one node shows "leader", two show "follower"
-- **Owner:** Ksolves
-- **Estimated Effort:** 1-2 hours
-- **Critical Note:** Must complete this BEFORE proceeding to P1.2 (YARN HA).
-- **Open Vendor Question:** ZooKeeper placement — host-level deployment on each Proxmox node, or small dedicated ZK VM on each node? Tracked in `phases/phase1/development/vendor_comms/phase1_vendor_questions.txt` § Vendor Daily Meeting (2026-04-23). Confirm with Ksolves before installation begins. Default assumption: host-level (lowest overhead, fewer moving parts).
-
-### 🟠 P1.2 — Deploy YARN ResourceManager HA (Active/Standby)
-
-- **Status:** PENDING P1.3 COMPLETION (ZooKeeper must be operational first)
-- **Priority:** HIGH — Phase 1 stability requirement
-- **Context:** YARN ResourceManager runs as VM on Node01 (active) with standby on Node03. Requires ZooKeeper ensemble quorum (1 per node, 3 total) for automatic failover. Per Apache Hadoop documentation,¹ ZooKeeper is a mandatory prerequisite for YARN RM HA. Phase 1 assumes HA for unattended overnight batch runs.
-- **Ksolves Actions:**
-  - [ ] Install YARN ResourceManager on GKPR-YARN-RM-01 (Node01, active) and GKPR-YARN-RM-02 (Node03, standby)
-  - [ ] Configure YARN RM to use ZooKeeper for HA: `yarn.resourcemanager.ha.enabled=true`, `yarn.resourcemanager.zk-address=<zk-quorum>`
-  - [ ] Configure ZKRMStateStore (recommended for HA): `yarn.resourcemanager.store.class=org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore`
-  - [ ] Set active RM to Node01, standby to Node03 (per vendor requirement)
-  - [ ] Test failover: kill active RM process and verify standby takes over automatically
-- **Prerequisites:** 
-  - [ ] **P1.3 (ZooKeeper ensemble) MUST be deployed and operational** (not optional)
-  - [ ] Network connectivity between all nodes
-  - [ ] YARN RM VMs (P0.2) must exist
-- **Verification:** YARN RM web UI stable at Node01:8088; failover completes in < 30s when active RM is down
-- **User Sign-Off:** Confirm YARN RM HA is stable before Phase 1 load tests
-- **Owner:** Ksolves
-- **Estimated Effort:** 2-3 hours
-
-### 🟠 P1.4 — Deploy Nginx Reverse Proxy on Remote Airflow Host
-
-- **Status:** PENDING REMOTE AIRFLOW HOST (P1.0)
-- **Priority:** HIGH — Provides stable YARN RM endpoint for HA
-- **Context:** Nginx acts as reverse proxy for YARN ResourceManager HA, providing stable single endpoint for clients regardless of which node (Node01 or Node03) is currently active. Clients connect to Nginx floating IP; failover is transparent.
-- **Ksolves Actions:**
-  - [ ] Provision remote Airflow host if not yet done (P1.0)
-  - [ ] Install Nginx on remote Airflow host
-  - [ ] Configure Nginx upstream to target GKPR-YARN-RM-01 (Node01) and GKPR-YARN-RM-02 (Node03)
-  - [ ] Set health checks: active probes to both upstreams every 30s
-  - [ ] Configure failover: if Node01 down, route all traffic to Node03 (passive check)
-  - [ ] Expose stable endpoints: 
-     - http://yarn-rm-proxy:8088 (web UI)
-     - http://yarn-rm-proxy:8032 (Spark/Airflow client port)
-- **Verification:** Access http://yarn-rm-proxy:8088 and confirm YARN web UI; kill active RM and confirm failover within 30s
+  - [ ] YARN RM VM (P0.2) provisioned with Java 11
+  - [ ] Worker VMs (P0.1) running with NodeManager and `yarn-site.xml` pointing at the RM
+  - [ ] Network connectivity between RM VM and all three Worker VMs
+- **Verification:** YARN RM web UI reachable at `http://GKPR-YARN-RM-01:8088`; `yarn node -list` shows all three NodeManagers as RUNNING; a `spark-submit --master yarn` smoke job completes
+- **User Sign-Off:** Confirm YARN RM is stable and the manual-recovery runbook is in place before Phase 1 load tests
 - **Owner:** Ksolves
 - **Estimated Effort:** 1-2 hours
 
@@ -671,11 +627,11 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### 🟠 P1.8 — Run 5 Production Sample Jobs (Shuffle Amplification Measurement) — Phase 1 Integration Milestone
 
-- **Status:** PENDING FULL P0 + P1 INFRASTRUCTURE (P0.0–P0.5a, P1.0–P1.4)
+- **Status:** PENDING FULL P0 + P1 INFRASTRUCTURE (P0.0–P0.5a, P1.0–P1.2, P1.5)
 - **Priority:** HIGH — Validates Phase 1 assumptions and updates default calculator values; gates Phase 2C end-to-end pipeline validation (P2.3)
-- **Context:** Phase 1 assumes 7× shuffle amplification; actual measurement needed from real workload. P1.8 is the Phase 1 integration milestone — it cannot run until VMs (P0.1–P0.2), Hadoop/Spark (P0.5–P0.5a), Ceph (P0.0), ZooKeeper (P1.3), and YARN RM HA (P1.2) are all operational. Ksolves will execute 5 sample production jobs at varying sizes (500 GB, 1 TB, 2 TB, 4 TB, 5 TB) and capture actual shuffle behavior. P1.6 (OSD memory) and P1.7 (WAN egress) collect their measurements concurrently during this load test.
+- **Context:** Phase 1 assumes 7× shuffle amplification; actual measurement needed from real workload. P1.8 is the Phase 1 integration milestone — it cannot run until VMs (P0.1–P0.2), Hadoop/Spark (P0.5–P0.5a), Ceph (P0.0), and YARN RM (P1.2) are all operational. Ksolves will execute 5 sample production jobs at varying sizes (500 GB, 1 TB, 2 TB, 4 TB, 5 TB) and capture actual shuffle behavior. P1.6 (OSD memory) and P1.7 (WAN egress) collect their measurements concurrently during this load test.
 - **Ksolves Actions:**
-  - [ ] Confirm full infrastructure is live: P0.0 (Ceph), P0.1 (Worker VMs), P0.2 (YARN RM VMs), P0.5 (Hadoop+Java), P0.5a (Spark), P1.2 (YARN HA), P1.3 (ZooKeeper), P1.4 (Nginx)
+  - [ ] Confirm full infrastructure is live: P0.0 (Ceph), P0.1 (Worker VMs), P0.2 (YARN RM VM), P0.5 (Hadoop+Java), P0.5a (Spark), P1.2 (YARN ResourceManager)
   - [ ] Prepare sample CSV datasets (500 GB, 1 TB, 2 TB, 4 TB, 5 TB)
   - [ ] Submit 5 sequential Spark jobs (one per dataset size) via direct `spark-submit` (Airflow integration is P2.2 → P2.3, not required for P1.8)
   - [ ] For each job, capture:
@@ -716,7 +672,7 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### 🟡 P2.3 — Validate 8-Stage Data Flow Pipeline (CSV → Snowflake)
 
-- **Status:** PENDING FULL INFRASTRUCTURE (P0.0–P0.5a, P1.0, P1.2–P1.3, P2.2)
+- **Status:** PENDING FULL INFRASTRUCTURE (P0.0–P0.5a, P1.0, P1.2, P2.2)
 - **Priority:** MEDIUM — End-to-end integration test
 - **Context:** Phase 1 data flow spans 8 sequential stages from CSV ingest through Snowflake COPY. Each stage has specific requirements (Airflow DAG, Spark containers, S3A reads/writes, cloud staging). Ksolves will validate the complete pipeline with a sample dataset.
 - **Stages to Validate:**
@@ -897,9 +853,8 @@ The following items are derived from Phase 1 report findings but are not explici
   - [ ] BLOCKER.2: User places RHEL ISO in Proxmox local storage (user action — **after** P0.0 HEALTH_OK)
   - [ ] *Parallel user prerequisites:* P0.4 (RHEL subscriptions), P0.0a (CSV file info), P0.7 (network MSB-PMC01↔03)
   - [ ] P0.1–P0.5: Ksolves provisions all VMs and base software (requires RHEL ISO from BLOCKER.2)
-  - [ ] **P1.3: Ksolves deploys ZooKeeper ensemble** (required prerequisite for P1.2)
-  - [ ] **P1.2: Ksolves deploys YARN HA** (requires P1.3 ZooKeeper to be operational first)
-  - [ ] P1.0, P1.4–P1.5: Ksolves provisions Remote Airflow Server, Nginx reverse proxy, Ansible control
+  - [ ] **P1.2: Ksolves deploys single-instance YARN ResourceManager on GKPR-YARN-RM-01** (manual recovery; no HA)
+  - [ ] P1.0, P1.5: Ksolves provisions Remote Airflow Server and Ansible control
   - [ ] P1.1: Spark History Server deployed on Node02 (depends on P0.0 RGW + P0.5a Spark)
   - [ ] **P1.8: Phase 1 integration milestone — run 5 sample jobs, measure shuffle amplification, OSD memory (P1.6), and WAN egress (P1.7)**
   - [ ] P2.2–P2.3: Ksolves deploys Airflow and validates end-to-end pipeline (Snowflake side is fqdn responsibility)
@@ -925,9 +880,7 @@ The following items are derived from Phase 1 report findings but are not explici
 
 ## FOOTNOTES
 
-¹ Apache Software Foundation, "ResourceManager High Availability," in *Apache Hadoop 3.4.1 Documentation*, accessed April 24, 2026, https://hadoop.apache.org/docs/r3.4.1/hadoop-yarn/hadoop-yarn-site/ResourceManagerHA.html. ZooKeeper is documented as a required prerequisite for YARN ResourceManager High Availability. The documentation explicitly states: "ZooKeeper is a required prerequisite for deploying YARN ResourceManager High Availability" and notes that "The RMs have an option to embed the Zookeeper-based ActiveStandbyElector to decide which RM should be the Active."
-
-² Apache Software Foundation, "Running Spark on YARN," in *Apache Spark Documentation*, accessed April 25, 2026, https://spark.apache.org/docs/latest/running-on-yarn.html. The documentation establishes the prerequisite installation order for Spark on YARN: (1) Java/JDK with `JAVA_HOME` set, (2) Hadoop/YARN cluster operational with ResourceManager running, (3) `HADOOP_CONF_DIR` or `YARN_CONF_DIR` pointing to client-side Hadoop configuration, (4) Spark binary distribution built with YARN support. Java compatibility note: "Apache Hadoop 3.4.1 does not support Java 17, but Spark 4.0.0+ requires Java 17+" — for Spark 3.5.3 + Hadoop 3.4.1, Java 11 is the recommended common version. Confirmed with secondary sources: Cloudera/Hortonworks HDP documentation, "Spark Prerequisites," accessed April 25, 2026, https://docs-archive.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/installing-spark/content/installing_spark.html, which states "HDFS and YARN deployed on the cluster" as Spark prerequisites.
+¹ Apache Software Foundation, "Running Spark on YARN," in *Apache Spark Documentation*, accessed April 25, 2026, https://spark.apache.org/docs/latest/running-on-yarn.html. The documentation establishes the prerequisite installation order for Spark on YARN: (1) Java/JDK with `JAVA_HOME` set, (2) Hadoop/YARN cluster operational with ResourceManager running, (3) `HADOOP_CONF_DIR` or `YARN_CONF_DIR` pointing to client-side Hadoop configuration, (4) Spark binary distribution built with YARN support. Java compatibility note: "Apache Hadoop 3.4.1 does not support Java 17, but Spark 4.0.0+ requires Java 17+" — for Spark 3.5.3 + Hadoop 3.4.1, Java 11 is the recommended common version. Confirmed with secondary sources: Cloudera/Hortonworks HDP documentation, "Spark Prerequisites," accessed April 25, 2026, https://docs-archive.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/installing-spark/content/installing_spark.html, which states "HDFS and YARN deployed on the cluster" as Spark prerequisites.
 
 ---
 
@@ -935,5 +888,5 @@ The following items are derived from Phase 1 report findings but are not explici
 
 _Updated: 2026-04-24 (post-Ksolves Phase 1 completion report)_  
 _Phase 1 status reflected per ksolves_april_24_process_report.txt_  
-_Prepared for Review: Ready_For_Review/Phases_Critical_Path_Development_v1.0.md_  
+_Prepared for Review: Ready_For_Review/Phases_Critical_Path_Development_v1.1.md_  
 _Status: Draft — Awaiting user review before promotion to Document/_
