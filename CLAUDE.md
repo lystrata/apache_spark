@@ -152,12 +152,12 @@ Then open `http://localhost:8000/calculators/Document/production_spark_calculato
 
 ## PDF Generation from Markdown
 
-When converting markdown documents to PDF using Pandoc, always include the `--toc` flag to generate a clickable table of contents in the PDF (appears as bookmarks/outline in PDF readers).
+When converting markdown documents to PDF using Pandoc, always include the `--toc` flag to generate a clickable table of contents in the PDF (appears as bookmarks/outline in PDF readers). When the source markdown contains GFM checkboxes, also pass `--from=markdown+task_lists` so they render as real checkbox glyphs.
 
 **Standard command:**
 ```bash
 eval "$(brew shellenv)" && export PATH="/Library/TeX/texbin:$PATH" && \
-pandoc <input.md> -o <output.pdf> --toc --pdf-engine=lualatex -V geometry:margin=1in
+pandoc <input.md> -o <output.pdf> --toc --pdf-engine=lualatex -V geometry:margin=1in --from=markdown+task_lists
 ```
 
 **Benefits:**
@@ -165,6 +165,37 @@ pandoc <input.md> -o <output.pdf> --toc --pdf-engine=lualatex -V geometry:margin
 - Creates clickable bookmarks/outline in PDF readers (Acrobat, Preview, etc.)
 - Readers can navigate via sidebar
 - No manual anchor maintenance needed in PDF
+
+## Document Versioning
+
+Distribution markdown documents and their generated PDFs carry an explicit version in the filename: `<basename>_v<MAJOR>.<MINOR>.<ext>`.
+
+**Format:** `_v<MAJOR>.<MINOR>` appended immediately before the extension. Both the `.md` and the `.pdf` always carry the **same** version number.
+
+**Examples:**
+- `Phases_Critical_Path_v1.0.md` and `Phases_Critical_Path_v1.0.pdf`
+- `CP_Okta_v1.2.md` and `CP_Okta_v1.2.pdf`
+
+**When to bump:**
+- **MINOR** (`v1.0` → `v1.1`) — content additions, fixes, clarifications, or refinements within the existing document structure. Most edits are minor bumps.
+- **MAJOR** (`v1.x` → `v2.0`) — structural overhauls, scope expansion, framework changes (e.g., new section taxonomy, renumbering of task families, fundamental redirection of the document's purpose). Reset MINOR to 0 when MAJOR bumps.
+
+**Workflow per bump:**
+1. `git mv <basename>_v<old>.md <basename>_v<new>.md` (and `.pdf`)
+2. Update the document's internal `_Last updated_` line and version marker in the header block
+3. Apply content edits in the renamed file
+4. Regenerate the PDF under the new versioned name
+5. Update every cross-reference in other repo files (use `grep -rln <basename>_v` to find them)
+6. Commit the rename + content + PDF together so the version bump is one atomic commit
+7. The prior version remains in git history for diff/blame
+
+**Scope of this rule:** distribution markdown documents (planning documents, critical-path plans, design documents, technical specs intended for review or external sharing) and their PDFs. Does **not** apply to:
+- `CLAUDE.md`, `MEMORY.md`, `TODO.md`, `README.md` — operational/index files that are continuously edited in place
+- `Notes/`, `Incoming/` files — drafts and source material
+- Vendor questions, meeting notes, conversation exports
+- HTML calculators and references — those have their own in-document `Revisions` section per `Editing Rules` below
+
+When in doubt, ask: "Will this document be distributed or referenced by others as a snapshot?" If yes, it gets a version. If no, edit in place.
 
 ## Ready_For_Review Staging Rule
 

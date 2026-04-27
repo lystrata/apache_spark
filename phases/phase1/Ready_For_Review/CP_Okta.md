@@ -1,6 +1,6 @@
 # Critical Path — Okta + Active Directory Integration for Spark Phase 1
 
-_Last updated 2026-04-26 · Companion document to `Phase1_Detailed_TODO.md` · Audit + critical-path additions for enterprise Okta SSO with AD as authoritative directory_
+_Last updated 2026-04-26 · Companion document to `Phases_Critical_Path_v1.0.md` · Audit + critical-path additions for enterprise Okta SSO with AD as authoritative directory_
 
 ---
 
@@ -8,7 +8,7 @@ _Last updated 2026-04-26 · Companion document to `Phase1_Detailed_TODO.md` · A
 
 ## Document Overview
 
-This document inventories every authentication touchpoint in the Phase 1 Spark cluster build, maps each to a concrete Okta integration pattern, and produces a critical-path task list (`O0.x`, `O1.x`, `O2.x`) that can be merged into `Phase1_Detailed_TODO.md` once Cyber Security has approved the architecture.
+This document inventories every authentication touchpoint in the Phase 1 Spark cluster build, maps each to a concrete Okta integration pattern, and produces a critical-path task list (`O0.x`, `O1.x`, `O2.x`) that can be merged into `Phases_Critical_Path_v1.0.md` once Cyber Security has approved the architecture.
 
 The current Phase 1 plan mentions Okta in three places (P1.0 step 4 — "Install Okta SSO integration"; P1.0 step 8 — "Provide Okta OIDC credentials for Airflow SSO configuration"; P2.2 step 7 — "Set up Airflow web UI ... with basic auth or Okta integration") but does **not** specify the actual implementation work that those one-line items represent: tenant configuration, AD agent deployment, group/role mapping, reverse-proxy gateway for the Hadoop UIs that have no native OIDC, RGW STS provider registration, federated SSH access, or Snowflake federation. This document fills those gaps.
 
@@ -24,7 +24,7 @@ Tasks are numbered `O<phase>.<step>`:
 - **O1.x** — Per-service integrations (Airflow, History UI, YARN UI, RGW, SSH, Snowflake), executable in parallel after O0 is done.
 - **O2.x** — Validation, cutover, audit, and documentation.
 
-Each task includes status, owner, dependencies, action steps as GFM checkboxes, verification criteria, and effort estimate — matching the style of `Phase1_Detailed_TODO.md`.
+Each task includes status, owner, dependencies, action steps as GFM checkboxes, verification criteria, and effort estimate — matching the style of `Phases_Critical_Path_v1.0.md`.
 
 ---
 
@@ -71,7 +71,7 @@ Each task includes status, owner, dependencies, action steps as GFM checkboxes, 
 
 - Authentication and authorization for every interactive endpoint surfaced by the Phase 1 Spark cluster: Airflow webserver, Spark History Server UI (port 18080), YARN ResourceManager UI (port 8088), per-application Spark UI (port 4040), Ceph RGW S3 endpoint, RGW admin operations, and SSH/console access to all Worker, RM, and Remote Airflow VMs.
 - Federated identity flow from fqdn Active Directory → Okta → cluster services.
-- Snowflake federation (the Snowflake account itself remains fqdn-managed per `Phase1_Detailed_TODO.md` § P2.3 Snowflake Scope Note, but the SSO integration is in scope here).
+- Snowflake federation (the Snowflake account itself remains fqdn-managed per `Phases_Critical_Path_v1.0.md` § P2.3 Snowflake Scope Note, but the SSO integration is in scope here).
 
 **Out of scope (this document):**
 
@@ -569,14 +569,14 @@ These must be resolved before O0/O1 work can be sequenced into the Phase 1 plan.
 
 ## Cross-References to Phase 1 TODO
 
-The following items in `Phase1_Detailed_TODO.md` need updates once this document is approved:
+The following items in `Phases_Critical_Path_v1.0.md` need updates once this document is approved:
 
 - **P1.0 Step 4** ("Install Okta SSO integration") — replace with reference to `O1.1` for concrete implementation steps
 - **P1.0 Step 8** ("Provide Okta OIDC credentials for Airflow SSO configuration") — replace with reference to `O0.1` (app registration as the source of those credentials) and `O1.1` (where they are consumed)
 - **P2.2 Step 7** ("Set up Airflow web UI ... with basic auth or Okta integration") — replace ambiguity with explicit reference to `O1.1`
 - **Add new tasks** at appropriate points in Phase 1: `O0.1`–`O0.5` belong in Phase 2A (foundation, before P1.0); `O1.1`–`O1.5` belong in Phase 2B/2C alongside their service dependencies; `O2.1`–`O2.4` belong in Phase 2C as a parallel validation track
-- **Update group/role mapping matrix** in `Phase1_Detailed_TODO.md` § Assumptions if/when this document's matrix is approved
-- **Update Bibliography** in `Phase1_Detailed_TODO.md` to incorporate the citations below if Okta integration is folded into the main document
+- **Update group/role mapping matrix** in `Phases_Critical_Path_v1.0.md` § Assumptions if/when this document's matrix is approved
+- **Update Bibliography** in `Phases_Critical_Path_v1.0.md` to incorporate the citations below if Okta integration is folded into the main document
 
 ---
 
@@ -607,7 +607,7 @@ The following items in `Phase1_Detailed_TODO.md` need updates once this document
 
 ## Reference Documents
 
-- `Phase1_Detailed_TODO.md` — Phase 1 critical path that this document augments
+- `Phases_Critical_Path_v1.0.md` — Phase 1 critical path that this document augments
 - `security/Notes/okta-migration-plan.md` — earlier scaffold from which this document expands
 - `security/Notes/keycloak-implementation-plan.md` — superseded by Okta decision (kept for historical reference)
 - `security/Notes/questions_for_vendors.txt` — vendor-side open questions on auth

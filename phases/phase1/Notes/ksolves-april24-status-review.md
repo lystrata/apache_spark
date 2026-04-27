@@ -32,7 +32,7 @@ Ksolves reports Phase 1 Discovery & Setup Planning as **complete**:
 - ⏳ Direct access (Horizon) pending cybersecurity clearance
 - **Impact:** "Continued delay in granting Proxmox console access will directly postpone VM creation and the subsequent start of the development environment implementation"
 
-**Cross-Reference to Phase1_Detailed_TODO.md:**
+**Cross-Reference to Phases_Critical_Path_v1.0.md:**
 - Matches **BLOCKER.1** exactly (now restructured to reflect Phase 1A interim + Phase 1B permanent access strategy)
 - Phase 1A (Webex/screen sharing): Ready immediately ✅
 - Phase 1B (Horizon): Pending fqdn Cyber Security Approval ⏳
@@ -41,7 +41,7 @@ Ksolves reports Phase 1 Discovery & Setup Planning as **complete**:
 
 ## Phase 1 Tasks — Completion Status
 
-Mapping Ksolves status against Phase1_Detailed_TODO.md priority items:
+Mapping Ksolves status against Phases_Critical_Path_v1.0.md priority items:
 
 ### ✅ COMPLETED (Phase 1 Planning)
 | Task | Phase1_TODO Item | Status | Notes |
@@ -49,7 +49,7 @@ Mapping Ksolves status against Phase1_Detailed_TODO.md priority items:
 | Architecture design | Context | ✅ Complete | Topology, nodes, roles finalized |
 | Cluster sizing | P0 Context | ✅ Complete | Hardware specs validated; inputs for dev_cluster_phase1_model.html |
 | Storage architecture | P2.5 Context | ✅ Complete | XFS on JBOD (no RAID) confirmed; Ceph RGW target |
-| IAM selection | P2.2 Context | ✅ Complete | **Okta decided** (not Keycloak); update Phase1_Detailed_TODO.md if using Keycloak notes |
+| IAM selection | P2.2 Context | ✅ Complete | **Okta decided** (not Keycloak); update Phases_Critical_Path_v1.0.md if using Keycloak notes |
 
 ### ⏳ PENDING (Phase 2 Provisioning — Blocked by BLOCKER.1)
 | Task | Phase1_TODO Item | Status | Blocker | Effort |
@@ -74,24 +74,24 @@ Mapping Ksolves status against Phase1_Detailed_TODO.md priority items:
 
 1. **Resolve Proxmox access method** (Direct vs. Horizon)
    - **Action:** User to establish Phase 1A (Webex interim) immediately
-   - **Reference:** Phase1_Detailed_TODO.md § BLOCKER.1 User Actions (Immediate)
+   - **Reference:** Phases_Critical_Path_v1.0.md § BLOCKER.1 User Actions (Immediate)
 
 2. **Deploy RHEL 9/10 ISOs to PVE hierarchy**
    - **Action:** Requires Proxmox access first
    - **Maps to:** P0.1 (Worker VMs) and P0.2 (YARN RM VMs) — both require RHEL 9.4
 
 3. **Finalize and share prerequisite list** (Ansible, Grafana)
-   - **Status:** Partially documented in Phase1_Detailed_TODO.md
+   - **Status:** Partially documented in Phases_Critical_Path_v1.0.md
    - **TODO items covering this:**
      - P1.5: Ansible control node deployment
-     - P2.x: Grafana + Prometheus monitoring (not detailed in Phase1_Detailed_TODO.md yet)
-   - **Action:** Ksolves to provide explicit prerequisite list; Phase1_Detailed_TODO.md may need additions for monitoring setup
+     - P2.x: Grafana + Prometheus monitoring (not detailed in Phases_Critical_Path_v1.0.md yet)
+   - **Action:** Ksolves to provide explicit prerequisite list; Phases_Critical_Path_v1.0.md may need additions for monitoring setup
 
 ---
 
 ## Critical Path Alignment
 
-**Phase1_Detailed_TODO.md Critical Path matches Ksolves report findings:**
+**Phases_Critical_Path_v1.0.md Critical Path matches Ksolves report findings:**
 
 ```
 BLOCKER.1 (Proxmox Access)
@@ -129,25 +129,25 @@ P2.1–P2.3 (Airflow + end-to-end validation)
 
 **Finding:** Ksolves finalized **Okta** for authentication (not Keycloak).
 
-**Status in Phase1_Detailed_TODO.md:**
+**Status in Phases_Critical_Path_v1.0.md:**
 - P2.2 (Airflow deployment) mentions "basic auth or Okta integration"
 - No dedicated section for IAM setup or Okta configuration
 
 **Recommended Action:**
-- If Phase1_Detailed_TODO.md was initially written with Keycloak in mind, update Airflow section (P2.2) to specify Okta
+- If Phases_Critical_Path_v1.0.md was initially written with Keycloak in mind, update Airflow section (P2.2) to specify Okta
 - Add TODO item for Okta tenant setup + Airflow integration if not already delegated
 - Consider: Does remote Airflow host need Okta agent or is cloud-based Okta sufficient?
 
 ---
 
-## Gaps Between Report and Phase1_Detailed_TODO.md
+## Gaps Between Report and Phases_Critical_Path_v1.0.md
 
 | Gap | Severity | Notes |
 |---|---|---|
-| Monitoring/Grafana prerequisites not detailed | LOW | Report asks for "Grafana details" but Phase1_Detailed_TODO.md doesn't have explicit monitoring setup items (only Ceph OSD memory monitoring at P1.6) |
+| Monitoring/Grafana prerequisites not detailed | LOW | Report asks for "Grafana details" but Phases_Critical_Path_v1.0.md doesn't have explicit monitoring setup items (only Ceph OSD memory monitoring at P1.6) |
 | Okta configuration not explicit | MEDIUM | Decided but not assigned as TODO; may be out of scope for Ksolves or user |
-| Production resource planning | LOW | Listed as "pending" in report but not in Phase1_Detailed_TODO.md (deferred to Phase 2) |
-| ISO deployment prerequisite | LOW | Report mentions "Deploy RHEL 9/10 ISOs to PVE hierarchy" — not explicit in Phase1_Detailed_TODO.md P0.1 VM creation steps |
+| Production resource planning | LOW | Listed as "pending" in report but not in Phases_Critical_Path_v1.0.md (deferred to Phase 2) |
+| ISO deployment prerequisite | LOW | Report mentions "Deploy RHEL 9/10 ISOs to PVE hierarchy" — not explicit in Phases_Critical_Path_v1.0.md P0.1 VM creation steps |
 
 ---
 
@@ -156,7 +156,7 @@ P2.1–P2.3 (Airflow + end-to-end validation)
 | File | Purpose | Status |
 |---|---|---|
 | `phases/phase1/Incoming/ksolves_april_24_process_report.txt` | April 24 Ksolves status email | Source document |
-| `phases/phase1/Ready_For_Review/Phase1_Detailed_TODO.md` | Detailed Phase 1 task breakdown | Master TODO (post-rewrite) |
+| `phases/phase1/Ready_For_Review/Phases_Critical_Path_v1.0.md` | Detailed Phase 1 task breakdown | Master TODO (post-rewrite) |
 | `phases/phase1/deliverables/dev_cluster_phase1_model.html` | Phase 1 resource allocation calculator | Awaiting shuffle amplification input (P0.6) |
 | `TODO.md` (root) | Master project TODO (all contexts) | Phase 1 items tagged [Phase1] |
 | `phases/phase1/vendor_comms/phase1_vendor_questions.txt` | Vendor Q&A + communication log | Updated with access strategy |
@@ -166,7 +166,7 @@ P2.1–P2.3 (Airflow + end-to-end validation)
 
 ## Summary
 
-**Phase 1 Planning Complete.** All discovery, sizing, and architecture work finalized. Ksolves report confirms Phase1_Detailed_TODO.md task breakdown is aligned with actual implementation strategy.
+**Phase 1 Planning Complete.** All discovery, sizing, and architecture work finalized. Ksolves report confirms Phases_Critical_Path_v1.0.md task breakdown is aligned with actual implementation strategy.
 
 **Immediate blocker:** BLOCKER.1 (Proxmox access). Phase 1A (Webex interim) can begin immediately; Phase 1B (Horizon permanent) in parallel with no blocking impact.
 
@@ -179,5 +179,5 @@ P2.1–P2.3 (Airflow + end-to-end validation)
 ---
 
 _Review Date: 2026-04-24_  
-_Prepared by: Cross-reference analysis of ksolves_april_24_process_report.txt vs. Phase1_Detailed_TODO.md_  
+_Prepared by: Cross-reference analysis of ksolves_april_24_process_report.txt vs. Phases_Critical_Path_v1.0.md_  
 _Next Review: After Proxmox access established and P0.1 VM provisioning begins_

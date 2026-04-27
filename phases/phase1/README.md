@@ -34,7 +34,7 @@ Phase 1 infrastructure provisioning by Ksolves depends on establishing remote ac
 - Estimated 2–4 weeks after security approval
 - Phase 1A continues until Horizon is live
 
-See `Ready_For_Review/Phase1_Detailed_TODO.md` § BLOCKER.1 for full access strategy and dependencies.
+See `Ready_For_Review/Phases_Critical_Path_v1.0.md` § BLOCKER.1 for full access strategy and dependencies.
 
 ## Daily Coordination
 

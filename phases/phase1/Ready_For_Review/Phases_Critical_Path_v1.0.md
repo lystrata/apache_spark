@@ -1,8 +1,9 @@
 
 
 
-# Phase 1–2 Infrastructure Plan — fqdn Development Cluster
+# Phases Critical Path — fqdn Development Cluster
 
+_Version 1.0 · Last updated 2026-04-26_  
 _Phases 1–2 detailed plan from fqdn Phase 1 Report (Ksolves) — April 2026_  
 _Report Source: phases/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf_  
 _Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING BLOCKER.1 · Out-of-scope items flagged for vendor clarification_
@@ -934,5 +935,5 @@ The following items are derived from Phase 1 report findings but are not explici
 
 _Updated: 2026-04-24 (post-Ksolves Phase 1 completion report)_  
 _Phase 1 status reflected per ksolves_april_24_process_report.txt_  
-_Prepared for Review: Ready_For_Review/Phase1_Detailed_TODO.md_  
+_Prepared for Review: Ready_For_Review/Phases_Critical_Path_v1.0.md_  
 _Status: Draft — Awaiting user review before promotion to Document/_
