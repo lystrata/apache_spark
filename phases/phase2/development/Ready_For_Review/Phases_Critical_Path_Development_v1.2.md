@@ -3,7 +3,7 @@
 
 # Phases Critical Path — fqdn Development Cluster
 
-_Version 1.1 · Last updated 2026-04-27_  
+_Version 1.2 · Last updated 2026-04-27_  
 _Phases 1–2 detailed plan from fqdn Phase 1 Report (Ksolves) — April 2026_  
 _Report Source: phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf_  
 _Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING BLOCKER.1 · Out-of-scope items flagged for vendor clarification_
@@ -28,6 +28,22 @@ This document maps the **Ksolves Phase 1 Report (April 2026)** to a detailed, se
 - P0.4 (pre-req) — RHEL subscription pre-flight check (gate for P0.1)
 
 **Cross-Reference:** All items reference the Ksolves report section or open item number. Assumptions and dependencies are documented in dedicated sections below.
+
+---
+
+## Schedule & SOW Status
+
+_Companion tracker: `phases/phase2/development/Document/SOW_timeline_status.md` (full week calendar and SOW phase mapping)._
+
+**Project start (per agreement):** 2026-04-14 · **SOW indicative completion:** 2026-07-06 (12 weeks, no Halt Period) · **Source:** Ksolves SOW V1.0 (March 16, 2026) § 5 Indicative Timelines.
+
+**As of 2026-04-27 — mid-Week 2:**
+
+- **Phase 1 (Discovery & Setup Planning, 1 wk):** Completed 2026-04-24 — about 4 days past the SOW Week-1 boundary. Essentially on plan given the 1-week budget.
+- **Phase 2 (Proxmox & VM Creation, 3 wks, window 2026-04-21 → 2026-05-11):** In window, **not yet started**. Each week BLOCKER.1 (Ksolves remote access) stays open consumes ~1/3 of the Phase 2 budget.
+- **Halt Period decision point: 2026-05-04** (end of SOW Week 3). If BLOCKER.1 has not closed by this date, fqdn should consider formally invoking SOW § 7.2 (Halt Period) so the gated duration is excised from the schedule, milestones, and SLA. Whether to invoke is a contracting decision per SOW § 9.2 (Project Change Control).
+- **SOW V1.1 pending:** the 2026-04-27 verbal vendor reversal (single YARN RM, no ZooKeeper, no nginx — captured in P0.2, P1.2, and the dropped P1.3/P1.4) is **not yet reflected** in a written SOW revision. The SOW Document History table is still blank past V1.0; § 9 requires a written, signed change order for material scope changes. Tracked under `TODO.md § Waiting for Vendor Reply`.
+- **Out-of-scope reminder:** SOW § 2.2 excludes "user load or performance testing" — P1.8 (5 production sample jobs / shuffle amplification measurement) likely needs a Change Order or separate SOW.
 
 ---
 
@@ -888,5 +904,5 @@ The following items are derived from Phase 1 report findings but are not explici
 
 _Updated: 2026-04-24 (post-Ksolves Phase 1 completion report)_  
 _Phase 1 status reflected per ksolves_april_24_process_report.txt_  
-_Prepared for Review: Ready_For_Review/Phases_Critical_Path_Development_v1.1.md_  
+_Prepared for Review: Ready_For_Review/Phases_Critical_Path_Development_v1.2.md_  
 _Status: Draft — Awaiting user review before promotion to Document/_

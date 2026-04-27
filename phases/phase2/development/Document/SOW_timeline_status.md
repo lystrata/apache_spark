@@ -25,7 +25,7 @@ _As of 2026-04-27. Source: March 16, 2026 Ksolves SOW V1.0 § 5 Indicative Timel
 
 | SOW Phase | Indicative Window | Status | Repo Tasks |
 |---|---|---|---|
-| **1. Discovery & Setup Planning** (1 wk) | 2026-04-14 → 2026-04-20 | **Completed 2026-04-24** (~4 days late, end of Week 2 instead of end of Week 1) | Ksolves Phase 1 Report (Apr 24); critical-path planning crystallised in `phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.1.md` |
+| **1. Discovery & Setup Planning** (1 wk) | 2026-04-14 → 2026-04-20 | **Completed 2026-04-24** (~4 days late, end of Week 2 instead of end of Week 1) | Ksolves Phase 1 Report (Apr 24); critical-path planning crystallised in `phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.2.md` |
 | **2. Proxmox & VM Creation** (3 wks) | 2026-04-21 → 2026-05-11 | **In window, not started.** BLOCKER.1 (Ksolves remote access) open; BLOCKER.2 (RHEL ISO) gated by P0.0 | dev: P0.0 Ceph bootstrap, P0.1 Worker VMs, P0.2 YARN RM VM. prod: equivalents pending — `Phases_Critical_Path_Production_v0.1.md` is a draft fork |
 | **3. Dev Environment Implementation** (1 wk) | 2026-05-12 → 2026-05-18 | Future | dev: P0.5 Hadoop, P0.5a Spark, P1.0 Airflow host, P1.1 History Server, P1.2 YARN RM (single-instance per v1.1 vendor change), P1.5 Ansible, P1.8 sample jobs |
 | **4. Production Environment Implementation** (2 wks) | 2026-05-19 → 2026-06-01 | Future | prod: full Phase 4 plus HIPAA controls (audit logging, RBAC, encryption in transit, KMS/Vault, network isolation, bastion, OS hardening) — not yet reflected in `Phases_Critical_Path_Production_v0.1.md` |
