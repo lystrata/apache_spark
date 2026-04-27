@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dev Cluster — Phase 1 Node Model</title>
+<style>
+/* ── reset & base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+       background: #0f1117; color: #d4d4d4; line-height: 1.5; }
+a { color: #7ab3e0; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── page header ──────────────────────────────────────────────────────────── */
+.page-header { background: linear-gradient(135deg,#1a1d2e 0%,#0f1117 100%);
+               border-bottom: 2px solid #2d5a8e; }
+.page-header-inner { max-width: 1100px; margin: 0 auto; padding: 26px 36px 18px; }
+.page-header h1 { font-size: 1.55rem; font-weight: 700; color: #e8eaf0; }
+.page-header h2 { font-size: 0.95rem; font-weight: 400; color: #7ab3e0; margin-top: 3px; }
+.page-header p  { font-size: 0.78rem; color: #8b97aa; margin-top: 6px; }
+
+/* ── page wrapper ─────────────────────────────────────────────────────────── */
+.page-wrap { max-width: 1100px; margin: 0 auto; padding: 14px 36px 60px; }
+
+/* ── section ──────────────────────────────────────────────────────────────── */
+.section-details { background: #141720; border: 1px solid #2a2d3a;
+                   border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+.section-summary { display: flex; align-items: center; gap: 10px;
+                   padding: 12px 18px; cursor: pointer; list-style: none;
+                   background: #1a1d2e; user-select: none; }
+.section-summary::-webkit-details-marker { display: none; }
+.section-summary::before { content: '▶'; font-size: 9px; color: #7a8298;
+                            transition: transform 0.2s; flex-shrink: 0; }
+details[open] > .section-summary::before { transform: rotate(90deg); }
+.section-letter { display: inline-flex; align-items: center; justify-content: center;
+                  width: 24px; height: 24px; border-radius: 50%;
+                  background: #2d5a8e; color: #e0eaf5;
+                  font-size: 0.74rem; font-weight: 700; flex-shrink: 0; }
+.section-title { font-weight: 600; color: #c9d1e0; font-size: 0.9rem; }
+.section-sub   { font-size: 0.76rem; color: #8b97aa; flex: 1; }
+.btt { font-size: 0.7rem; color: #5a7d9a; margin-left: auto; flex-shrink: 0; }
+.section-body  { padding: 18px 22px 22px; }
+.section-close { text-align: center; padding-top: 16px;
+                 border-top: 1px solid #2a2d3a; margin-top: 18px; }
+.section-close a { font-size: 0.74rem; color: #7a8298; cursor: pointer; }
+
+/* ── card ─────────────────────────────────────────────────────────────────── */
+.card { background: #1a1d2e; border: 1px solid #2a2d3a; border-radius: 6px;
+        padding: 14px 18px; margin-bottom: 12px; }
+.card-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+              color: #7a8298; text-transform: uppercase;
+              margin-bottom: 10px; padding-bottom: 7px; border-bottom: 1px solid #2a2d3a; }
+
+/* ── reference tables ─────────────────────────────────────────────────────── */
+.ref-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.ref-table th { text-align: left; padding: 6px 10px; font-size: 0.68rem; font-weight: 700;
+                color: #7a8298; text-transform: uppercase; letter-spacing: 0.06em;
+                border-bottom: 1px solid #2a2d3a; }
+.ref-table td { padding: 6px 10px; border-bottom: 1px solid #1e2130; }
+.ref-table tr:last-child td { border-bottom: none; }
+.ref-table .v  { color: #7ab3e0; font-weight: 500; }
+.ref-table .lbl { color: #8b93a8; }
+.ref-table .nt  { color: #7a8298; font-size: 0.74rem; }
+.ref-table tfoot td { color: #7ab3e0; font-weight: 600;
+                      border-top: 1px solid #2a2d3a; padding-top: 8px; }
+
+/* ── two-col layout ───────────────────────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ── toggle row ───────────────────────────────────────────────────────────── */
+.toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.btn-toggle { padding: 6px 14px; border-radius: 5px; font-size: 0.76rem; font-weight: 600;
+              cursor: pointer; border: 1px solid #2d5a8e; background: #1a2d42;
+              color: #7ab3e0; transition: background 0.15s; }
+.btn-toggle:hover { background: #243d55; }
+.btn-toggle.unlocked { border-color: #b45309; background: #2d1f0a; color: #f59e0b; }
+.btn-reset { padding: 6px 12px; border-radius: 5px; font-size: 0.73rem; cursor: pointer;
+             border: 1px solid #2a2d3a; background: #141720; color: #8b97aa; }
+.btn-reset:hover { color: #9ca3af; }
+.unlock-warning { display: none; font-size: 0.74rem; color: #f59e0b;
+                  background: #1f1600; border: 1px solid #78350f;
+                  padding: 4px 12px; border-radius: 4px; }
+.config-unlocked .unlock-warning { display: block; }
+
+/* ── summary grid ─────────────────────────────────────────────────────────── */
+.summary-grid { display: grid; grid-template-columns: 170px repeat(3,1fr);
+                gap: 1px; background: #2a2d3a; border: 1px solid #2a2d3a;
+                border-radius: 6px; overflow: hidden; margin-bottom: 18px; font-size: 0.8rem; }
+.sg-h    { background:#1a1d2e; padding:7px 12px; font-size:0.68rem; font-weight:700;
+           color:#7a8298; text-transform:uppercase; letter-spacing:0.06em; }
+.sg-lbl  { background:#141720; padding:6px 12px; color:#6b7280; font-size:0.76rem; }
+.sg-cell { background:#141720; padding:6px 12px; color:#c0c8d8; text-align:right; }
+.sg-cell.ok   { color:#4ade80; font-weight:600; }
+.sg-cell.warn { color:#f59e0b; font-weight:600; }
+.sg-cell.crit { color:#f87171; font-weight:700; }
+.sg-cell.dim  { color:#7a8298; }
+.sg-cell.hi   { color:#7ab3e0; font-weight:600; }
+.sg-sep  { grid-column:1/-1; background:#1a1d2e; height:1px; }
+.sg-foot { background:#1a1d2e; padding:7px 12px; font-weight:600; font-size:0.78rem; }
+.sg-foot.lbl  { color:#6b7280; }
+.sg-foot.val  { color:#7ab3e0; text-align:right; }
+.sg-note { grid-column:1/-1; background:#0f1117; padding:5px 12px;
+           font-size:0.72rem; color:#7a8298; font-style:italic; }
+
+/* ── node cards ───────────────────────────────────────────────────────────── */
+.node-card { background:#1a1d2e; border:1px solid #2a2d3a; border-radius:8px;
+             margin-bottom:12px; overflow:hidden; }
+.node-card.binding { border-color:#78350f; }
+.nc-header { display:flex; align-items:center; gap:10px; padding:11px 18px;
+             background:#1e2238; border-bottom:1px solid #2a2d3a; }
+.nc-name   { font-size:0.88rem; font-weight:700; color:#e0eaf5; }
+.nc-vm     { font-size:0.72rem; color:#7a8298; }
+.nc-badge  { font-size:0.63rem; font-weight:700; padding:2px 8px; border-radius:10px;
+             text-transform:uppercase; letter-spacing:0.05em; margin-left:auto; }
+.badge-ok      { background:#14532d; color:#4ade80; }
+.badge-warn    { background:#78350f; color:#fbbf24; }
+.badge-crit    { background:#7f1d1d; color:#fca5a5; }
+.nc-body   { padding:14px 18px; }
+
+/* ── budget rows ──────────────────────────────────────────────────────────── */
+.b-section { margin-bottom:12px; }
+.b-section:last-child { margin-bottom:0; }
+.b-sec-title { font-size:0.66rem; font-weight:700; color:#6b7280; text-transform:uppercase;
+               letter-spacing:0.06em; margin-bottom:5px; padding-bottom:4px;
+               border-bottom:1px solid #1e2130; }
+.b-row  { display:flex; align-items:baseline; justify-content:space-between;
+          padding:4px 0; border-bottom:1px solid #12141c; font-size:0.8rem; }
+.b-row:last-child { border-bottom:none; }
+.b-lbl  { color:#6b7280; }
+.b-val  { font-weight:500; }
+.b-val.dim    { color:#6b7280; }
+.b-val.deduct { color:#f59e0b; }
+.b-val.avail  { color:#7ab3e0; font-weight:600; }
+.b-val.ok     { color:#4ade80; font-weight:600; }
+.b-val.warn   { color:#f59e0b; font-weight:600; }
+.b-val.crit   { color:#f87171; font-weight:700; }
+.b-val.exec   { color:#7ab3e0; font-weight:700; }
+
+/* ── management VM rows ───────────────────────────────────────────────────── */
+.mgmt-hdr { display:grid; grid-template-columns:1fr 90px 52px 58px;
+            gap:6px; padding:3px 0 4px; font-size:0.65rem; font-weight:700;
+            color:#6b7280; text-transform:uppercase; letter-spacing:0.05em;
+            border-bottom:1px solid #1e2130; margin-bottom:2px; }
+.mgmt-row { display:grid; grid-template-columns:1fr 90px 52px 58px;
+            gap:6px; align-items:center; padding:4px 0;
+            border-bottom:1px solid #12141c; font-size:0.78rem; }
+.mgmt-row:last-child { border-bottom:none; }
+.mgmt-name { color:#8b93a8; }
+.mgmt-select, .mgmt-input {
+  background:#0f1117; border:1px solid #2a2d3a; color:#c0c8d8;
+  border-radius:3px; padding:2px 5px; font-size:0.74rem; width:100%; }
+/* locked: controls not interactive */
+.config-locked .mgmt-select,
+.config-locked .mgmt-input { pointer-events:none; opacity:0.6; cursor:default; }
+.mgmt-tbd-row { display:flex; align-items:center; gap:8px; padding:5px 0;
+                font-size:0.74rem; color:#6b7280; font-style:italic; }
+.tbd-badge { font-size:0.62rem; background:#1e2130; border:1px solid #2a2d3a;
+             color:#7a8298; padding:1px 6px; border-radius:3px; font-style:normal; }
+
+/* ── slider rows ──────────────────────────────────────────────────────────── */
+.sl-row { display:flex; align-items:center; gap:10px;
+          padding:7px 0; border-bottom:1px solid #1e2130; }
+.sl-row:last-child { border-bottom:none; }
+.sl-lbl { flex:1; font-size:0.8rem; color:#8b93a8; }
+.sl-lbl small { display:block; font-size:0.68rem; color:#7a8298; }
+.sl-val { min-width:62px; text-align:right; font-size:0.84rem;
+          font-weight:600; color:#7ab3e0; }
+input[type=range] { width:140px; accent-color:#2d5a8e; cursor:pointer; }
+
+/* ── output rows ──────────────────────────────────────────────────────────── */
+.out-row { display:flex; align-items:baseline; justify-content:space-between;
+           padding:6px 0; border-bottom:1px solid #1e2130; font-size:0.8rem; }
+.out-row:last-child { border-bottom:none; }
+.out-lbl { color:#6b7280; }
+.out-val { font-weight:600; color:#7ab3e0; }
+.out-val.warn { color:#f59e0b; }
+.out-val.crit { color:#f87171; }
+.out-sub { font-size:0.7rem; color:#6b7280; margin-top:1px; }
+
+/* ── executor per-node table ──────────────────────────────────────────────── */
+.exec-table { width:100%; border-collapse:collapse; font-size:0.78rem; margin-top:6px; }
+.exec-table th { text-align:left; padding:5px 8px; font-size:0.66rem; font-weight:700;
+                 color:#6b7280; text-transform:uppercase; border-bottom:1px solid #2a2d3a; }
+.exec-table td { padding:5px 8px; border-bottom:1px solid #1e2130; color:#c0c8d8; }
+.exec-table tr:last-child td { border-bottom:none; }
+.exec-table .binding-row td { color:#f59e0b; }
+.exec-table tfoot td { border-top:1px solid #2a2d3a; font-weight:700;
+                       color:#7ab3e0; padding-top:7px; }
+
+/* ── storage node cards ───────────────────────────────────────────────────── */
+.storage-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+.storage-node { background:#141720; border:1px solid #2a2d3a; border-radius:6px; padding:11px 13px; }
+.storage-node-lbl { font-size:0.66rem; font-weight:700; color:#6b7280;
+                    text-transform:uppercase; margin-bottom:7px; }
+.s-row { display:flex; justify-content:space-between; font-size:0.76rem; padding:3px 0; }
+.s-lbl { color:#7a8298; }
+.s-val { color:#7ab3e0; font-weight:500; }
+
+/* ── headroom bar ─────────────────────────────────────────────────────────── */
+.headroom-bar { height:7px; background:#1e2130; border-radius:4px; overflow:hidden; margin:5px 0; }
+.headroom-fill { height:100%; border-radius:4px; transition:width 0.3s; }
+.fill-ok   { background:#16a34a; }
+.fill-warn { background:#d97706; }
+.fill-crit { background:#dc2626; }
+
+/* ── spark conf output ────────────────────────────────────────────────────── */
+.conf-wrap { background:#0a0c12; border:1px solid #2a2d3a; border-radius:6px;
+             padding:14px 18px; overflow-x:auto; }
+.conf-wrap pre { font-family:'Cascadia Code','Fira Code','Consolas',monospace;
+                 font-size:0.78rem; line-height:1.75; white-space:pre; }
+.cc { color:#3d5060; }   /* comment */
+.ck { color:#7ab3e0; }   /* key */
+.cv { color:#c3e88d; }   /* value */
+
+/* ── revision table ───────────────────────────────────────────────────────── */
+.rev-table { width:100%; border-collapse:collapse; font-size:0.78rem; }
+.rev-table th { text-align:left; padding:6px 10px; font-size:0.66rem; font-weight:700;
+                color:#6b7280; text-transform:uppercase; border-bottom:1px solid #2a2d3a; }
+.rev-table td { padding:7px 10px; border-bottom:1px solid #1e2130; vertical-align:top; }
+.rev-table tr:last-child td { border-bottom:none; }
+.rev-date  { color:#7a8298; white-space:nowrap; }
+.rev-title { color:#c0c8d8; font-weight:600; }
+.rev-desc  { color:#6b7280; }
+
+/* ── diagnostics / warnings ───────────────────────────────────────────────── */
+.warn-item { display:flex; gap:10px; padding:8px 12px; border-radius:5px;
+             border:1px solid; margin-bottom:6px; font-size:0.8rem; line-height:1.4; }
+.warn-item:last-child { margin-bottom:0; }
+.warn-item.error   { background:rgba(248,113,113,0.07); border-color:rgba(248,113,113,0.3); color:#fca5a5; }
+.warn-item.warning { background:rgba(251,191,36,0.07);  border-color:rgba(251,191,36,0.28); color:#fde68a; }
+.warn-item.ok      { background:rgba(74,222,128,0.06);  border-color:rgba(74,222,128,0.22); color:#86efac; }
+.warn-item.info    { background:rgba(122,179,224,0.07); border-color:rgba(122,179,224,0.25);color:#bae6fd; }
+.warn-icon, .wi-icon { font-size:13px; flex-shrink:0; margin-top:1px; }
+.wi-msg     { flex:1; }
+.warn-title { font-weight:700; font-size:0.74rem; letter-spacing:0.05em;
+              text-transform:uppercase; margin-bottom:2px; }
+
+/* ── utility ──────────────────────────────────────────────────────────────── */
+.note { font-size:0.74rem; color:#7a8298; font-style:italic; margin-top:6px; }
+.warn-note { font-size:0.74rem; color:#f59e0b; margin-top:6px; }
+.divider { border:none; border-top:1px solid #2a2d3a; margin:12px 0; }
+
+/* ── diagnostics — sticky panel ──────────────────────────────────────────── */
+#sec_g {
+  position: sticky;
+  top: 8px;
+  z-index: 50;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.55);
+}
+[data-theme="light"] #sec_g { box-shadow: 0 4px 20px rgba(0,0,0,0.18); }
+
+/* ── theme toggle button ──────────────────────────────────────────────────── */
+.page-header-inner { display:flex; align-items:flex-start; justify-content:space-between; }
+.header-text { flex:1; }
+.btn-theme { font-size:11px; font-weight:500; padding:6px 14px; border-radius:6px;
+             cursor:pointer; border:1px solid #2a2d3a; background:#1a1d2e;
+             color:#8b97aa; letter-spacing:0.06em; transition:background 0.15s,color 0.15s;
+             margin-top:4px; flex-shrink:0; }
+.btn-theme:hover { background:#2a2d3a; color:#c9d1e0; }
+
+/* ── light theme — warm amber tone ───────────────────────────────────────── */
+[data-theme="light"] body {
+  background:#e6dfd0; color:#2a2318;
+  background-image:
+    linear-gradient(rgba(176,104,32,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(176,104,32,0.05) 1px, transparent 1px);
+}
+[data-theme="light"] a { color:#2d5a8e; }
+[data-theme="light"] .page-header {
+  background:linear-gradient(135deg,#ddd6c8 0%,#e6dfd0 100%);
+  border-bottom-color:#c07820;
+}
+[data-theme="light"] .page-header h1 { color:#1a1510; }
+[data-theme="light"] .page-header h2 { color:#b45309; }
+[data-theme="light"] .page-header p  { color:#9a8d7a; }
+[data-theme="light"] .btn-theme { border-color:#c8bfad; background:#ede7da; color:#7a6a55; }
+[data-theme="light"] .btn-theme:hover { background:#ddd6c8; color:#2a2318; }
+[data-theme="light"] .section-details { background:#f0ead8; border-color:#c8bfad; }
+[data-theme="light"] .section-summary { background:#e6dfd0; }
+[data-theme="light"] .section-summary::before { color:#9a8d7a; }
+[data-theme="light"] .section-letter { background:#2d5a8e; color:#fff; }
+[data-theme="light"] .section-title { color:#2a2318; }
+[data-theme="light"] .section-sub   { color:#9a8d7a; }
+[data-theme="light"] .btt { color:#7a6a55; }
+[data-theme="light"] .section-close { border-top-color:#c8bfad; }
+[data-theme="light"] .section-close a { color:#9a8d7a; }
+[data-theme="light"] .card { background:#f0ead8; border-color:#c8bfad; }
+[data-theme="light"] .card-title { color:#9a8d7a; border-bottom-color:#c8bfad; }
+[data-theme="light"] .node-card { background:#f0ead8; border-color:#c8bfad; }
+[data-theme="light"] .node-card.binding { border-color:#b45309; }
+[data-theme="light"] .nc-header { background:#e4dccb; border-bottom-color:#c8bfad; }
+[data-theme="light"] .nc-name   { color:#1a1510; }
+[data-theme="light"] .nc-vm     { color:#9a8d7a; }
+[data-theme="light"] .badge-ok   { background:#d4f0dc; color:#1a5430; }
+[data-theme="light"] .badge-warn { background:#fef3cd; color:#7a4a00; }
+[data-theme="light"] .badge-crit { background:#fde8e8; color:#981818; }
+[data-theme="light"] .summary-grid { background:#c8bfad; border-color:#c8bfad; }
+[data-theme="light"] .sg-h    { background:#e6dfd0; color:#9a8d7a; }
+[data-theme="light"] .sg-lbl  { background:#f0ead8; color:#7a7065; }
+[data-theme="light"] .sg-cell { background:#f0ead8; color:#2a2318; }
+[data-theme="light"] .sg-cell.ok   { color:#1a5430; }
+[data-theme="light"] .sg-cell.warn { color:#7a4a00; }
+[data-theme="light"] .sg-cell.crit { color:#981818; }
+[data-theme="light"] .sg-cell.hi   { color:#2d5a8e; }
+[data-theme="light"] .sg-sep  { background:#e6dfd0; }
+[data-theme="light"] .sg-foot { background:#e6dfd0; }
+[data-theme="light"] .sg-foot.lbl  { color:#7a7065; }
+[data-theme="light"] .sg-foot.val  { color:#2d5a8e; }
+[data-theme="light"] .sg-note { background:#e6dfd0; color:#9a8d7a; }
+[data-theme="light"] .ref-table th { color:#9a8d7a; border-bottom-color:#c8bfad; }
+[data-theme="light"] .ref-table td { border-bottom-color:#ddd6c8; }
+[data-theme="light"] .ref-table .v   { color:#2d5a8e; }
+[data-theme="light"] .ref-table .lbl { color:#7a7065; }
+[data-theme="light"] .ref-table .nt  { color:#9a8d7a; }
+[data-theme="light"] .ref-table tfoot td { color:#2d5a8e; border-top-color:#c8bfad; }
+[data-theme="light"] .b-sec-title { color:#9a8d7a; border-bottom-color:#c8bfad; }
+[data-theme="light"] .b-row { border-bottom-color:#ddd6c8; }
+[data-theme="light"] .b-lbl { color:#7a7065; }
+[data-theme="light"] .b-val { color:#2a2318; }
+[data-theme="light"] .b-val.avail  { color:#1a5430; }
+[data-theme="light"] .b-val.warn   { color:#7a4a00; }
+[data-theme="light"] .b-val.crit   { color:#981818; }
+[data-theme="light"] .b-val.deduct { color:#b45309; }
+[data-theme="light"] .b-val.exec   { color:#2d5a8e; }
+[data-theme="light"] .mgmt-hdr { background:#ddd6c8; color:#7a7065; border-bottom-color:#c8bfad; }
+[data-theme="light"] .mgmt-row { border-bottom-color:#ddd6c8; }
+[data-theme="light"] .mgmt-name { color:#2a2318; }
+[data-theme="light"] .mgmt-select,
+[data-theme="light"] .mgmt-input { background:#f0ead8; border-color:#c8bfad; color:#2a2318; }
+[data-theme="light"] .tbd-badge { background:#e6dfd0; border-color:#c8bfad; color:#9a8d7a; }
+[data-theme="light"] .sl-lbl  { color:#2a2318; }
+[data-theme="light"] .sl-val  { color:#c07820; font-weight:700; }
+[data-theme="light"] input[type=range] { accent-color:#c07820; }
+[data-theme="light"] .out-lbl { color:#7a7065; }
+[data-theme="light"] .out-val { color:#2d5a8e; }
+[data-theme="light"] .out-val.warn { color:#7a4a00; }
+[data-theme="light"] .out-val.crit { color:#981818; }
+[data-theme="light"] .exec-table th { background:#e6dfd0; color:#9a8d7a; border-bottom-color:#c8bfad; }
+[data-theme="light"] .exec-table td { border-bottom-color:#ddd6c8; color:#2a2318; }
+[data-theme="light"] .exec-table tr.binding-row td { background:rgba(176,104,32,0.07); }
+[data-theme="light"] .exec-table td.ok   { color:#1a5430; }
+[data-theme="light"] .exec-table td.warn { color:#7a4a00; }
+[data-theme="light"] .exec-table td.crit { color:#981818; }
+[data-theme="light"] .toggle-row { border-color:#c8bfad; }
+[data-theme="light"] .btn-toggle { border-color:#2d5a8e; background:#e8eef8; color:#2d5a8e; }
+[data-theme="light"] .btn-toggle:hover { background:#d8e8f4; }
+[data-theme="light"] .btn-toggle.unlocked { border-color:#b45309; background:#fef3cd; color:#b45309; }
+[data-theme="light"] .btn-reset { border-color:#c8bfad; background:#f0ead8; color:#9a8d7a; }
+[data-theme="light"] .btn-reset:hover { color:#2a2318; }
+[data-theme="light"] .unlock-warning { background:#fef3cd; border-color:#b45309; color:#7a4a00; }
+[data-theme="light"] .warn-item.error   { background:rgba(192,40,40,0.07);  border-color:rgba(192,40,40,0.35);  color:#981818; }
+[data-theme="light"] .warn-item.warning { background:rgba(168,112,0,0.07);  border-color:rgba(168,112,0,0.35);  color:#7a4a00; }
+[data-theme="light"] .warn-item.ok      { background:rgba(42,112,64,0.07);  border-color:rgba(42,112,64,0.3);   color:#1a5430; }
+[data-theme="light"] .warn-item.info    { background:rgba(176,104,32,0.07); border-color:rgba(176,104,32,0.3);  color:#7a4c10; }
+[data-theme="light"] .note      { color:#9a8d7a; }
+[data-theme="light"] .warn-note { color:#b45309; }
+[data-theme="light"] .divider   { border-top-color:#c8bfad; }
+[data-theme="light"] .spark-conf-pre { background:#f0ead8; border-color:#c8bfad; color:#2a2318; }
+[data-theme="light"] .cc { color:#9a8d7a; }
+[data-theme="light"] .ck { color:#b45309; }
+[data-theme="light"] .cv { color:#2d5a8e; }
+</style>
+</head>
+<body id="top">
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="header-text">
+      <h1>Development Cluster</h1>
+      <h2>Phase 1 Node Model &nbsp;·&nbsp; Ksolves Phase 1 Configuration</h2>
+      <p>Per-node resource allocation &nbsp;·&nbsp; 3 &times; HPE DL385 Gen11 &nbsp;·&nbsp;
+         Proxmox VE 8.3 &nbsp;·&nbsp; Ceph Reef 18.2.x &nbsp;·&nbsp;
+         YARN 3.4.1 &nbsp;+&nbsp; Spark 3.5.3</p>
+    </div>
+    <button class="btn-theme" id="btn_theme" onclick="toggleTheme()">&#9728; Light</button>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION G — Diagnostics & Warnings (pinned to top)
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_g" open>
+  <summary class="section-summary">
+    <span class="section-letter">G</span>
+    <span class="section-title">Diagnostics &amp; Warnings</span>
+    <span class="section-sub">· configuration health · resource checks · active alerts</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <div class="card">
+      <div class="card-title">Active Checks</div>
+      <div id="warnings_panel"><!-- rendered by JS --></div>
+    </div>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION A — Physical Hardware
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_a">
+  <summary class="section-summary">
+    <span class="section-letter">A</span>
+    <span class="section-title">Physical Hardware</span>
+    <span class="section-sub">· node specifications · identical on all three nodes</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <div class="card">
+      <div class="card-title">Per-Node Specification — HPE DL385 Gen11</div>
+      <table class="ref-table">
+        <thead><tr><th>Resource</th><th>Per Node</th><th>Cluster Total (×3)</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="lbl">CPU</td><td class="v">32 cores</td><td class="v">96 cores</td><td class="nt">AMD EPYC · single socket · single NUMA domain</td></tr>
+          <tr><td class="lbl">RAM</td><td class="v">384 GB</td><td class="v">1,152 GB</td><td class="nt">DDR5 · 12 × 32 GB DIMMs</td></tr>
+          <tr><td class="lbl">NVMe — Ceph OSD</td><td class="v">3 × 3.84 TB</td><td class="v">34.56 TB raw</td><td class="nt">Drives 1–3 · BlueStore · 3× replication → 11.52 TB usable cluster-wide</td></tr>
+          <tr><td class="lbl">NVMe — Spark Scratch</td><td class="v">4 × 3.84 TB</td><td class="v">46.08 TB</td><td class="nt">Drives 4–7 · JBOD · XFS · ephemeral shuffle · no replication</td></tr>
+          <tr><td class="lbl">SSD — Proxmox OS</td><td class="v">3 × 480 GB</td><td class="v">—</td><td class="nt">ZFS mirror (2 drives) + hot spare · ~480 GB usable per node</td></tr>
+          <tr><td class="lbl">Network</td><td class="v">2 × 10G</td><td class="v">—</td><td class="nt">BCM57414 · LACP bond · 20G effective per node</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">All three nodes are identical. The 7 NVMe drives per node are split 3+4: three to Ceph OSD, four to Spark local scratch (JBOD/XFS). The split is confirmed in the Ksolves Phase 1 report and is fixed hardware — it is not configurable in this calculator.</p>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION B — Infrastructure Reservations
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_b">
+  <summary class="section-summary">
+    <span class="section-letter">B</span>
+    <span class="section-title">Infrastructure Reservations</span>
+    <span class="section-sub">· fixed overhead · uniform on every node · not configurable</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <div class="card">
+      <div class="card-title">Per-Node Daemon Reservations — Same on All Three Nodes</div>
+      <table class="ref-table">
+        <thead><tr><th>Service</th><th>vCPU Reserved</th><th>RAM Reserved</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="lbl">Proxmox VE 8.3</td><td class="v">2c</td><td class="v">8 GB</td><td class="nt">Bare-metal hypervisor host process — not a VM</td></tr>
+          <tr><td class="lbl">Ceph OSD × 3</td><td class="v">3c</td><td class="v">9 GB</td><td class="nt">1c / 3 GB per OSD · BlueStore · conservative · monitor under peak ingest</td></tr>
+          <tr><td class="lbl">Ceph RGW</td><td class="v">4c</td><td class="v">8 GB</td><td class="nt">S3-compatible API endpoint · s3a:// for Spark</td></tr>
+          <tr><td class="lbl">Ceph MON</td><td class="v">2c</td><td class="v">6 GB</td><td class="nt">Paxos quorum member · 1 per node · requires 2-of-3 for decisions</td></tr>
+          <tr><td class="lbl">Ceph MGR</td><td class="v">1c</td><td class="v">2 GB</td><td class="nt">Active on Node01 · standby on Node02 / Node03 · metrics + dashboard</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td><strong>Total per node</strong></td><td><strong>12c</strong></td><td><strong>33 GB</strong></td><td class="nt">Leaves 20c / 351 GB available for VM allocation</td></tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="note">These reservations are identical on every node and are not tunable — they reflect running Proxmox and Ceph daemon overhead confirmed by Ksolves Phase 1 report (§ 3.2). ZFS ARC is bounded at 8 GB via <code>zfs_arc_max</code> and is included within the Proxmox host RAM figure above.</p>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION C — Node Layout
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_c">
+  <summary class="section-summary">
+    <span class="section-letter">C</span>
+    <span class="section-title">Node Layout</span>
+    <span class="section-sub">· per-node VM placement · management VMs · worker budget · binding constraint</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body" id="sec_c_body">
+
+    <!-- toggle row -->
+    <div class="toggle-row">
+      <button class="btn-toggle" id="btn_toggle" onclick="toggleConfig()">Unlock for Analysis</button>
+      <button class="btn-reset" onclick="resetToVendor()">Reset to Vendor Spec</button>
+      <span class="unlock-warning">&#9888; Configuration unlocked — changes are for analysis only. Vendor Phase 1 spec is the baseline.</span>
+    </div>
+
+    <!-- summary grid (read-only, always current) -->
+    <div class="summary-grid" id="summary_grid">
+      <div class="sg-h"></div>
+      <div class="sg-h">Node 01</div>
+      <div class="sg-h">Node 02</div>
+      <div class="sg-h">Node 03</div>
+      <!-- hardware -->
+      <div class="sg-lbl">Physical</div>
+      <div class="sg-cell dim">32c / 384 GB</div>
+      <div class="sg-cell dim">32c / 384 GB</div>
+      <div class="sg-cell dim">32c / 384 GB</div>
+      <!-- infra -->
+      <div class="sg-lbl">&#8722; Infrastructure</div>
+      <div class="sg-cell dim">&#8722;12c / &#8722;33 GB</div>
+      <div class="sg-cell dim">&#8722;12c / &#8722;33 GB</div>
+      <div class="sg-cell dim">&#8722;12c / &#8722;33 GB</div>
+      <!-- mgmt VMs -->
+      <div class="sg-lbl">&#8722; Mgmt VMs</div>
+      <div class="sg-cell" id="sg_mgmt_1">—</div>
+      <div class="sg-cell" id="sg_mgmt_2">—</div>
+      <div class="sg-cell" id="sg_mgmt_3">—</div>
+      <!-- separator -->
+      <div class="sg-sep"></div>
+      <!-- worker budget -->
+      <div class="sg-lbl">Worker vCPU</div>
+      <div class="sg-cell" id="sg_wvcpu_1">—</div>
+      <div class="sg-cell" id="sg_wvcpu_2">—</div>
+      <div class="sg-cell" id="sg_wvcpu_3">—</div>
+      <!-- executors -->
+      <div class="sg-lbl">Executors</div>
+      <div class="sg-cell hi" id="sg_exec_1">—</div>
+      <div class="sg-cell hi" id="sg_exec_2">—</div>
+      <div class="sg-cell hi" id="sg_exec_3">—</div>
+      <!-- buffer -->
+      <div class="sg-lbl">vCPU buffer</div>
+      <div class="sg-cell" id="sg_buf_1">—</div>
+      <div class="sg-cell" id="sg_buf_2">—</div>
+      <div class="sg-cell" id="sg_buf_3">—</div>
+      <!-- cluster total footer -->
+      <div class="sg-sep"></div>
+      <div class="sg-foot lbl">Cluster total executors</div>
+      <div class="sg-foot val" id="sg_total_exec" style="grid-column:2/5">—</div>
+      <!-- zookeeper note -->
+      <div class="sg-note" id="sg_zk_note">&#9432; ZooKeeper: 3 processes (1c / 2 GB each), modeled as dedicated VMs. Vendor to confirm placement Monday 2026-04-27 — if host processes, the 3c / 6 GB per cluster are freed.</div>
+    </div>
+
+    <!-- node cards -->
+    <div id="card_n1" class="node-card">
+      <div class="nc-header">
+        <span class="nc-name">Node 01</span>
+        <span class="nc-vm">GKPR-SPARK-WK-01</span>
+        <span class="nc-badge badge-ok" id="badge_n1">OK</span>
+      </div>
+      <div class="nc-body">
+        <div class="b-section">
+          <div class="b-sec-title">Physical Hardware</div>
+          <div class="b-row"><span class="b-lbl">CPU</span><span class="b-val">32 cores (AMD EPYC)</span></div>
+          <div class="b-row"><span class="b-lbl">RAM</span><span class="b-val">384 GB</span></div>
+          <div class="b-row"><span class="b-lbl">NVMe</span><span class="b-val">7 drives (3 OSD + 4 scratch)</span></div>
+        </div>
+        <div class="b-section">
+          <div class="b-sec-title">Infrastructure Reservation (Section B)</div>
+          <div class="b-row"><span class="b-lbl">Proxmox + Ceph daemons</span><span class="b-val deduct">&#8722;12c / &#8722;33 GB</span></div>
+          <div class="b-row"><span class="b-lbl">Available for VMs</span><span class="b-val avail">20c / 351 GB</span></div>
+        </div>
+        <div class="b-section" id="nc1_mgmt_section">
+          <div class="b-sec-title">Management VMs on This Node</div>
+          <div id="nc1_mgmt_rows"><!-- rendered by JS --></div>
+        </div>
+        <div class="b-section" id="nc1_worker_section">
+          <div class="b-sec-title">Spark Worker VM</div>
+          <div class="sl-row">
+            <span class="sl-lbl">Worker VM RAM<small>Proxmox allocation · yarn.nodemanager.resource.memory-mb</small></span>
+            <input type="range" id="worker_ram_1" min="120" max="340" step="8" value="320" oninput="recalc()">
+            <span class="sl-val" id="out_worker_ram_1">320 GB</span>
+          </div>
+          <div id="nc1_worker_rows"><!-- rendered by JS --></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="card_n2" class="node-card">
+      <div class="nc-header">
+        <span class="nc-name">Node 02</span>
+        <span class="nc-vm">GKPR-SPARK-WK-02</span>
+        <span class="nc-badge badge-ok" id="badge_n2">OK</span>
+      </div>
+      <div class="nc-body">
+        <div class="b-section">
+          <div class="b-sec-title">Physical Hardware</div>
+          <div class="b-row"><span class="b-lbl">CPU</span><span class="b-val">32 cores (AMD EPYC)</span></div>
+          <div class="b-row"><span class="b-lbl">RAM</span><span class="b-val">384 GB</span></div>
+          <div class="b-row"><span class="b-lbl">NVMe</span><span class="b-val">7 drives (3 OSD + 4 scratch)</span></div>
+        </div>
+        <div class="b-section">
+          <div class="b-sec-title">Infrastructure Reservation (Section B)</div>
+          <div class="b-row"><span class="b-lbl">Proxmox + Ceph daemons</span><span class="b-val deduct">&#8722;12c / &#8722;33 GB</span></div>
+          <div class="b-row"><span class="b-lbl">Available for VMs</span><span class="b-val avail">20c / 351 GB</span></div>
+        </div>
+        <div class="b-section" id="nc2_mgmt_section">
+          <div class="b-sec-title">Management VMs on This Node</div>
+          <div id="nc2_mgmt_rows"><!-- rendered by JS --></div>
+        </div>
+        <div class="b-section" id="nc2_worker_section">
+          <div class="b-sec-title">Spark Worker VM</div>
+          <div class="sl-row">
+            <span class="sl-lbl">Worker VM RAM<small>Proxmox allocation · yarn.nodemanager.resource.memory-mb</small></span>
+            <input type="range" id="worker_ram_2" min="120" max="340" step="8" value="320" oninput="recalc()">
+            <span class="sl-val" id="out_worker_ram_2">320 GB</span>
+          </div>
+          <div id="nc2_worker_rows"><!-- rendered by JS --></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="card_n3" class="node-card">
+      <div class="nc-header">
+        <span class="nc-name">Node 03</span>
+        <span class="nc-vm">GKPR-SPARK-WK-03</span>
+        <span class="nc-badge badge-ok" id="badge_n3">OK</span>
+      </div>
+      <div class="nc-body">
+        <div class="b-section">
+          <div class="b-sec-title">Physical Hardware</div>
+          <div class="b-row"><span class="b-lbl">CPU</span><span class="b-val">32 cores (AMD EPYC)</span></div>
+          <div class="b-row"><span class="b-lbl">RAM</span><span class="b-val">384 GB</span></div>
+          <div class="b-row"><span class="b-lbl">NVMe</span><span class="b-val">7 drives (3 OSD + 4 scratch)</span></div>
+        </div>
+        <div class="b-section">
+          <div class="b-sec-title">Infrastructure Reservation (Section B)</div>
+          <div class="b-row"><span class="b-lbl">Proxmox + Ceph daemons</span><span class="b-val deduct">&#8722;12c / &#8722;33 GB</span></div>
+          <div class="b-row"><span class="b-lbl">Available for VMs</span><span class="b-val avail">20c / 351 GB</span></div>
+        </div>
+        <div class="b-section" id="nc3_mgmt_section">
+          <div class="b-sec-title">Management VMs on This Node</div>
+          <div id="nc3_mgmt_rows"><!-- rendered by JS --></div>
+        </div>
+        <div class="b-section" id="nc3_worker_section">
+          <div class="b-sec-title">Spark Worker VM</div>
+          <div class="sl-row">
+            <span class="sl-lbl">Worker VM RAM<small>Proxmox allocation · yarn.nodemanager.resource.memory-mb</small></span>
+            <input type="range" id="worker_ram_3" min="120" max="340" step="8" value="320" oninput="recalc()">
+            <span class="sl-val" id="out_worker_ram_3">320 GB</span>
+          </div>
+          <div id="nc3_worker_rows"><!-- rendered by JS --></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION D — Executor Sizing
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_d">
+  <summary class="section-summary">
+    <span class="section-letter">D</span>
+    <span class="section-title">Executor Sizing</span>
+    <span class="section-sub">· cores · memory · per-node count · cluster totals</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <div class="two-col">
+      <!-- left: sliders -->
+      <div class="card">
+        <div class="card-title">Executor Parameters</div>
+        <div class="sl-row">
+          <span class="sl-lbl">Executor cores<small>spark.executor.cores</small></span>
+          <input type="range" id="exec_cores" min="4" max="16" step="1" value="8" oninput="recalc()">
+          <span class="sl-val" id="out_exec_cores">8c</span>
+        </div>
+        <div class="sl-row">
+          <span class="sl-lbl">Executor memory (heap)<small>spark.executor.memory</small></span>
+          <input type="range" id="exec_mem" min="8" max="60" step="4" value="28" oninput="recalc()">
+          <span class="sl-val" id="out_exec_mem">28 GB</span>
+        </div>
+        <div class="sl-row">
+          <span class="sl-lbl">Memory overhead<small>spark.executor.memoryOverhead</small></span>
+          <input type="range" id="exec_ovh" min="2" max="10" step="1" value="4" oninput="recalc()">
+          <span class="sl-val" id="out_exec_ovh">4 GB</span>
+        </div>
+        <div class="sl-row">
+          <span class="sl-lbl">Driver cores<small>spark.driver.cores (AM container)</small></span>
+          <input type="range" id="driver_cores" min="2" max="8" step="1" value="4" oninput="recalc()">
+          <span class="sl-val" id="out_driver_cores">4c</span>
+        </div>
+      </div>
+      <!-- right: outputs -->
+      <div class="card">
+        <div class="card-title">Executor Results</div>
+        <div class="out-row">
+          <span class="out-lbl">Container size per executor</span>
+          <div><div class="out-val" id="out_container">32 GB</div>
+               <div class="out-sub">heap + overhead</div></div>
+        </div>
+        <div class="out-row">
+          <span class="out-lbl">Worst-case OOM margin</span>
+          <div><div class="out-val" id="out_oom_margin">—</div>
+               <div class="out-sub">tightest node · per-node detail in table below</div></div>
+        </div>
+        <div class="out-row">
+          <span class="out-lbl">Cluster total executors</span>
+          <div><div class="out-val" id="out_total_exec">—</div>
+               <div class="out-sub">sum across nodes, minus 1 driver/AM</div></div>
+        </div>
+        <div class="out-row">
+          <span class="out-lbl">Total parallel task slots</span>
+          <div><div class="out-val" id="out_task_slots">—</div>
+               <div class="out-sub">total executors × executor cores</div></div>
+        </div>
+        <div class="out-row">
+          <span class="out-lbl">YARN cores per job</span>
+          <div><div class="out-val" id="out_yarn_cores">—</div>
+               <div class="out-sub">executors + driver container</div></div>
+        </div>
+      </div>
+    </div>
+    <!-- per-node executor table -->
+    <div class="card">
+      <div class="card-title">Executor Count by Node</div>
+      <table class="exec-table" id="exec_node_table">
+        <thead><tr><th>Node</th><th>Worker vCPU</th><th>Worker RAM</th><th>Exec Cores</th><th>Executors</th><th>OOM Margin</th><th>vCPU Buffer</th><th>Status</th></tr></thead>
+        <tbody id="exec_node_tbody"></tbody>
+        <tfoot id="exec_node_tfoot"></tfoot>
+      </table>
+      <p class="note" style="margin-top:8px">Executors per node = floor((worker vCPU &#8722; 2) &#247; exec cores). The &#8722;2 reserves headroom for the OS and NodeManager process. Total cluster executors = sum &#8722; 1 for the YARN driver/ApplicationMaster container. The binding node determines the cluster ceiling.</p>
+    </div>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION E — Storage & Workload
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_e">
+  <summary class="section-summary">
+    <span class="section-letter">E</span>
+    <span class="section-title">Storage &amp; Workload</span>
+    <span class="section-sub">· Ceph OSD · JBOD scratch · shuffle headroom · daily volume</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <!-- per-node storage (static) -->
+    <div class="card">
+      <div class="card-title">Per-Node Storage — Identical on All Three Nodes</div>
+      <div class="storage-grid">
+        <div class="storage-node">
+          <div class="storage-node-lbl">Node 01</div>
+          <div class="s-row"><span class="s-lbl">OSD drives</span><span class="s-val">3 × 3.84 TB</span></div>
+          <div class="s-row"><span class="s-lbl">OSD raw</span><span class="s-val">11.52 TB</span></div>
+          <div class="s-row"><span class="s-lbl">Scratch drives</span><span class="s-val">4 × 3.84 TB</span></div>
+          <div class="s-row"><span class="s-lbl">Scratch capacity</span><span class="s-val">15.36 TB</span></div>
+          <div class="s-row"><span class="s-lbl">Scratch format</span><span class="s-val">JBOD / XFS</span></div>
+        </div>
+        <div class="storage-node">
+          <div class="storage-node-lbl">Node 02</div>
+          <div class="s-row"><span class="s-lbl">OSD drives</span><span class="s-val">3 × 3.84 TB</span></div>
+          <div class="s-row"><span class="s-lbl">OSD raw</span><span class="s-val">11.52 TB</span></div>
+          <div class="s-row"><span class="s-lbl">Scratch drives</span><span class="s-val">4 × 3.84 TB</span></div>
+          <div class="s-row"><span class="s-lbl">Scratch capacity</span><span class="s-val">15.36 TB</span></div>
+          <div class="s-row"><span class="s-lbl">Scratch format</span><span class="s-val">JBOD / XFS</span></div>
+        </div>
+        <div class="storage-node">
+          <div class="storage-node-lbl">Node 03</div>
+          <div class="s-row"><span class="s-lbl">OSD drives</span><span class="s-val">3 × 3.84 TB</span></div>
+          <div class="s-row"><span class="s-lbl">OSD raw</span><span class="s-val">11.52 TB</span></div>
+          <div class="s-row"><span class="s-lbl">Scratch drives</span><span class="s-val">4 × 3.84 TB</span></div>
+          <div class="s-row"><span class="s-lbl">Scratch capacity</span><span class="s-val">15.36 TB</span></div>
+          <div class="s-row"><span class="s-lbl">Scratch format</span><span class="s-val">JBOD / XFS</span></div>
+        </div>
+      </div>
+      <div class="out-row"><span class="out-lbl">Ceph usable (÷ 3× replication, cluster-wide)</span><span class="out-val">11.52 TB</span></div>
+      <div class="out-row"><span class="out-lbl">Total scratch cluster-wide</span><span class="out-val">46.08 TB (15.36 × 3 nodes)</span></div>
+    </div>
+    <!-- workload sliders + headroom -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Workload Parameters</div>
+        <div class="sl-row">
+          <span class="sl-lbl">Daily input volume<small>raw CSV per batch</small></span>
+          <input type="range" id="daily_tb" min="1" max="10" step="0.5" value="4" oninput="recalc()">
+          <span class="sl-val" id="out_daily_tb">4.0 TB</span>
+        </div>
+        <div class="sl-row">
+          <span class="sl-lbl">Shuffle amplification<small>logical shuffle / input · Phase 1 assumption: 7×</small></span>
+          <input type="range" id="shuff_amp" min="2" max="15" step="0.5" value="7" oninput="recalc()">
+          <span class="sl-val" id="out_shuff_amp">7×</span>
+        </div>
+        <div class="sl-row">
+          <span class="sl-lbl">Shuffle compression ratio<small>Snappy ≈ 2.5×, LZ4 ≈ 1.8×, ZSTD ≈ 3.5×</small></span>
+          <input type="range" id="shuff_comp" min="1.5" max="5" step="0.1" value="2.5" oninput="recalc()">
+          <span class="sl-val" id="out_shuff_comp">2.5×</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Scratch Headroom</div>
+        <div class="out-row">
+          <span class="out-lbl">Logical shuffle (cluster)</span>
+          <span class="out-val" id="out_shuff_logical">—</span>
+        </div>
+        <div class="out-row">
+          <span class="out-lbl">Compressed shuffle / node</span>
+          <span class="out-val" id="out_shuff_node">—</span>
+        </div>
+        <div class="out-row">
+          <span class="out-lbl">Scratch available / node</span>
+          <span class="out-val">15.36 TB</span>
+        </div>
+        <div class="out-row">
+          <span class="out-lbl">Headroom ratio</span>
+          <span class="out-val" id="out_headroom_ratio">—</span>
+        </div>
+        <div class="headroom-bar"><div class="headroom-fill" id="headroom_fill" style="width:0%"></div></div>
+        <p class="note" id="out_headroom_note">—</p>
+      </div>
+    </div>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SECTION F — Spark Configuration
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_f">
+  <summary class="section-summary">
+    <span class="section-letter">F</span>
+    <span class="section-title">Spark Configuration</span>
+    <span class="section-sub">· spark-defaults.conf · derived from Section D values</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <div class="conf-wrap"><pre id="spark_conf_out"><!-- rendered by JS --></pre></div>
+    <p class="note" style="margin-top:10px">Values reflect current Section D slider positions. Paste into <code>$SPARK_HOME/conf/spark-defaults.conf</code> on all Worker VMs. Verify against YARN ResourceManager settings before first production batch.</p>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     REVISIONS
+════════════════════════════════════════════════════════════════════════ -->
+<details class="section-details" id="sec_revisions">
+  <summary class="section-summary">
+    <span class="section-title">Revisions</span>
+    <span class="section-sub">· change history</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <table class="rev-table">
+      <thead><tr><th>Date</th><th>Title</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="rev-date">2026-04-24</td>
+          <td class="rev-title">ZooKeeper, theme toggle, UI improvements</td>
+          <td class="rev-desc">Added ZooKeeper ensemble to VENDOR_DEFAULTS (3 × 1c/2 GB, one per node — modeled as dedicated VMs pending vendor confirmation of host-process placement, Monday 2026-04-27). Added light/dark theme toggle with warm amber light palette and localStorage persistence (spark_theme_phase1). Brightened grey text palette for readability (#374151→#6b7280, #4b5563→#7a8298, #5a6170→#8b97aa). Made Diagnostics &amp; Warnings section (G) sticky and default-open, moved to top of page. Added per-node OOM margin to node cards and executor table. Fixed renderWarnings() wiring (scratches→headroom, workerRam removal, CSS class alignment).</td>
+        </tr>
+        <tr>
+          <td class="rev-date">2026-04-23</td>
+          <td class="rev-title">Initial release</td>
+          <td class="rev-desc">New per-node model calculator based on Ksolves Phase 1 report (2026-04-21). Models asymmetric VM placement across Node01/02/03. Replaces amortized approach for vendor configuration analysis. Hardware constants: 3 × HPE DL385 Gen11, 32c/384GB/7 NVMe (3 OSD + 4 scratch JBOD/XFS), infra 12c/33GB per node.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+</div><!-- .page-wrap -->
+
+<script>
+/* ── hardware constants ────────────────────────────────────────────────────── */
+var NODES        = 3;
+var CORES_NODE   = 32;
+var RAM_NODE     = 384;
+var NVME_COUNT   = 7;
+var NVME_TB      = 3.84;
+var OSD_PER_NODE = 3;
+var SCRATCH_PER  = 4;          // drives per node
+var INFRA_VCPU   = 12;
+var INFRA_RAM    = 33;
+var AVAIL_VCPU   = CORES_NODE - INFRA_VCPU;  // 20
+var CEPH_USABLE  = (OSD_PER_NODE * NVME_TB * NODES) / 3;  // 11.52 TB
+
+/* ── management VM state ───────────────────────────────────────────────────── */
+var VENDOR_DEFAULTS = [
+  {id:'yarn_rm_active',  label:'YARN RM (active)',   vcpu:2, ram:4, node:1, tbd:false},
+  {id:'spark_hs',        label:'Spark Hist. Server', vcpu:1, ram:4, node:2, tbd:false},
+  {id:'yarn_rm_standby', label:'YARN RM (standby)',  vcpu:2, ram:4, node:3, tbd:false},
+  /* ZooKeeper ensemble: 3 processes for quorum, one per node. Standard sizing: 1c/2GB each.
+     Placement (host process vs dedicated VM) to be confirmed with vendor (Monday 2026-04-27).
+     Modeled here as dedicated VMs — conservative. If host process, these slots are freed. */
+  {id:'zk_n1',           label:'ZooKeeper',          vcpu:1, ram:2, node:1, tbd:false},
+  {id:'zk_n2',           label:'ZooKeeper',          vcpu:1, ram:2, node:2, tbd:false},
+  {id:'zk_n3',           label:'ZooKeeper',          vcpu:1, ram:2, node:3, tbd:false}
+];
+
+var mgmtVms = VENDOR_DEFAULTS.map(function(v){ return Object.assign({}, v); });
+var configLocked = true;
+
+/* ── helpers ───────────────────────────────────────────────────────────────── */
+function el(id) { return document.getElementById(id); }
+function fmt(n, d) { return (d === undefined ? Math.round(n) : n.toFixed(d)).toString(); }
+function fmtTB(n) { return n.toFixed(2) + ' TB'; }
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function setTxt(id, v) { var e = el(id); if (e) e.textContent = v; }
+function setHTML(id, v) { var e = el(id); if (e) e.innerHTML = v; }
+function bufClass(b) { return b <= 0 ? 'crit' : b === 1 ? 'warn' : 'ok'; }
+function bufLabel(b) { return b <= 0 ? b + 'c \u26A0' : b + 'c \u2713'; }
+
+function getVmsForNode(n) {
+  return mgmtVms.filter(function(v){ return !v.tbd && v.node === n; });
+}
+function nodeMgmtVcpu(n) {
+  return getVmsForNode(n).reduce(function(s,v){ return s + v.vcpu; }, 0);
+}
+function nodeMgmtRam(n) {
+  return getVmsForNode(n).reduce(function(s,v){ return s + v.ram; }, 0);
+}
+
+/* ── toggle / reset ────────────────────────────────────────────────────────── */
+function toggleConfig() {
+  configLocked = !configLocked;
+  var btn = el('btn_toggle');
+  var body = el('sec_c_body');
+  btn.textContent = configLocked ? 'Unlock for Analysis' : 'Lock to Vendor Spec';
+  btn.className = 'btn-toggle' + (configLocked ? '' : ' unlocked');
+  if (configLocked) {
+    body.classList.remove('config-unlocked');
+    body.classList.add('config-locked');
+  } else {
+    body.classList.remove('config-locked');
+    body.classList.add('config-unlocked');
+  }
+  recalc();
+}
+
+function resetToVendor() {
+  mgmtVms = VENDOR_DEFAULTS.map(function(v){ return Object.assign({}, v); });
+  recalc();
+}
+
+/* ── management VM update functions (called from inline handlers) ───────────── */
+function updateMgmtNode(id, val) {
+  var vm = mgmtVms.find(function(v){ return v.id === id; });
+  if (vm) { vm.node = val === '' ? null : parseInt(val); recalc(); }
+}
+function updateMgmtVcpu(id, val) {
+  var vm = mgmtVms.find(function(v){ return v.id === id; });
+  if (vm) { vm.vcpu = Math.max(0, parseInt(val) || 0); recalc(); }
+}
+function updateMgmtRam(id, val) {
+  var vm = mgmtVms.find(function(v){ return v.id === id; });
+  if (vm) { vm.ram = Math.max(0, parseInt(val) || 0); recalc(); }
+}
+
+/* ── main calculation ──────────────────────────────────────────────────────── */
+function recalc() {
+  var execCores  = parseInt(el('exec_cores').value);
+  var execMem    = parseInt(el('exec_mem').value);
+  var execOvh    = parseInt(el('exec_ovh').value);
+  var driverCores= parseInt(el('driver_cores').value);
+  var dailyTB    = parseFloat(el('daily_tb').value);
+  var shuffAmp   = parseFloat(el('shuff_amp').value);
+  var shuffComp  = parseFloat(el('shuff_comp').value);
+
+  /* per-node worker RAM (read from node card sliders) */
+  var workerRams = [1,2,3].map(function(n) {
+    var e = el('worker_ram_' + n);
+    return e ? parseInt(e.value) : 320;
+  });
+
+  /* slider display */
+  setTxt('out_exec_cores',  execCores + 'c');
+  setTxt('out_exec_mem',    execMem + ' GB');
+  setTxt('out_exec_ovh',    execOvh + ' GB');
+  setTxt('out_driver_cores',driverCores + 'c');
+  setTxt('out_daily_tb',    dailyTB.toFixed(1) + ' TB');
+  setTxt('out_shuff_amp',   shuffAmp.toFixed(1) + '\u00d7');
+  setTxt('out_shuff_comp',  shuffComp.toFixed(1) + '\u00d7');
+  [1,2,3].forEach(function(n) { setTxt('out_worker_ram_' + n, workerRams[n-1] + ' GB'); });
+
+  /* per-node calculations */
+  var container = execMem + execOvh;
+  var perNode = [1,2,3].map(function(n) {
+    var mVcpu    = nodeMgmtVcpu(n);
+    var mRam     = nodeMgmtRam(n);
+    var wVcpu    = AVAIL_VCPU - mVcpu;
+    var wRam     = workerRams[n-1];
+    var ramOk    = (INFRA_RAM + mRam + wRam) <= RAM_NODE;
+    var execCnt  = wVcpu <= 2 ? 0 : Math.floor((wVcpu - 2) / execCores);
+    var usedVcpu = execCnt * execCores + 2;
+    var buffer   = wVcpu - usedVcpu;
+    /* OOM: RAM left after all executor containers + 2 GB NM headroom */
+    var oomMargin = execCnt > 0 ? wRam - (execCnt * container) - 2 : wRam - container - 2;
+    return {n:n, mVcpu:mVcpu, mRam:mRam, wVcpu:wVcpu, wRam:wRam, ramOk:ramOk,
+            execCnt:execCnt, usedVcpu:usedVcpu, buffer:buffer, oomMargin:oomMargin};
+  });
+
+  /* binding node = tightest worker vCPU */
+  var binding = perNode.reduce(function(min,nd){
+    return nd.wVcpu < min.wVcpu ? nd : min;
+  });
+
+  /* cluster totals */
+  var sumExec   = perNode.reduce(function(s,nd){ return s + nd.execCnt; }, 0);
+  var totalExec = Math.max(1, sumExec - 1);
+  var taskSlots = totalExec * execCores;
+  var yarnCores = sumExec * execCores + driverCores;
+  var worstOom  = perNode.reduce(function(min,nd){ return nd.oomMargin < min ? nd.oomMargin : min; }, Infinity);
+
+  /* storage */
+  var scratchNode = SCRATCH_PER * NVME_TB;              // 15.36 TB
+  var shuffLogical = dailyTB * shuffAmp;                // cluster total logical
+  var shuffPerNode = (shuffLogical / NODES) / shuffComp; // compressed per node
+  var headroom     = scratchNode / shuffPerNode;
+
+  /* ── render summary ───────────────────────────────────────────────────── */
+  [1,2,3].forEach(function(n) {
+    var nd = perNode[n-1];
+    var mStr = nd.mVcpu > 0 ? '\u2212' + nd.mVcpu + 'c / \u2212' + nd.mRam + ' GB' : 'none';
+    var bc   = bufClass(nd.buffer);
+    el('sg_mgmt_'  + n).textContent = mStr;
+    el('sg_mgmt_'  + n).className   = 'sg-cell dim';
+    el('sg_wvcpu_' + n).textContent = nd.wVcpu + 'c';
+    el('sg_wvcpu_' + n).className   = 'sg-cell ' + (nd.wVcpu < 10 ? 'warn' : '');
+    el('sg_exec_'  + n).textContent = nd.execCnt;
+    el('sg_exec_'  + n).className   = 'sg-cell hi';
+    el('sg_buf_'   + n).textContent = bufLabel(nd.buffer);
+    el('sg_buf_'   + n).className   = 'sg-cell ' + bc;
+    /* highlight binding node header */
+    var card = el('card_n' + n);
+    if (card) {
+      card.className = 'node-card' + (nd.n === binding.n && nd.wVcpu <= binding.wVcpu && nd.buffer <= 0 ? ' binding' : '');
+    }
+  });
+  setTxt('sg_total_exec', totalExec + ' executors');
+
+  /* ── render node card dynamic sections ───────────────────────────────── */
+  [1,2,3].forEach(function(n) {
+    var nd   = perNode[n-1];
+    var vms  = getVmsForNode(n);
+    var bc   = bufClass(nd.buffer);
+
+    /* management VM rows */
+    var mgmtHTML = '';
+    if (vms.length === 0) {
+      mgmtHTML = '<div class="b-row"><span class="b-lbl" style="color:#6b7280;font-style:italic">No management VMs assigned to this node</span></div>';
+    } else if (configLocked) {
+      vms.forEach(function(vm) {
+        mgmtHTML += '<div class="b-row">' +
+          '<span class="b-lbl">' + esc(vm.label) + '</span>' +
+          '<span class="b-val deduct">\u2212' + vm.vcpu + 'c / \u2212' + vm.ram + ' GB</span>' +
+          '</div>';
+      });
+    } else {
+      mgmtHTML += '<div class="mgmt-hdr"><span>Service</span><span>Node</span><span>vCPU</span><span>RAM GB</span></div>';
+      vms.forEach(function(vm) {
+        var opts = [1,2,3].map(function(on) {
+          return '<option value="' + on + '"' + (vm.node === on ? ' selected' : '') + '>Node 0' + on + '</option>';
+        }).join('') + '<option value=""' + (vm.node === null ? ' selected' : '') + '>Off-cluster</option>';
+        mgmtHTML += '<div class="mgmt-row">' +
+          '<span class="mgmt-name">' + esc(vm.label) + '</span>' +
+          '<select class="mgmt-select" onchange="updateMgmtNode(\'' + vm.id + '\',this.value)">' + opts + '</select>' +
+          '<input type="number" class="mgmt-input" min="0" max="16" value="' + vm.vcpu + '" onchange="updateMgmtVcpu(\'' + vm.id + '\',this.value)">' +
+          '<input type="number" class="mgmt-input" min="0" max="64" value="' + vm.ram  + '" onchange="updateMgmtRam(\'' + vm.id + '\',this.value)">' +
+          '</div>';
+      });
+    }
+
+    /* worker budget rows */
+    var oomCls2 = nd.oomMargin < 0 ? 'crit' : nd.oomMargin < 4 ? 'warn' : 'avail';
+    var wHTML =
+      '<div class="b-row"><span class="b-lbl">vCPU available for Worker VM</span>' +
+        '<span class="b-val ' + (nd.wVcpu < 14 ? 'warn' : 'avail') + '">' + nd.wVcpu + 'c</span></div>' +
+      '<div class="b-row"><span class="b-lbl">Executors on this node</span>' +
+        '<span class="b-val exec">' + nd.execCnt + '</span></div>' +
+      '<div class="b-row"><span class="b-lbl">OOM margin (NM headroom)</span>' +
+        '<span class="b-val ' + oomCls2 + '">' + nd.oomMargin + ' GB</span></div>' +
+      '<div class="b-row"><span class="b-lbl">vCPU buffer after executors</span>' +
+        '<span class="b-val ' + bc + '">' + bufLabel(nd.buffer) + '</span></div>';
+
+    /* badge */
+    var badge = el('badge_n' + n);
+    if (badge) {
+      if (nd.buffer <= 0) { badge.textContent = 'Binding'; badge.className = 'nc-badge badge-crit'; }
+      else if (nd.buffer === 1) { badge.textContent = '1c buffer'; badge.className = 'nc-badge badge-warn'; }
+      else { badge.textContent = nd.buffer + 'c buffer'; badge.className = 'nc-badge badge-ok'; }
+    }
+
+    setHTML('nc' + n + '_mgmt_rows',   mgmtHTML);
+    setHTML('nc' + n + '_worker_rows', wHTML);
+  });
+
+  /* ── executor section ─────────────────────────────────────────────────── */
+  setTxt('out_container',   container + ' GB');
+  var oomCls = worstOom < 4 ? (worstOom < 0 ? 'crit' : 'warn') : '';
+  el('out_oom_margin').textContent = worstOom + ' GB';
+  el('out_oom_margin').className   = 'out-val' + (oomCls ? ' ' + oomCls : '');
+  setTxt('out_total_exec',  totalExec);
+  setTxt('out_task_slots',  taskSlots);
+  setTxt('out_yarn_cores',  yarnCores + 'c');
+
+  /* exec node table */
+  var tbodyHTML = '';
+  perNode.forEach(function(nd) {
+    var isB  = nd.n === binding.n;
+    var oomC = nd.oomMargin < 0 ? 'crit' : nd.oomMargin < 4 ? 'warn' : '';
+    tbodyHTML += '<tr' + (isB ? ' class="binding-row"' : '') + '>' +
+      '<td>Node 0' + nd.n + (isB ? ' \u25C4' : '') + '</td>' +
+      '<td>' + nd.wVcpu + 'c</td>' +
+      '<td>' + nd.wRam + ' GB</td>' +
+      '<td>' + execCores + 'c</td>' +
+      '<td><strong>' + nd.execCnt + '</strong></td>' +
+      '<td class="' + oomC + '">' + nd.oomMargin + ' GB</td>' +
+      '<td class="' + bufClass(nd.buffer) + '">' + bufLabel(nd.buffer) + '</td>' +
+      '<td>' + (nd.buffer <= 0 ? '\u26A0 Binding' : nd.buffer === 1 ? '\u25B2 Tight' : '\u2713 OK') + '</td>' +
+      '</tr>';
+  });
+  setHTML('exec_node_tbody', tbodyHTML);
+  setHTML('exec_node_tfoot',
+    '<tr><td colspan="4"><strong>Cluster total</strong></td>' +
+    '<td><strong>' + totalExec + '</strong></td>' +
+    '<td class="' + oomCls + '">' + worstOom + ' GB</td>' +
+    '<td>' + yarnCores + 'c</td><td>' + taskSlots + ' parallel slots</td></tr>');
+
+  /* ── storage section ──────────────────────────────────────────────────── */
+  setTxt('out_shuff_logical', fmtTB(shuffLogical) + ' (cluster)');
+  setTxt('out_shuff_node',    fmtTB(shuffPerNode) + ' / node');
+  var hrCls = headroom < 1.5 ? 'crit' : headroom < 2.5 ? 'warn' : '';
+  el('out_headroom_ratio').textContent = headroom.toFixed(2) + '\u00d7';
+  el('out_headroom_ratio').className   = 'out-val' + (hrCls ? ' ' + hrCls : '');
+  var fillPct = Math.min(100, Math.round((shuffPerNode / (SCRATCH_PER * NVME_TB)) * 100));
+  var fillEl  = el('headroom_fill');
+  fillEl.style.width = fillPct + '%';
+  fillEl.className   = 'headroom-fill ' + (fillPct > 80 ? 'fill-crit' : fillPct > 60 ? 'fill-warn' : 'fill-ok');
+  setTxt('out_headroom_note',
+    headroom >= 2.5 ? 'Scratch headroom is comfortable (' + headroom.toFixed(1) + '\u00d7 available vs. required).' :
+    headroom >= 1.5 ? 'Scratch headroom is tight \u2014 monitor shuffle spill under peak load.' :
+                      '\u26A0 Shuffle volume may exceed scratch capacity \u2014 reduce amplification or add compression.');
+
+  /* ── spark conf output ────────────────────────────────────────────────── */
+  renderSparkConf(execCores, execMem, execOvh, driverCores, totalExec);
+  renderWarnings(perNode, worstOom, headroom, totalExec);
+}
+
+/* ── spark-defaults.conf renderer ─────────────────────────────────────────── */
+function renderSparkConf(ec, em, eo, dc, te) {
+  var lines = [
+    ['# ── Ksolves Phase 1 Dev Cluster · spark-defaults.conf ──────────────────────','c'],
+    ['# Generated by Dev Cluster Phase 1 Node Model · ' + new Date().toISOString().slice(0,10),'c'],
+    ['',''],
+    ['# Executor sizing','c'],
+    ['spark.executor.cores',                    ec,'k'],
+    ['spark.executor.memory',                   em + 'g','k'],
+    ['spark.executor.memoryOverhead',            eo + 'g','k'],
+    ['',''],
+    ['# Driver sizing','c'],
+    ['spark.driver.cores',                      dc,'k'],
+    ['spark.driver.memory',                     '8g','k'],
+    ['spark.driver.memoryOverhead',             '2g','k'],
+    ['',''],
+    ['# YARN deployment','c'],
+    ['spark.master',                            'yarn','k'],
+    ['spark.submit.deployMode',                 'cluster','k'],
+    ['',''],
+    ['# Compression','c'],
+    ['spark.shuffle.compress',                  'true','k'],
+    ['spark.shuffle.spill.compress',            'true','k'],
+    ['spark.io.compression.codec',              'snappy','k'],
+    ['spark.sql.parquet.compression.codec',     'zstd','k'],
+    ['',''],
+    ['# S3A / Ceph RGW','c'],
+    ['spark.hadoop.fs.s3a.endpoint',            'http://<ceph-rgw-vip>:7480','k'],
+    ['spark.hadoop.fs.s3a.path.style.access',   'true','k'],
+    ['spark.hadoop.fs.s3a.connection.maximum',  String(ec * 2),'k'],
+    ['',''],
+    ['# Event logging (Spark History Server)','c'],
+    ['spark.eventLog.enabled',                  'true','k'],
+    ['spark.eventLog.compress',                 'true','k'],
+    ['spark.eventLog.dir',                      's3a://spark-history/','k'],
+    ['spark.history.fs.logDirectory',           's3a://spark-history/','k'],
+    ['',''],
+    ['# Adaptive Query Execution','c'],
+    ['spark.sql.adaptive.enabled',              'true','k'],
+    ['spark.sql.adaptive.coalescePartitions.enabled','true','k'],
+    ['',''],
+    ['# ── Derived values (for reference) ────────────────────────────────────────','c'],
+    ['# Cluster total executors:  ' + te,'c'],
+    ['# Container per executor:   ' + (em + eo) + ' GB (heap + overhead)','c'],
+    ['# Total parallel task slots: ' + (te * ec),'c'],
+  ];
+
+  var html = '';
+  lines.forEach(function(row) {
+    if (!row[1]) { html += '\n'; return; }
+    if (row[1] === 'c') { html += '<span class="cc">' + esc(row[0]) + '</span>\n'; return; }
+    var padded = row[0].padEnd(48, ' ');
+    html += '<span class="ck">' + esc(padded) + '</span>  <span class="cv">' + esc(row[1]) + '</span>\n';
+  });
+  setHTML('spark_conf_out', html);
+}
+
+/* ── diagnostics & warnings ────────────────────────────────────────────────── */
+function renderWarnings(perNode, worstOom, headroom, totalExec) {
+  var items = [];
+
+  /* OOM checks */
+  perNode.forEach(function(nd) {
+    if (nd.oomMargin < 0) {
+      items.push({cls:'error', icon:'✗',
+        msg: 'Node 0' + nd.n + ': OOM margin is negative (' + nd.oomMargin +
+             ' GB) — executor containers exceed Worker VM RAM. Reduce executors per VM or increase Worker VM RAM.'});
+    } else if (nd.oomMargin < 4) {
+      items.push({cls:'warning', icon:'▲',
+        msg: 'Node 0' + nd.n + ': OOM margin is only ' + nd.oomMargin +
+             ' GB — at risk under memory pressure. Increase Worker VM RAM or reduce executor count.'});
+    }
+  });
+
+  /* binding node check */
+  var binding = perNode.reduce(function(b, nd) { return nd.wVcpu < b.wVcpu ? nd : b; }, perNode[0]);
+  if (binding.buffer <= 0) {
+    items.push({cls:'error', icon:'✗',
+      msg: 'Node 0' + binding.n + ' is the binding node with 0 vCPU buffer — all available cores are committed. Any management VM added to this node will reduce executor count.'});
+  } else if (binding.buffer === 1) {
+    items.push({cls:'warning', icon:'▲',
+      msg: 'Node 0' + binding.n + ' has only 1 vCPU buffer after executors — very tight. A single additional management process would reduce executor count.'});
+  }
+
+  /* RAM fit check */
+  perNode.forEach(function(nd) {
+    if (!nd.ramOk) {
+      items.push({cls:'error', icon:'✗',
+        msg: 'Node 0' + nd.n + ': total RAM allocation (infra + mgmt VMs + Worker VM) exceeds 384 GB physical RAM. Reduce Worker VM RAM or mgmt VM count.'});
+    }
+  });
+
+  /* scratch / shuffle headroom */
+  if (headroom < 1.0) {
+    items.push({cls:'error', icon:'✗',
+      msg: 'Shuffle headroom is below 1× — shuffle spill will likely exceed scratch capacity at current workload settings. Reduce amplification factor or enable compression.'});
+  } else if (headroom < 1.5) {
+    items.push({cls:'warning', icon:'▲',
+      msg: 'Shuffle headroom is ' + headroom.toFixed(2) + '× — tight. Monitor shuffle spill under peak ingest and consider increasing compression ratio.'});
+  } else if (headroom < 2.5) {
+    items.push({cls:'warning', icon:'▲',
+      msg: 'Shuffle headroom is ' + headroom.toFixed(2) + '× — adequate but worth monitoring under peak batch load.'});
+  }
+
+  /* zero executors */
+  if (totalExec < 1) {
+    items.push({cls:'error', icon:'✗',
+      msg: 'No executors available cluster-wide — check vCPU allocation and executor core settings.'});
+  }
+
+  /* executor asymmetry */
+  var exCounts = perNode.map(function(nd) { return nd.execCnt; });
+  var minEx = Math.min.apply(null, exCounts), maxEx = Math.max.apply(null, exCounts);
+  if (maxEx - minEx > 1) {
+    items.push({cls:'info', icon:'ℹ',
+      msg: 'Executor count varies across nodes (' + exCounts.join(' / ') +
+           ') due to asymmetric management VM placement. YARN will assign tasks proportionally — this is expected with the vendor configuration.'});
+  }
+
+  /* all clear */
+  if (items.length === 0) {
+    items.push({cls:'ok', icon:'✓', msg: 'All checks passed — configuration looks healthy.'});
+  }
+
+  /* ZooKeeper placement reminder — always shown */
+  items.push({cls:'info', icon:'ℹ',
+    msg: 'ZooKeeper ensemble modeled as 3 dedicated VMs (1c / 2 GB each, one per node). ' +
+         'Vendor to confirm Monday 2026-04-27: if host processes, these 3c / 6 GB total are freed ' +
+         'and Worker VM headroom increases accordingly.'});
+
+  var html = '';
+  items.forEach(function(it) {
+    html += '<div class="warn-item ' + it.cls + '"><span class="wi-icon">' +
+            it.icon + '</span><span class="wi-msg">' + it.msg + '</span></div>';
+  });
+  setHTML('warnings_panel', html);
+}
+
+/* ── state persistence ─────────────────────────────────────────────────────── */
+var LS_KEY = 'spark_calc_dev_phase1';
+
+function saveState() {
+  try {
+    var sliders = {};
+    document.querySelectorAll('input[type=range]').forEach(function(s){
+      sliders[s.id] = s.value;
+    });
+    localStorage.setItem(LS_KEY, JSON.stringify({sliders: sliders, mgmtVms: mgmtVms}));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    var state = JSON.parse(raw);
+    if (state.sliders) {
+      Object.keys(state.sliders).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.value = state.sliders[id];
+      });
+    }
+    if (state.mgmtVms) mgmtVms = state.mgmtVms;
+  } catch(e) {}
+}
+
+/* ── init ──────────────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function() {
+  /* close all sections except sec_g (Diagnostics — stays open on load) */
+  document.querySelectorAll('details.section-details').forEach(function(d) {
+    if (d.id !== 'sec_g') d.open = false;
+  });
+  /* set initial locked state on sec_c */
+  var body = el('sec_c_body');
+  if (body) body.classList.add('config-locked');
+  /* load saved state if any */
+  loadState();
+  /* initial calculation */
+  recalc();
+  /* save on slider change */
+  document.querySelectorAll('input[type=range]').forEach(function(s) {
+    s.addEventListener('change', saveState);
+  });
+});
+
+/* ── theme toggle ──────────────────────────────────────────────────────────── */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('spark_theme_phase1', theme);
+  document.getElementById('btn_theme').textContent = theme === 'dark' ? '\u2600 Light' : '\u263e Dark';
+}
+function toggleTheme() {
+  var current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+applyTheme(localStorage.getItem('spark_theme_phase1') || 'dark');
+</script>
+</body>
+</html>
