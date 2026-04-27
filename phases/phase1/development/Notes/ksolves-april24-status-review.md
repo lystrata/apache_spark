@@ -1,6 +1,6 @@
 # Ksolves April 24 Status Review
 
-**Source:** phases/phase1/Incoming/ksolves_april_24_process_report.txt  
+**Source:** phases/phase1/development/Incoming/ksolves_april_24_process_report.txt  
 **Reporting Period:** Apr 13–24, 2026 (12 days)  
 **Ksolves Contact:** Karthik Hegde  
 **Phase 1 Status:** Discovery & Setup Planning **COMPLETED** — Phase 2 provisioning **BLOCKED** pending Proxmox access  
@@ -15,7 +15,7 @@ Ksolves reports Phase 1 Discovery & Setup Planning as **complete**:
 - ✅ **Cluster sizing finalized:** Hardware recommendations & capacity planning complete
 - ✅ **Storage finalized:** Ceph RGW (S3) + XFS on JBOD confirmed as implementation target
 - ✅ **Technical walkthroughs conducted:** Ksolves team reviewed infrastructure requirements
-- ✅ **Phase 1 completion report delivered:** Available at `phases/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf`
+- ✅ **Phase 1 completion report delivered:** Available at `phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf`
 - ✅ **IAM decision finalized:** **Okta** selected (not Keycloak)
 
 **Timeline:** 12 days from project start (Apr 13) to planning completion (Apr 24)
@@ -155,12 +155,12 @@ P2.1–P2.3 (Airflow + end-to-end validation)
 
 | File | Purpose | Status |
 |---|---|---|
-| `phases/phase1/Incoming/ksolves_april_24_process_report.txt` | April 24 Ksolves status email | Source document |
+| `phases/phase1/development/Incoming/ksolves_april_24_process_report.txt` | April 24 Ksolves status email | Source document |
 | `phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.0.md` | Detailed Phase 1 task breakdown | Master TODO (post-rewrite) |
-| `phases/phase1/deliverables/dev_cluster_phase1_model.html` | Phase 1 resource allocation calculator | Awaiting shuffle amplification input (P0.6) |
+| `phases/phase1/development/deliverables/dev_cluster_phase1_model.html` | Phase 1 resource allocation calculator | Awaiting shuffle amplification input (P0.6) |
 | `TODO.md` (root) | Master project TODO (all contexts) | Phase 1 items tagged [Phase1] |
-| `phases/phase1/vendor_comms/phase1_vendor_questions.txt` | Vendor Q&A + communication log | Updated with access strategy |
-| `phases/phase1/README.md` | Phase 1 overview & daily coordination | Updated with access strategy |
+| `phases/phase1/development/vendor_comms/phase1_vendor_questions.txt` | Vendor Q&A + communication log | Updated with access strategy |
+| `phases/phase1/development/README.md` | Phase 1 overview & daily coordination | Updated with access strategy |
 
 ---
 

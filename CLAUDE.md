@@ -304,7 +304,7 @@ Files with Revisions sections:
 - `calculators/Document/production_spark_calculator.html` — section id `sec_revisions`
 - `calculators/Document/dev_cluster_math_reference.html` — section id `revisions`
 - `calculators/Document/dev-cluster-storage-reference.html` — section id `sec_revisions`
-- `phases/phase1/deliverables/dev_cluster_phase1_model.html` — section id `sec_revisions`
+- `phases/phase1/development/deliverables/dev_cluster_phase1_model.html` — section id `sec_revisions`
 
 When a change is made to either calculator, the corresponding guide file (`calculators/Document/prod_calculator_guide.html`, `calculators/Document/dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
 

@@ -95,7 +95,7 @@ _(Pulled from master TODO — see root TODO.md for updates)_
 ## References
 
 - Master TODO: `/Users/rohn/Serve/TODO.md` (Phase 1 items tagged [Phase1])
-- Phase 1 Model: `phases/phase1/deliverables/dev_cluster_phase1_model.html`
+- Phase 1 Model: `phases/phase1/development/deliverables/dev_cluster_phase1_model.html`
 - Phase 1 Planning: `phases/phase1/planning/`
 - Phase 1 Detailed TODO: `phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.0.md` (includes Apache Hadoop documentation references for ZooKeeper/YARN HA dependency)
 

@@ -5,7 +5,7 @@
 
 _Version 0.1 · Last updated 2026-04-27_  
 _Forked from `Phases_Critical_Path_Development_v1.0.md` as a starting point — production-specific adjustments pending_  
-_Report Source: phases/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf (development scope; production scope to be defined separately)_  
+_Report Source: phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf (development scope; production scope to be defined separately)_  
 _Status: DRAFT — production hardware specs (64-core nodes, 768 GB RAM, 9× 3.2 TB NVMe), production traffic profile, NUMA topology (dual-socket), and production-only services (e.g., HA SLOs, backup/DR) not yet reflected. Content below is inherited from the development plan and will be revised._
 
 ---
@@ -87,7 +87,7 @@ Per Ksolves April 24 status report, Phase 1 planning is **COMPLETE**. All discov
 - ✅ **Cluster Sizing & Hardware Recommendations** — Development spec: 3× 32c/384GB RAM, 7× 3.84TB NVMe per node; production spec defined
 - ✅ **Storage Architecture Decision** — Ceph RGW (S3-compatible) + XFS on JBOD (no RAID) for NVMe scratch
 - ✅ **Technical Walkthroughs** — Ksolves team reviewed all infrastructure requirements and deployment strategy
-- ✅ **Phase 1 Completion Report** — Delivered; available at `phases/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf`
+- ✅ **Phase 1 Completion Report** — Delivered; available at `phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf`
 - ✅ **IAM Integration Decision** — **Okta finalized** (not Keycloak); cloud-based auth service
 - ✅ **Executor & Concurrency Assumptions** — 8-core executor, 2-job concurrent baseline, 7× shuffle amplification (to be measured)
 
@@ -582,7 +582,7 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 - **Owner:** Ksolves
 - **Estimated Effort:** 1-2 hours
 - **Critical Note:** Must complete this BEFORE proceeding to P1.2 (YARN HA).
-- **Open Vendor Question:** ZooKeeper placement — host-level deployment on each Proxmox node, or small dedicated ZK VM on each node? Tracked in `phases/phase1/vendor_comms/phase1_vendor_questions.txt` § Vendor Daily Meeting (2026-04-23). Confirm with Ksolves before installation begins. Default assumption: host-level (lowest overhead, fewer moving parts).
+- **Open Vendor Question:** ZooKeeper placement — host-level deployment on each Proxmox node, or small dedicated ZK VM on each node? Tracked in `phases/phase1/development/vendor_comms/phase1_vendor_questions.txt` § Vendor Daily Meeting (2026-04-23). Confirm with Ksolves before installation begins. Default assumption: host-level (lowest overhead, fewer moving parts).
 
 ### 🟠 P1.2 — Deploy YARN ResourceManager HA (Active/Standby)
 
@@ -685,9 +685,9 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
      - Memory utilization under peak shuffle
      - NVMe scratch I/O patterns
      - OSD memory peaks (feeds P1.6) and WAN egress throughput (feeds P1.7)
-  - [ ] Calculate average amplification factor and update `phases/phase1/deliverables/dev_cluster_phase1_model.html` default
+  - [ ] Calculate average amplification factor and update `phases/phase1/development/deliverables/dev_cluster_phase1_model.html` default
 - **Expected Output:** Actual shuffle amplification factor (e.g., 5.2× instead of assumed 7×) feeds into Phase 1 concurrency SLA
-- **Verification:** `phases/phase1/deliverables/dev_cluster_phase1_model.html` updated with measured value
+- **Verification:** `phases/phase1/development/deliverables/dev_cluster_phase1_model.html` updated with measured value
 - **User Sign-Off:** Review measured amplification and confirm it satisfies Phase 1 SLA (40 jobs in 4 hours)
 - **Owner:** Ksolves
 - **Estimated Effort:** 2-4 hours
@@ -912,12 +912,12 @@ The following items are derived from Phase 1 report findings but are not explici
 
 ## REFERENCE DOCUMENTS
 
-- **Main Report:** phases/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf
-- **Prerequisites:** phases/phase1/Incoming/vendor_prerequisites.docx.pdf
+- **Main Report:** phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf
+- **Prerequisites:** phases/phase1/development/Incoming/vendor_prerequisites.docx.pdf
 - **Hardware Reference:** CLAUDE.md § Hardware Reference
-- **Calculator:** phases/phase1/deliverables/dev_cluster_phase1_model.html
-- **Ksolves Walkthrough:** phases/phase1/research/ksolves-directory-walkthrough.md
-- **Vendor Questions:** phases/phase1/vendor_comms/phase1_vendor_questions.txt
+- **Calculator:** phases/phase1/development/deliverables/dev_cluster_phase1_model.html
+- **Ksolves Walkthrough:** phases/phase1/development/research/ksolves-directory-walkthrough.md
+- **Vendor Questions:** phases/phase1/development/vendor_comms/phase1_vendor_questions.txt
 
 ---
 
