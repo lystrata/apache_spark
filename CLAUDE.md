@@ -174,7 +174,7 @@ Distribution markdown documents and their generated PDFs carry an explicit versi
 **Format:** `_v<MAJOR>.<MINOR>` appended immediately before the extension. Both the `.md` and the `.pdf` always carry the **same** version number.
 
 **Examples:**
-- `Phases_Critical_Path_v1.0.md` and `Phases_Critical_Path_v1.0.pdf`
+- `Phases_Critical_Path_Development_v1.0.md` and `Phases_Critical_Path_Development_v1.0.pdf`
 - `CP_Okta_v1.2.md` and `CP_Okta_v1.2.pdf`
 
 **When to bump:**

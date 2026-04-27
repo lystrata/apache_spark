@@ -1,12 +1,12 @@
 
 
 
-# Phases Critical Path — fqdn Development Cluster
+# Phases Critical Path — fqdn Production Cluster
 
-_Version 1.0 · Last updated 2026-04-26_  
-_Phases 1–2 detailed plan from fqdn Phase 1 Report (Ksolves) — April 2026_  
-_Report Source: phases/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf_  
-_Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING BLOCKER.1 · Out-of-scope items flagged for vendor clarification_
+_Version 0.1 · Last updated 2026-04-27_  
+_Forked from `Phases_Critical_Path_Development_v1.0.md` as a starting point — production-specific adjustments pending_  
+_Report Source: phases/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf (development scope; production scope to be defined separately)_  
+_Status: DRAFT — production hardware specs (64-core nodes, 768 GB RAM, 9× 3.2 TB NVMe), production traffic profile, NUMA topology (dual-socket), and production-only services (e.g., HA SLOs, backup/DR) not yet reflected. Content below is inherited from the development plan and will be revised._
 
 ---
 
@@ -935,5 +935,5 @@ The following items are derived from Phase 1 report findings but are not explici
 
 _Updated: 2026-04-24 (post-Ksolves Phase 1 completion report)_  
 _Phase 1 status reflected per ksolves_april_24_process_report.txt_  
-_Prepared for Review: Ready_For_Review/Phases_Critical_Path_v1.0.md_  
+_Prepared for Review: Ready_For_Review/Phases_Critical_Path_Production_v0.1.md_  
 _Status: Draft — Awaiting user review before promotion to Document/_

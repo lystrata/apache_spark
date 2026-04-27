@@ -11,7 +11,7 @@ _Last updated 2026-04-24_
   - User action: Create temporary Proxmox credentials, schedule/initiate Webex share with Karthik Hegde
   - Phase 1A (interim): Shared Webex desktop with fqdn team oversight (can begin immediately)
   - Phase 1B (permanent): VMware Horizon desktops (pending fqdn Cyber Security approval — non-blocking for Phase 1 work)
-  - See: phases/phase1/Ready_For_Review/Phases_Critical_Path_v1.0.md § BLOCKER.1
+  - See: phases/phase1/Ready_For_Review/Phases_Critical_Path_Development_v1.0.md § BLOCKER.1
 
 ### BLOCKING — RHEL ISO Provisioning (Must Complete Before P0.1–P0.2 VM Creation)
 
@@ -26,7 +26,7 @@ _Last updated 2026-04-24_
   - User downloads and uploads RHEL ISO to Proxmox local storage **after OSDs fully configured**
   - Ksolves works remotely from India; user performs local ISO placement
   - Timeline: Starts after OSD setup complete, must finish before P0.1 VM provisioning begins
-  - See: phases/phase1/Ready_For_Review/Phases_Critical_Path_v1.0.md § BLOCKER.2
+  - See: phases/phase1/Ready_For_Review/Phases_Critical_Path_Development_v1.0.md § BLOCKER.2
 
 ### P0 — Critical Path (This Week)
 
@@ -35,7 +35,7 @@ _Last updated 2026-04-24_
   - Measure size distribution (breakdown by size ranges)
   - Test ZSTD compression ratio on representative samples
   - Share metrics with Ksolves before P0.1 VM provisioning
-  - See: phases/phase1/Ready_For_Review/Phases_Critical_Path_v1.0.md § P0.0a
+  - See: phases/phase1/Ready_For_Review/Phases_Critical_Path_Development_v1.0.md § P0.0a
 
 - [ ] [Phase1] [correspondence] Confirm cloud staging target — Azure Blob or AWS S3 — for Snowflake COPY INTO path
 - [ ] [Phase1] [correspondence] Confirm RHEL 9.4 subscriptions active on all Worker VMs and YARN RM VM
@@ -50,10 +50,10 @@ _Last updated 2026-04-24_
 - [ ] [Phase1] [remote_services] Deploy Spark History Server on Node02 (1 vCPU / 4 GB VM — confirmed in Phase 1 report)
 - [ ] [Phase1] [remote_services] Deploy ZooKeeper ensemble for YARN RM automatic failover (**REQUIRED PREREQUISITE** — must complete before P1.2)
   - Per Apache Hadoop docs: ZooKeeper is a mandatory prerequisite for YARN RM HA
-  - See: phases/phase1/Ready_For_Review/Phases_Critical_Path_v1.0.md § P1.3
+  - See: phases/phase1/Ready_For_Review/Phases_Critical_Path_Development_v1.0.md § P1.3
 - [ ] [Phase1] [remote_services] Deploy YARN ResourceManager HA: active VM on Node01, standby VM on Node03 (vendor requirement)
   - **Depends on P1.3 (ZooKeeper) being operational first**
-  - See: phases/phase1/Ready_For_Review/Phases_Critical_Path_v1.0.md § P1.2
+  - See: phases/phase1/Ready_For_Review/Phases_Critical_Path_Development_v1.0.md § P1.2
 - [ ] [Phase1] [remote_services] Deploy Nginx reverse proxy on remote Airflow host for YARN RM HA stable endpoint
 - [ ] [Phase1] [remote_services] Deploy Ansible control node on remote Airflow host
 
