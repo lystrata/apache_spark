@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phases Critical Path Tracker — Development Cluster v1.2</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+       background: var(--bg); color: var(--text); line-height: 1.6; }
+a { color: var(--accent); text-decoration: none; cursor: pointer; }
+a:hover { text-decoration: underline; }
+code { font-family: var(--mono); font-size: 0.85em; background: var(--bg);
+       padding: 1px 5px; border-radius: 3px; color: var(--accent); }
+strong { color: var(--text-hi); }
+em { color: var(--muted2); }
+
+:root {
+  --bg:#0f1117; --bg2:#141720; --bg3:#1a1d2e; --bg4:#1e2238;
+  --border:#2a2d3a; --border2:#1e2130;
+  --text:#d4d4d4; --text2:#c9d1e0; --text-hi:#e8eaf0;
+  --accent:#7ab3e0; --accent2:#2d5a8e;
+  --muted:#7a8298; --muted2:#8b97aa; --label:#8b93a8; --label2:#6b7280;
+  --ok:#4ade80; --warn:#f59e0b; --crit:#f87171; --purple:#b482ff;
+  --mono:'Cascadia Code','Fira Mono','Consolas',monospace;
+}
+[data-theme="light"] {
+  --bg:#e6dfd0; --bg2:#f7f2e8; --bg3:#ede7da; --bg4:#ddd6c8;
+  --border:#c8bfad; --border2:#d4ccbd;
+  --text:#2a2318; --text2:#3a3028; --text-hi:#1a1510;
+  --accent:#2d5a8e; --accent2:#2d5a8e;
+  --muted:#8a7d6a; --muted2:#9a8d7a; --label:#6a6055; --label2:#7a7065;
+  --ok:#1a5430; --warn:#7a4a00; --crit:#981818; --purple:#7040b8;
+}
+
+/* page header */
+.page-header { background: linear-gradient(135deg, var(--bg3) 0%, var(--bg) 100%);
+               border-bottom: 2px solid var(--accent2); }
+.page-header-inner { max-width: 1100px; margin: 0 auto; padding: 26px 36px 18px;
+                     display: flex; align-items: flex-start; justify-content: space-between; }
+.header-text { flex: 1; }
+.page-header h1 { font-size: 1.55rem; font-weight: 700; color: var(--text-hi); }
+.page-header h2 { font-size: 0.95rem; font-weight: 400; color: var(--accent); margin-top: 3px; }
+.page-header p  { font-size: 0.78rem; color: var(--muted2); margin-top: 6px; }
+.btn-theme { font-size: 11px; font-weight: 500; padding: 6px 14px; border-radius: 6px;
+             cursor: pointer; border: 1px solid var(--border); background: var(--bg3);
+             color: var(--muted2); letter-spacing: 0.06em; transition: background 0.15s, color 0.15s;
+             margin-top: 4px; flex-shrink: 0; }
+.btn-theme:hover { background: var(--border); color: var(--text); }
+.page-wrap { max-width: 1100px; margin: 0 auto; padding: 14px 36px 60px; }
+
+/* page-level controls (Collapse/Expand all) */
+.page-controls { display: flex; gap: 14px; padding: 10px 4px 14px; font-size: 0.78rem;
+                 border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.page-controls a { color: var(--muted); }
+.page-controls a:hover { color: var(--accent); }
+.save-status { margin-left: auto; font-size: 0.74rem; color: var(--muted); font-style: italic; }
+.save-status.flash { color: var(--ok); transition: color 0.4s; }
+
+/* top-level section */
+.section-details { background: var(--bg2); border: 1px solid var(--border);
+                   border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+.section-summary { display: flex; align-items: center; gap: 10px;
+                   padding: 12px 18px; cursor: pointer; list-style: none;
+                   background: var(--bg3); user-select: none; }
+.section-summary::-webkit-details-marker { display: none; }
+.section-summary::before { content: '▶'; font-size: 9px; color: var(--muted);
+                           transition: transform 0.2s; flex-shrink: 0; }
+details[open] > .section-summary::before { transform: rotate(90deg); }
+.section-letter { display: inline-flex; align-items: center; justify-content: center;
+                  width: 28px; height: 28px; border-radius: 50%;
+                  background: var(--accent2); color: var(--text-hi);
+                  font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+.section-letter.crit { background: var(--crit); color: white; }
+.section-letter.warn { background: var(--warn); color: #2a2318; }
+.section-letter.ok   { background: var(--ok); color: #0f1117; }
+.section-title { font-weight: 600; color: var(--text2); font-size: 0.96rem; }
+.section-sub   { font-size: 0.76rem; color: var(--muted2); flex: 1; }
+.btt           { font-size: 0.7rem; color: var(--muted); margin-left: auto; flex-shrink: 0; }
+.section-body  { padding: 18px 22px 22px; }
+.section-close { text-align: center; padding-top: 16px;
+                 border-top: 1px solid var(--border); margin-top: 18px; }
+.section-close a { font-size: 0.74rem; color: var(--muted); }
+
+/* sub-section (Phase 2A/2B/2C) */
+.sub-details { background: var(--bg2); border: 1px solid var(--border);
+               border-radius: 5px; margin-bottom: 8px; overflow: hidden; }
+.sub-summary { display: flex; align-items: center; gap: 8px;
+               padding: 9px 14px; cursor: pointer; list-style: none;
+               background: var(--bg2); user-select: none; }
+.sub-summary::-webkit-details-marker { display: none; }
+.sub-summary::before { content: '▶'; font-size: 8px; color: var(--muted);
+                       transition: transform 0.2s; flex-shrink: 0; }
+details.sub-details[open] > .sub-summary::before { transform: rotate(90deg); }
+.sub-title { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;
+             text-transform: uppercase; color: var(--text2); }
+.sub-desc  { font-size: 0.74rem; color: var(--muted2); flex: 1; }
+.sub-body  { padding: 12px 16px 14px; }
+.sub-close { text-align: center; padding-top: 10px;
+             border-top: 1px solid var(--border); margin-top: 12px; }
+.sub-close a { font-size: 0.72rem; color: var(--muted); }
+
+/* sub-controls (Expand/Collapse subsections within a section) */
+.sub-controls { display: flex; gap: 12px; padding: 6px 0 12px; font-size: 0.74rem;
+                border-bottom: 1px dashed var(--border); margin-bottom: 12px; }
+.sub-controls a { color: var(--muted); }
+.sub-controls a:hover { color: var(--accent); }
+
+/* task-details (third level — P0.0, P0.0a, etc.) */
+.task-details { background: var(--bg); border: 1px solid var(--border2);
+                border-radius: 4px; margin-bottom: 6px; overflow: hidden; }
+.task-summary { display: flex; align-items: center; gap: 8px;
+                padding: 8px 12px; cursor: pointer; list-style: none;
+                background: var(--bg); user-select: none; }
+.task-summary::-webkit-details-marker { display: none; }
+.task-summary::before { content: '▶'; font-size: 7px; color: var(--muted);
+                        transition: transform 0.2s; flex-shrink: 0; }
+details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
+.task-icon { font-size: 0.8rem; flex-shrink: 0; }
+.task-code { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 3px;
+             background: var(--bg3); border: 1px solid var(--border);
+             color: var(--accent); font-family: var(--mono); font-size: 0.72rem;
+             font-weight: 700; flex-shrink: 0; }
+.task-title { font-size: 0.82rem; color: var(--text); flex: 1; }
+.task-status { font-size: 0.7rem; color: var(--muted); font-family: var(--mono);
+               flex-shrink: 0; padding-left: 8px; }
+.task-status.open    { color: var(--warn); }
+.task-status.pending { color: var(--muted); }
+.task-status.done    { color: var(--ok); }
+.task-body { padding: 10px 14px 12px; font-size: 0.84rem; }
+
+/* task content blocks */
+.task-meta { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px;
+             margin-bottom: 10px; padding: 8px 12px; background: var(--bg2);
+             border: 1px solid var(--border2); border-radius: 4px; font-size: 0.78rem; }
+.task-meta dt { color: var(--label); font-weight: 600; font-size: 0.72rem;
+                text-transform: uppercase; letter-spacing: 0.04em; }
+.task-meta dd { color: var(--text); }
+.task-block { margin: 10px 0; }
+.task-block-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+                    color: var(--label); text-transform: uppercase;
+                    margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border2); }
+.task-block ul, .task-block ol { list-style: none; padding-left: 0; }
+.task-block li { padding: 3px 0; line-height: 1.55; }
+.task-block li.nested { padding-left: 22px; color: var(--muted2); font-size: 0.96em; }
+.task-block li.nested-2 { padding-left: 40px; color: var(--muted2); font-size: 0.96em; }
+.task-note { padding: 8px 12px; margin: 8px 0; border-radius: 4px;
+             background: rgba(122,179,224,0.07); border: 1px solid rgba(122,179,224,0.25);
+             color: #bae6fd; font-size: 0.78rem; }
+[data-theme="light"] .task-note { background: rgba(45,90,142,0.07);
+                                  border-color: rgba(45,90,142,0.25); color: #2d5a8e; }
+.task-warn { padding: 8px 12px; margin: 8px 0; border-radius: 4px;
+             background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.28);
+             color: #fde68a; font-size: 0.78rem; }
+[data-theme="light"] .task-warn { color: #7a4a00; }
+
+/* checkboxes */
+.cb-row { display: flex; align-items: flex-start; gap: 10px; padding: 3px 0; }
+.cb-row > input[type="checkbox"] { margin-top: 4px; flex-shrink: 0;
+                                   width: 14px; height: 14px;
+                                   accent-color: var(--ok); cursor: pointer; }
+.cb-row > input[type="checkbox"]:checked + .cb-text { text-decoration: line-through;
+                                                       color: var(--muted); }
+.cb-text { flex: 1; line-height: 1.5; }
+.cb-text code { font-size: 0.84em; }
+.cb-row.done .cb-text { color: var(--ok); }
+
+/* completed badge (✅ items in Phase 1) */
+.done-badge { display: inline-block; color: var(--ok); margin-right: 4px; }
+
+/* code/conf blocks */
+.code-block { font-family: var(--mono); font-size: 12px; line-height: 1.6;
+              background: var(--bg2); border: 1px solid var(--border);
+              border-radius: 5px; padding: 12px 16px; margin: 8px 0;
+              white-space: pre; overflow-x: auto; color: var(--text); }
+
+/* tables */
+.ref-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin: 8px 0; }
+.ref-table th { text-align: left; padding: 6px 10px; font-size: 0.7rem; font-weight: 700;
+                color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em;
+                border-bottom: 1px solid var(--border); }
+.ref-table td { padding: 6px 10px; border-bottom: 1px solid var(--border2);
+                vertical-align: top; }
+
+/* footnote */
+.fn-ref { color: var(--accent); font-size: 0.85em; vertical-align: super; cursor: pointer; }
+.fn { font-size: 0.82rem; line-height: 1.65; }
+.fn-num { color: var(--accent); font-weight: 700; margin-right: 6px; }
+
+/* utility */
+.divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+.muted { color: var(--muted); font-size: 0.78rem; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px;
+      margin: 6px 0; font-size: 0.84rem; }
+.kv dt { color: var(--label); font-weight: 600; }
+.kv dd { color: var(--text); }
+</style>
+</head>
+<body id="top">
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="header-text">
+      <h1>Phases Critical Path — Development Cluster</h1>
+      <h2>Interactive Tracker · Source: <code>Phases_Critical_Path_Development_v1.2.md</code></h2>
+      <p>Version 1.2 · Last updated 2026-04-27 · Click checkboxes to mark steps complete; state auto-saves to this browser only</p>
+    </div>
+    <button class="btn-theme" id="btn_theme" onclick="toggleTheme()">&#9728; Light</button>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+<div class="page-controls">
+  <a onclick="setAllSections(false)">▼ Collapse all sections</a>
+  <a onclick="setAllSections(true)">▶ Expand all sections</a>
+  <span class="save-status" id="save_status">Auto-save ready</span>
+</div>
+
+<!-- ════════════════════════════ OVERVIEW ════════════════════════════ -->
+<details class="section-details" id="sec_overview">
+  <summary class="section-summary">
+    <span class="section-letter">i</span>
+    <span class="section-title">Overview &amp; Schedule Status</span>
+    <span class="section-sub">· Document overview · Methodology · SOW timeline status</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <p>This document maps the <strong>Ksolves Phase 1 Report (April 2026)</strong> to a detailed, sequenced implementation plan. It addresses the nine Open Items from the Ksolves report and clarifies ambiguous or vague requirements through fqdn-specific research and decision-making.</p>
+
+    <div class="task-block">
+      <div class="task-block-title">Methodology</div>
+      <p><strong>Source Mapping:</strong> All nine Ksolves Open Items have been captured in Phase 2A–2C below. Items are categorized by criticality (CRITICAL/HIGH/MEDIUM) and sequenced by dependency.</p>
+      <p style="margin-top:8px;"><strong>Added Clarity:</strong> Where Ksolves used general language or left scope ambiguous, we have:</p>
+      <ul style="list-style:disc;padding-left:22px;margin-top:4px;">
+        <li>Added fqdn-specific tasks (CSV file gathering, RHEL subscription pre-flight, WAN egress validation)</li>
+        <li>Resequenced for feasibility (RHEL subscription verification moved to a pre-requisite gate)</li>
+        <li>Clarified ownership (User vs. Ksolves; blockers requiring fqdn decision vs. vendor execution)</li>
+      </ul>
+      <p style="margin-top:8px;"><strong>Expanded Scope:</strong> Added items that are prerequisites or dependent on Ksolves' work but were implicit in their report:</p>
+      <ul style="list-style:disc;padding-left:22px;margin-top:4px;">
+        <li>P0.0a — CSV file information gathering</li>
+        <li>P0.4 (pre-req) — RHEL subscription pre-flight check</li>
+      </ul>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">Schedule &amp; SOW Status</div>
+      <p class="muted"><em>Companion tracker: <code>phases/phase2/development/Document/SOW_timeline_status.md</code> (full week calendar and SOW phase mapping).</em></p>
+      <dl class="kv">
+        <dt>Project start</dt><dd>2026-04-14 (per agreement)</dd>
+        <dt>SOW completion</dt><dd>2026-07-06 indicative · 12 weeks · no Halt Period</dd>
+        <dt>Source</dt><dd>Ksolves SOW V1.0 (March 16, 2026) § 5 Indicative Timelines</dd>
+      </dl>
+      <p style="margin-top:10px;"><strong>As of 2026-04-27 — mid-Week 2:</strong></p>
+      <ul style="list-style:disc;padding-left:22px;margin-top:4px;">
+        <li><strong>Phase 1 (Discovery &amp; Setup Planning, 1 wk):</strong> Completed 2026-04-24 — about 4 days past the SOW Week-1 boundary. Essentially on plan.</li>
+        <li><strong>Phase 2 (Proxmox &amp; VM Creation, 3 wks, 2026-04-21 → 2026-05-11):</strong> In window, <strong>not yet started</strong>. Each week BLOCKER.1 stays open consumes ~1/3 of the Phase 2 budget.</li>
+        <li><strong>Halt Period decision point: 2026-05-04</strong> (end of SOW Week 3). If BLOCKER.1 has not closed by this date, fqdn should consider formally invoking SOW § 7.2 (Halt Period).</li>
+        <li><strong>SOW V1.1 pending:</strong> the 2026-04-27 verbal vendor reversal (single YARN RM, no ZooKeeper, no nginx) is not yet captured in a written SOW revision.</li>
+        <li><strong>Out of scope:</strong> SOW § 2.2 excludes "user load or performance testing" — P1.8 likely needs a Change Order or separate SOW.</li>
+      </ul>
+    </div>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ PHASE 1 ════════════════════════════ -->
+<details class="section-details" id="sec_phase1">
+  <summary class="section-summary">
+    <span class="section-letter ok">1</span>
+    <span class="section-title">Phase 1 — Planning &amp; Discovery</span>
+    <span class="section-sub">· COMPLETED 2026-04-24 · Per Ksolves Apr 24 status report</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <p>Per Ksolves April 24 status report, Phase 1 planning is <strong>COMPLETE</strong>. All discovery, sizing, and architecture work finalized.</p>
+
+    <div class="task-block">
+      <div class="task-block-title">Phase 1 Deliverables — Completed Apr 24, 2026</div>
+      <ul>
+        <li><span class="done-badge">&#x2705;</span> <strong>Architecture Design &amp; Cluster Topology</strong> — Finalized; 3-node Proxmox, Spark YARN, Ceph RGW, Airflow orchestration</li>
+        <li><span class="done-badge">&#x2705;</span> <strong>Cluster Sizing &amp; Hardware Recommendations</strong> — Development spec: 3× 32c/384GB RAM, 7× 3.84TB NVMe per node; production spec defined</li>
+        <li><span class="done-badge">&#x2705;</span> <strong>Storage Architecture Decision</strong> — Ceph RGW (S3-compatible) + XFS on JBOD (no RAID) for NVMe scratch</li>
+        <li><span class="done-badge">&#x2705;</span> <strong>Technical Walkthroughs</strong> — Ksolves team reviewed all infrastructure requirements and deployment strategy</li>
+        <li><span class="done-badge">&#x2705;</span> <strong>Phase 1 Completion Report</strong> — Delivered; available at <code>phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf</code></li>
+        <li><span class="done-badge">&#x2705;</span> <strong>IAM Integration Decision</strong> — <strong>Okta finalized</strong> (not Keycloak); cloud-based auth service</li>
+        <li><span class="done-badge">&#x2705;</span> <strong>Executor &amp; Concurrency Assumptions</strong> — 8-core executor, 2-job concurrent baseline, 7× shuffle amplification (to be measured)</li>
+      </ul>
+      <p class="muted" style="margin-top:10px;"><strong>Completed Timeline:</strong> Apr 13–24, 2026 (12 days from project start to planning completion)</p>
+    </div>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ BLOCKER.1 ════════════════════════════ -->
+<details class="section-details" id="sec_blocker1">
+  <summary class="section-summary">
+    <span class="section-letter crit">B1</span>
+    <span class="section-title">BLOCKER.1 — Establish Ksolves Remote Access</span>
+    <span class="section-sub">· OPEN · BLOCKING — All Ksolves infrastructure work waits on this</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <dl class="task-meta">
+      <dt>Status</dt><dd>OPEN</dd>
+      <dt>Priority</dt><dd>BLOCKING — All Ksolves infrastructure work is waiting on this</dd>
+      <dt>Owner</dt><dd>fqdn infrastructure team (User actions) + fqdn Cyber Security (approval gate for Phase 1B)</dd>
+      <dt>Effort</dt><dd>Phase 1A setup: 1–2 hours · Phase 1B setup: 2–3 hours (post-security-approval)</dd>
+    </dl>
+
+    <p><strong>Context:</strong> Ksolves will be granted owner-level access to both Proxmox clusters (Proxmox One for Service Host, Proxmox Two for Spark Development Cluster). No VMs created, no NVMes assigned. Ksolves requires remote access to begin Phase 1 infrastructure provisioning.</p>
+
+    <div class="task-block">
+      <div class="task-block-title">Phase 1A (Interim) — Shared Webex Desktop with fqdn Team Oversight</div>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li>Ksolves Karthik Hegde connects to fqdn Webex Desktop shared by fqdn infrastructure team member</li>
+        <li>Ksolves executes Proxmox commands / VM provisioning through shared desktop screen</li>
+        <li>fqdn team member retains visual oversight of all Ksolves actions (audit trail)</li>
+        <li><strong>Timeline:</strong> Ready immediately; no infrastructure dependencies</li>
+        <li><strong>Duration:</strong> Temporary until secure secondary access ready (estimated 2–4 weeks)</li>
+      </ul>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">Phase 1B (Permanent) — VMware Horizon Desktop Access</div>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li>Two dedicated VMware Horizon Desktop sessions provisioned for Ksolves team</li>
+        <li>Ksolves authenticates to Horizon desktops with fqdn-issued credentials</li>
+        <li>Full owner-level Proxmox access via Horizon desktop environment</li>
+        <li><strong>Dependency:</strong> fqdn Horizons Teams infrastructure setup (fqdn Cyber Security approval required)</li>
+        <li><strong>Status:</strong> Blocked pending fqdn Cyber Security Approval of Horizons deployment</li>
+        <li><strong>Timeline:</strong> Estimated 2–4 weeks after security approval</li>
+      </ul>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">User Actions Required (Immediate)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_imm_1" data-track><span class="cb-text">Set up shared Webex Desktop session with Ksolves Karthik Hegde</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_imm_2" data-track><span class="cb-text">Create temporary Proxmox root or owner credentials for Ksolves to use during Webex session</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_imm_3" data-track><span class="cb-text">Document all Ksolves actions via Webex recording or shared notes for audit trail</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_imm_4" data-track><span class="cb-text">Verify Webex connectivity and access permissions before Phase 1 infrastructure work begins</span></div>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">User Actions Required (Parallel — does not block interim Webex access)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_1" data-track><span class="cb-text">Submit fqdn Horizons Teams infrastructure request (if not already submitted)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_2" data-track><span class="cb-text">Obtain fqdn Cyber Security approval for Horizons desktop deployment</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_3" data-track><span class="cb-text">Upon approval, provision two Horizon desktop sessions for Ksolves team</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_4" data-track><span class="cb-text">Configure Proxmox AAA integration (if desired) or issue owner-level API tokens for Horizon sessions</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_5" data-track><span class="cb-text">Migrate Ksolves access from Webex interim to permanent Horizon desktops</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_6" data-track><span class="cb-text">Retire temporary Webex session once Horizon is live</span></div>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">Verification — Phase 1A (Interim)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_v1a_1" data-track><span class="cb-text">Webex desktop session successfully connects and displays Proxmox web UI</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_v1a_2" data-track><span class="cb-text">Ksolves confirms Proxmox access and can execute administrative commands</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_v1a_3" data-track><span class="cb-text">Webex recording captures all actions (audit trail)</span></div>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">Verification — Phase 1B (Permanent)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_v1b_1" data-track><span class="cb-text">Horizon desktop sessions authenticate successfully</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_v1b_2" data-track><span class="cb-text">Ksolves confirms owner-level Proxmox access via Horizon</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_v1b_3" data-track><span class="cb-text">Webex session retired; all future access via Horizon</span></div>
+    </div>
+
+    <div class="task-warn"><strong>Critical Path Note:</strong> Phase 1B is non-blocking; Ksolves can begin Phase 1 infrastructure work immediately via Phase 1A (Webex). Phase 1B migration happens in parallel.</div>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ BLOCKER.2 ════════════════════════════ -->
+<details class="section-details" id="sec_blocker2">
+  <summary class="section-summary">
+    <span class="section-letter crit">B2</span>
+    <span class="section-title">BLOCKER.2 — Provision RHEL ISO to Proxmox Local Storage</span>
+    <span class="section-sub">· PENDING P0.0 · BLOCKING — User action required after Ceph bootstrap</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <dl class="task-meta">
+      <dt>Status</dt><dd>PENDING P0.0 (CEPH CLUSTER BOOTSTRAP)</dd>
+      <dt>Priority</dt><dd>BLOCKING — P0.1 and P0.2 cannot proceed without RHEL ISO available</dd>
+      <dt>Owner</dt><dd>User (fqdn) — local provisioning action</dd>
+      <dt>Effort</dt><dd>1–2 hours (download + upload, depending on ISO size and network bandwidth)</dd>
+    </dl>
+
+    <p><strong>Context:</strong> User will place RHEL ISO locally in Proxmox local storage <strong>after</strong> P0.0 (Ceph Cluster Bootstrap) is complete and all 9 OSDs are configured and HEALTH_OK on all three nodes. Ksolves will boot all VMs from this ISO. User performs this action locally while Ksolves team works remotely from India.</p>
+
+    <p><strong>Dependency:</strong> Requires P0.0 (Ceph Cluster Bootstrap) completion — Ksolves must report HEALTH_OK and confirm OSDs ready before user uploads RHEL ISO. <a onclick="jumpTo('task_p0-0','sec_phase2')">Jump to P0.0 →</a></p>
+
+    <div class="task-block">
+      <div class="task-block-title">RHEL Version Decision</div>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li><strong>Current Assumption:</strong> RHEL 9.4 (confirmed compatible with Phase 1 requirements)</li>
+        <li><strong>Under Research:</strong> RHEL 9.7 (penultimate RHEL9 version) — Ksolves researching Apache Spark 3.5.3 compatibility</li>
+        <li><strong>Decision Timeline:</strong> Await Ksolves compatibility findings before finalizing ISO selection</li>
+        <li><strong>Fallback:</strong> If RHEL 9.7 incompatible, proceed with RHEL 9.4</li>
+      </ul>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">User Actions Required</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b2_user_1" data-track><span class="cb-text">Await notification from Ksolves that P0.0 (Ceph Cluster Bootstrap) is complete and HEALTH_OK on all three nodes (9 OSDs up/in, MON quorum, MGR active, RGW endpoint live)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b2_user_2" data-track><span class="cb-text">Once P0.0 confirmed complete, download appropriate RHEL ISO (9.4 if 9.7 deemed incompatible, or 9.7 if Ksolves confirms Spark compatibility)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b2_user_3" data-track><span class="cb-text">Upload ISO to Proxmox local storage (ISO directory, e.g., <code>/var/lib/vz/template/iso/</code>)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b2_user_4" data-track><span class="cb-text">Confirm ISO placement with Ksolves before they attempt P0.1 VM creation</span></div>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">Verification</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b2_ver_1" data-track><span class="cb-text">RHEL ISO accessible in Proxmox local storage (<code>/var/lib/vz/template/iso/</code> or equivalent)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b2_ver_2" data-track><span class="cb-text">Ksolves confirms ISO visibility and boot accessibility</span></div>
+    </div>
+
+    <p class="muted"><strong>Dependency:</strong> Blocks P0.1, P0.2 — Ksolves cannot proceed with VM provisioning without RHEL ISO available.</p>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ PHASE 2 ════════════════════════════ -->
+<details class="section-details" id="sec_phase2">
+  <summary class="section-summary">
+    <span class="section-letter warn">2</span>
+    <span class="section-title">Phase 2 — Implementation</span>
+    <span class="section-sub">· PENDING BLOCKER.1 · 2A Critical Path · 2B Infrastructure · 2C Configuration &amp; Validation</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <p>All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once interim Phase 1A access (Webex) is established, Ksolves can execute all P0–P2 items in sequence.</p>
+
+    <div class="sub-controls">
+      <a onclick="setSubsections('sec_phase2', true)">Expand all subsections &amp; tasks</a>
+      <a onclick="setSubsections('sec_phase2', false)">Collapse all subsections &amp; tasks</a>
+    </div>
+
+    <!-- ────────── PHASE 2A ────────── -->
+    <details class="sub-details" id="sub_phase2a">
+      <summary class="sub-summary">
+        <span class="sub-title">Phase 2A — Critical Path</span>
+        <span class="sub-desc">VM Provisioning &amp; Foundational Software (P0)</span>
+      </summary>
+      <div class="sub-body">
+
+        <!-- P0.0 -->
+        <details class="task-details" id="task_p0-0">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.0</span>
+            <span class="task-title">Ceph Cluster Bootstrap (MON, MGR, OSD, RGW)</span>
+            <span class="task-status pending">PENDING B.1</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING BLOCKER.1 (KSOLVES ACCESS)</dd>
+              <dt>Priority</dt><dd>CRITICAL — Foundation for storage layer; gates BLOCKER.2 and all P0.1+ items</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>4–6 hours (cluster bootstrap + OSD allocation + RGW setup + verification)</dd>
+            </dl>
+            <p><strong>Context:</strong> Ceph Reef 18.2.x cluster must be bootstrapped on all three Proxmox nodes before any VM provisioning or RHEL ISO placement. The cluster spans MON daemons (Paxos quorum), MGR daemons (active/standby), OSD daemons (one per NVMe drive 1–3 per node, 9 OSDs total), and RGW (S3-compatible endpoint). This is Ksolves' <strong>first work item</strong> after gaining Proxmox access.</p>
+
+            <div class="task-block">
+              <div class="task-block-title">Prerequisites</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_pre_1" data-track><span class="cb-text">BLOCKER.1 complete (Ksolves has Proxmox access)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_pre_2" data-track><span class="cb-text">Proxmox VE 8.3 installed and clustered on all three nodes (assumed pre-existing)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_pre_3" data-track><span class="cb-text">Network bonding (2×10G LACP) configured at Proxmox host level</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_pre_4" data-track><span class="cb-text">NVMe drives 1–3 per node available (3 OSDs/node = 9 OSDs total)</span></div>
+            </div>
+
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_act_1" data-track><span class="cb-text"><strong>Install Ceph Reef 18.2.x packages</strong> on all three Proxmox nodes (via Proxmox PVE Ceph integration or cephadm)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_act_2" data-track><span class="cb-text"><strong>Bootstrap Ceph cluster</strong> on Node01 with <code>pveceph init</code> or <code>cephadm bootstrap</code>; configure cluster network on bonded 10G LACP</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_act_3" data-track><span class="cb-text"><strong>Deploy Ceph MON daemons</strong> on all three nodes (Paxos quorum requires 2-of-3 agreement); verify with <code>ceph mon stat</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_act_4" data-track><span class="cb-text"><strong>Deploy Ceph MGR daemons</strong> — active on Node01, standby on Node02 + Node03; verify with <code>ceph mgr services</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_act_5" data-track><span class="cb-text"><strong>Configure Ceph OSDs</strong> — 9 total, 3 per node; NVMe drives 1–3 per node; BlueStore backend; <code>osd_memory_target=4G</code> per OSD; verify with <code>ceph osd tree</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_act_6" data-track><span class="cb-text"><strong>Set replication and storage policies</strong> — pool replication 3× (size=3, min_size=2); usable capacity ~11.52 TB after replication + BlueStore overhead</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_act_7" data-track><span class="cb-text"><strong>Deploy Ceph RGW (S3 endpoint)</strong> — install <code>radosgw</code> on all three nodes; floating IP / load balancer for S3 endpoint; 4c/8GB per RGW instance; generate initial S3 access keys</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_act_8" data-track><span class="cb-text"><strong>Verify cluster health</strong> — <code>ceph -s</code> shows HEALTH_OK; <code>ceph osd df</code> balanced; <code>ceph health detail</code> shows no warnings</span></div>
+            </div>
+
+            <div class="task-block">
+              <div class="task-block-title">Verification</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_ver_1" data-track><span class="cb-text">Ceph cluster status: HEALTH_OK</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_ver_2" data-track><span class="cb-text">9 OSDs up and in, 3× replication confirmed</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_ver_3" data-track><span class="cb-text">3 MON daemons in quorum</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_ver_4" data-track><span class="cb-text">1 active MGR + 2 standby</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_ver_5" data-track><span class="cb-text">RGW S3 endpoint accessible (test with <code>s3cmd</code> or <code>aws s3 ls --endpoint-url=&lt;rgw-endpoint&gt;</code>)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0_ver_6" data-track><span class="cb-text">Usable capacity: ~11.52 TB available</span></div>
+            </div>
+
+            <p><strong>User Sign-Off:</strong> Confirm Ksolves has reported HEALTH_OK and provided S3 endpoint URL/credentials before proceeding to BLOCKER.2 (RHEL ISO placement).</p>
+            <div class="task-warn"><strong>Critical Note:</strong> Must complete before BLOCKER.2, P0.1, or any subsequent infrastructure work. RGW endpoint must be live for P1.1 (Spark History Server) and P2.3 (8-stage data flow).</div>
+          </div>
+        </details>
+
+        <!-- P0.4 (pre-req) -->
+        <details class="task-details" id="task_p0-4-pre">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.4</span>
+            <span class="task-title">Verify RHEL 9.4 Subscriptions Active (Pre-requisite)</span>
+            <span class="task-status open">OPEN — USER</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>OPEN (USER VERIFICATION)</dd>
+              <dt>Priority</dt><dd>CRITICAL — Must be confirmed BEFORE VM provisioning begins</dd>
+              <dt>Owner</dt><dd>fqdn (subscription management team)</dd>
+              <dt>Effort</dt><dd>&lt; 30 minutes (verification call/check)</dd>
+            </dl>
+            <p><strong>Context:</strong> RHEL 9.4 subscriptions must be active on all VMs for yum package installation, security patches, and kernel updates. Confirmation required before Ksolves begins P0.1 VM provisioning so they can proceed immediately with package installation after VM creation.</p>
+
+            <div class="task-block">
+              <div class="task-block-title">User Actions Required</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-4pre_usr_1" data-track><span class="cb-text">Contact RHEL subscription administrator (or check existing fqdn subscription account)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-4pre_usr_2" data-track><span class="cb-text">Verify subscriptions are active for at least 4 RHEL 9.4 licenses (3 Worker VMs + 1 YARN RM VM)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-4pre_usr_3" data-track><span class="cb-text">Confirm subscription status: active through end of Phase 1 + buffer (minimum 6 months)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-4pre_usr_4" data-track><span class="cb-text">Document subscription keys or proof of active subscriptions</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-4pre_usr_5" data-track><span class="cb-text">Share confirmation with Ksolves before they start P0.1</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> Subscription administrator confirms active licenses in account portal. <strong>Critical Note:</strong> P0.1 cannot proceed until subscriptions are confirmed active.</p>
+          </div>
+        </details>
+
+        <!-- P0.0a -->
+        <details class="task-details" id="task_p0-0a">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.0a</span>
+            <span class="task-title">Gather CSV File Information for Storage &amp; Shuffle Verification</span>
+            <span class="task-status open">OPEN — USER</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>OPEN (USER DATA GATHERING)</dd>
+              <dt>Priority</dt><dd>CRITICAL — Required before infrastructure sizing validation</dd>
+              <dt>Owner</dt><dd>User (fqdn) — local data analysis</dd>
+              <dt>Effort</dt><dd>2–4 hours (depends on data accessibility and tooling)</dd>
+            </dl>
+            <p><strong>Context:</strong> Ksolves needs production CSV file statistics to verify storage allocation and shuffle amplification estimates. This data informs OSD capacity planning and scratch drive sizing decisions.</p>
+
+            <div class="task-block">
+              <div class="task-block-title">User Actions Required</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0a_usr_1" data-track><span class="cb-text">Analyze local CSV file inventory: count total files, determine size distribution (&lt;100MB, 100MB–1GB, 1GB–10GB, 10GB+), calculate average file size</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0a_usr_2" data-track><span class="cb-text">Measure compression ratio for production CSV files: select 10–20 representative samples, compress with ZSTD codec, calculate uncompressed/compressed ratio</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0a_usr_3" data-track><span class="cb-text">Document and share with Ksolves: total file count, size distribution table, measured ZSTD compression ratio, notes on file characteristics that affect compression</span></div>
+            </div>
+            <p class="muted"><strong>Deliverable:</strong> CSV file metrics document or email summary to Ksolves (karthik.hegde@ksolves.com).<br>
+            <strong>Impact on Plan:</strong> Informs P0.1 (OSD capacity allocation) and storage headroom decisions. Ksolves will reassess if actual compression differs significantly from 7× shuffle amplification assumption.<br>
+            <strong>Critical Note:</strong> Compress samples with ZSTD (<code>zstd &lt;file&gt;</code>) to match production pipeline compression strategy.</p>
+          </div>
+        </details>
+
+        <!-- P0.1 -->
+        <details class="task-details" id="task_p0-1">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.1</span>
+            <span class="task-title">Worker VM Creation &amp; vCPU Allocation (14 → 18)</span>
+            <span class="task-status pending">PENDING REMOTE ACCESS</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING REMOTE ACCESS</dd>
+              <dt>Priority</dt><dd>CRITICAL — Blocking Phase 1 concurrency baseline</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>2–3 hours</dd>
+            </dl>
+            <p><strong>Context:</strong> Phase 1 requires 18 vCPU per Worker VM (8-core executor + 4-core driver + 6-core buffer). Current assumptions show 14 vCPU gap. No VMs exist yet; Ksolves will create and configure all three Worker VMs from scratch on Proxmox.</p>
+
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1_act_1" data-track><span class="cb-text">Provision three RHEL 9.4 VMs on Proxmox: GKPR-SPARK-WK-01 (Node01), GKPR-SPARK-WK-02 (Node02), GKPR-SPARK-WK-03 (Node03)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1_act_2" data-track><span class="cb-text">Allocate 18 vCPU per VM (single NUMA domain × 32 cores per node; 18 vCPU fits within one domain — NUMA pinning enabled, no boundary crossing)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1_act_3" data-track><span class="cb-text">Allocate 384 GB RAM per VM (from infrastructure reservation: 12c/33GB per node leaves 20c/351 GB available)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1_act_4" data-track><span class="cb-text">Attach NVMe drives 4–7 to scratch mount (15.36 TB per node for Spark shuffle)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1_act_5" data-track><span class="cb-text">Configure RHEL network, SSH, and passwordless sudo access</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> All three Worker VMs boot successfully; <code>lscpu</code> confirms 18 vCPU per VM; <code>mount | grep /var/spark/scratch</code> confirms NVMe attachment.<br>
+            <strong>User Sign-Off:</strong> Confirm Ksolves has provisioned all Worker VMs before proceeding to P0.2.</p>
+          </div>
+        </details>
+
+        <!-- P0.2 -->
+        <details class="task-details" id="task_p0-2">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.2</span>
+            <span class="task-title">YARN ResourceManager VM Provisioning — VM Creation Only</span>
+            <span class="task-status pending">PENDING B.1, B.2</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING REMOTE ACCESS, BLOCKER.2 (RHEL ISO)</dd>
+              <dt>Priority</dt><dd>CRITICAL — Hardware foundation for YARN (deployed in P1.2)</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>1 hour (VM provisioning + base RHEL config + Java install)</dd>
+            </dl>
+            <p><strong>Context:</strong> Ksolves will create one RHEL 9.4 VM to host the YARN ResourceManager daemon. <strong>This task is VM provisioning only</strong> — YARN ResourceManager daemon install is P1.2. Per vendor decision (2026-04-27), the YARN RM runs as a single instance with manual recovery on failure (no HA, no standby VM, no ZooKeeper).</p>
+
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-2_act_1" data-track><span class="cb-text">Provision GKPR-YARN-RM-01 VM on Node01 (2 vCPU / 4 GB, RHEL 9.4)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-2_act_2" data-track><span class="cb-text">Configure RHEL network, SSH, and passwordless sudo access on the VM</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-2_act_3" data-track><span class="cb-text">Verify VM boots successfully and accepts SSH connections</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-2_act_4" data-track><span class="cb-text">Install Java 11 JDK (<code>yum install -y java-11-openjdk</code>) on the VM (prerequisite for YARN RM daemon)</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> VM boots successfully; <code>lscpu</code> confirms 2 vCPU and 4 GB RAM; SSH access verified; Java 11 installed.<br>
+            <strong>User Sign-Off:</strong> Confirm YARN RM VM is provisioned and accessible before P1.2 deployment.<br>
+            <strong>Note:</strong> YARN ResourceManager daemon install → P1.2. Manual-recovery posture: if the RM VM fails, it must be restarted manually; no automatic failover.</p>
+          </div>
+        </details>
+
+        <!-- P0.3 -->
+        <details class="task-details" id="task_p0-3">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.3</span>
+            <span class="task-title">Confirm Cloud Staging Target (Azure Blob vs AWS S3)</span>
+            <span class="task-status open">OPEN — DECISION</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>OPEN (VENDOR DECISION)</dd>
+              <dt>Priority</dt><dd>CRITICAL — Blocks egress pipeline design (Stage 6)</dd>
+              <dt>Owner</dt><dd>fqdn data-platform / decision-maker</dd>
+              <dt>Deadline</dt><dd>Before Ksolves begins Stage 6 implementation (P2.3, Step 6)</dd>
+            </dl>
+            <p><strong>Context:</strong> Phase 1 data flow (Stage 6) transfers Parquet output from Ceph RGW to cloud staging for Snowflake COPY INTO. Cloud platform decision not yet made.</p>
+            <p><strong>Required Decision:</strong> Azure Blob Storage or AWS S3?</p>
+            <p><strong>Impact:</strong> Determines IAM/SAS token configuration, network routing (exaBGP floating IP routing to Snowflake), and Snowflake COPY command syntax. Ksolves will implement credentials and network config once decision is made.</p>
+            <div class="task-block">
+              <div class="task-block-title">Decision Tracker</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-3_act_1" data-track><span class="cb-text">Cloud staging platform decision communicated to Ksolves</span></div>
+            </div>
+          </div>
+        </details>
+
+        <!-- P0.3b -->
+        <details class="task-details" id="task_p0-3b">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.3b</span>
+            <span class="task-title">Validate WAN Egress Throughput (Ksolves Open Item #3)</span>
+            <span class="task-status open">OPEN — NETWORK</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>OPEN (NETWORK TEAM VERIFICATION)</dd>
+              <dt>Priority</dt><dd>HIGH — Required before Stage 6 (Parquet → Cloud Staging) implementation</dd>
+              <dt>Owner</dt><dd>fqdn network team</dd>
+              <dt>Effort</dt><dd>1–2 hours (network team validation call + documentation)</dd>
+            </dl>
+            <p><strong>Context:</strong> Phase 1 assumes 1 Gbps WAN egress (≈125 MB/s) is sufficient for inter-batch Parquet transfers to cloud staging. Per Ksolves: "Parquet output per batch = ~0.8 TB → ~6,400 Gbits → 1.8 hours at 1 Gbps. This must complete within the inter-batch gap."</p>
+            <div class="task-block">
+              <div class="task-block-title">User Actions Required</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-3b_usr_1" data-track><span class="cb-text">Contact network team to confirm WAN egress capacity available for production cluster</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-3b_usr_2" data-track><span class="cb-text">Verify 1 Gbps sustainable throughput (not burst; must handle continuous transfers)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-3b_usr_3" data-track><span class="cb-text">Confirm no rate-limiting or QoS policies that would throttle inter-batch transfers</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-3b_usr_4" data-track><span class="cb-text">Document any limitations or constraints (scheduled maintenance windows, bandwidth sharing)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-3b_usr_5" data-track><span class="cb-text">Share network validation with Ksolves before P2.3 (Parquet egress implementation)</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> Network team confirms 1 Gbps available and sustainable; Ksolves runs test transfer after infrastructure live.<br>
+            <strong>Impact:</strong> If actual WAN egress &lt; 1 Gbps, inter-batch timing increases; affects Phase 1 daily ingest SLA.</p>
+          </div>
+        </details>
+
+        <!-- P0.4b -->
+        <details class="task-details" id="task_p0-4b">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.4b</span>
+            <span class="task-title">Verify RHEL Subscriptions Post-Provisioning (Ksolves Validation)</span>
+            <span class="task-status pending">PENDING P0.1</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING VM PROVISIONING</dd>
+              <dt>Priority</dt><dd>CRITICAL — Confirms subscriptions working on actual VMs</dd>
+              <dt>Owner</dt><dd>Ksolves (with fqdn subscription support)</dd>
+              <dt>Effort</dt><dd>&lt; 1 hour</dd>
+            </dl>
+            <p><strong>Context:</strong> After P0.1 VMs are created, Ksolves verifies that subscriptions are properly registered and yum can resolve packages.</p>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-4b_act_1" data-track><span class="cb-text">After VM provisioning complete (P0.1), run <code>subscription-manager list</code> on all Worker and YARN RM VMs</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-4b_act_2" data-track><span class="cb-text">Verify yum can resolve packages: <code>yum search java-17-openjdk</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-4b_act_3" data-track><span class="cb-text">If issues detected, contact fqdn with subscription error details</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-4b_act_4" data-track><span class="cb-text">Apply latest RHEL 9.4 patches: <code>yum update -y</code></span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> <code>yum install</code> succeeds without subscription warnings on all VMs.</p>
+          </div>
+        </details>
+
+        <!-- P0.5 -->
+        <details class="task-details" id="task_p0-5">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.5</span>
+            <span class="task-title">Install Java 11 + Hadoop 3.4.1 on All Worker VMs (YARN client only)</span>
+            <span class="task-status pending">PENDING P0.1</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING VM PROVISIONING (P0.1)</dd>
+              <dt>Priority</dt><dd>CRITICAL — Foundation for Spark 3.5.3 (P0.5a); required for YARN integration</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>2–3 hours (Java + Hadoop install + S3A configuration)</dd>
+            </dl>
+            <p><strong>Context:</strong> Spark 3.5.3 requires Java JDK + standalone Hadoop installation on each Worker VM. Per Apache Spark documentation,<sup class="fn-ref" onclick="jumpTo('fn-1','sec_footnotes')">1</sup> Hadoop binaries provide the YARN client libraries and Hadoop S3A connector (used to access Ceph RGW). <strong>HDFS is NOT used</strong> — Phase 1 storage is Ceph RGW (S3-compatible), so HDFS daemons are not deployed. Hadoop is installed solely for: (1) YARN client classpath, (2) S3A connector for Ceph RGW. Java compatibility note: Apache Hadoop 3.4.1 does not officially support Java 17;<sup class="fn-ref" onclick="jumpTo('fn-1','sec_footnotes')">1</sup> Java 11 is the recommended version.</p>
+
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_act_1" data-track><span class="cb-text"><strong>Install Java 11 JDK</strong> on all three Worker VMs: <code>yum install -y java-11-openjdk java-11-openjdk-devel</code>; set <code>JAVA_HOME=/usr/lib/jvm/java-11-openjdk</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_act_2" data-track><span class="cb-text"><strong>Download Hadoop 3.4.1 binary</strong> from Apache mirrors to all three Worker VMs</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_act_3" data-track><span class="cb-text"><strong>Extract</strong> to <code>/opt/hadoop-3.4.1</code> on each node</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_act_4" data-track><span class="cb-text"><strong>Set environment variables</strong> in <code>/etc/environment</code>: <code>HADOOP_HOME</code>, <code>HADOOP_CONF_DIR</code>, <code>YARN_CONF_DIR</code>; add <code>$HADOOP_HOME/bin</code> to PATH</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_act_5" data-track><span class="cb-text"><strong>Configure <code>core-site.xml</code></strong> for S3A (Ceph RGW): endpoint, access.key, secret.key from P0.0; <code>fs.s3a.path.style.access=true</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_act_6" data-track><span class="cb-text"><strong>Configure <code>yarn-site.xml</code></strong> to point to YARN ResourceManager on GKPR-YARN-RM-01 (placeholder — finalized in P1.2)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_act_7" data-track><span class="cb-text"><strong>Do NOT start HDFS daemons</strong> (NameNode, DataNode) — HDFS is not used in Phase 1</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_act_8" data-track><span class="cb-text">Verify with <code>hadoop version</code>; verify S3A connectivity: <code>hadoop fs -ls s3a://ingest/</code></span></div>
+            </div>
+
+            <div class="task-block">
+              <div class="task-block-title">Prerequisites</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_pre_1" data-track><span class="cb-text">P0.1 (Worker VMs provisioned)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_pre_2" data-track><span class="cb-text">P0.4b (RHEL subscriptions verified, yum working)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_pre_3" data-track><span class="cb-text">P0.0 (Ceph RGW endpoint and S3 credentials available)</span></div>
+            </div>
+
+            <div class="task-block">
+              <div class="task-block-title">Verification</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_ver_1" data-track><span class="cb-text"><code>java -version</code> shows OpenJDK 11 on all three Worker VMs</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_ver_2" data-track><span class="cb-text"><code>hadoop version</code> returns Hadoop 3.4.1</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_ver_3" data-track><span class="cb-text"><code>hadoop classpath</code> returns non-empty output</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_ver_4" data-track><span class="cb-text"><code>hadoop fs -ls s3a://&lt;bucket&gt;/</code> succeeds (validates S3A → Ceph RGW connectivity)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5_ver_5" data-track><span class="cb-text">HDFS daemons NOT running (<code>jps</code> shows no NameNode/DataNode processes)</span></div>
+            </div>
+            <p class="muted"><strong>Critical Note:</strong> This task is the foundation for P0.5a (Spark install); confirm completion before proceeding.</p>
+          </div>
+        </details>
+
+        <!-- P0.5a -->
+        <details class="task-details" id="task_p0-5a">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.5a</span>
+            <span class="task-title">Install Apache Spark 3.5.3 on All Worker VMs</span>
+            <span class="task-status pending">PENDING P0.5</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING P0.5 (HADOOP + JAVA) COMPLETION</dd>
+              <dt>Priority</dt><dd>CRITICAL — Phase 1 compute engine; required for P1.8 sample jobs and all Spark workloads</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>2–3 hours (download, install, configure, smoke test)</dd>
+            </dl>
+            <p><strong>Context:</strong> Per Apache Spark documentation,<sup class="fn-ref" onclick="jumpTo('fn-1','sec_footnotes')">1</sup> installation order on YARN is: Java → Hadoop/YARN client → Spark binary distribution. Spark 3.5.3 must be installed on each Worker VM as a standalone install. The "no-hadoop" Spark distribution will be used since Hadoop 3.4.1 is already installed (P0.5).</p>
+
+            <div class="task-block">
+              <div class="task-block-title">Prerequisites</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_pre_1" data-track><span class="cb-text"><strong>P0.5 complete</strong> (Java 11 + Hadoop 3.4.1 installed, <code>HADOOP_CONF_DIR</code> set)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_pre_2" data-track><span class="cb-text"><strong>P0.0 complete</strong> (Ceph RGW endpoint live for S3A reads/writes)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_pre_3" data-track><span class="cb-text"><strong>P1.2 complete</strong> (YARN ResourceManager running) — required for <code>spark-submit --master yarn</code></span></div>
+            </div>
+
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_act_1" data-track><span class="cb-text"><strong>Download Spark 3.5.3</strong> ("with-Hadoop-free" build) from <code>https://archive.apache.org/dist/spark/spark-3.5.3/spark-3.5.3-bin-without-hadoop.tgz</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_act_2" data-track><span class="cb-text"><strong>Extract</strong> to <code>/opt/spark-3.5.3</code> on each Worker VM</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_act_3" data-track><span class="cb-text"><strong>Set environment variables</strong>: <code>SPARK_HOME=/opt/spark-3.5.3</code>; add bin/sbin to PATH; <code>SPARK_DIST_CLASSPATH=$(hadoop classpath)</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_act_4" data-track><span class="cb-text"><strong>Configure <code>$SPARK_HOME/conf/spark-defaults.conf</code></strong> (see config block below)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_act_5" data-track><span class="cb-text"><strong>Configure <code>$SPARK_HOME/conf/spark-env.sh</code></strong>: JAVA_HOME, HADOOP_CONF_DIR, YARN_CONF_DIR, SPARK_DIST_CLASSPATH</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_act_6" data-track><span class="cb-text"><strong>Test installation</strong>: <code>spark-submit --version</code> reports 3.5.3 with Java 11; SparkPi example on YARN completes</span></div>
+            </div>
+
+            <pre class="code-block">spark.master                          yarn
+spark.submit.deployMode               cluster
+spark.executor.cores                  8
+spark.executor.memory                 &lt;calculated from Phase 1 model&gt;
+spark.executor.instances              &lt;calculated&gt;
+spark.driver.cores                    4
+spark.driver.memory                   &lt;calculated&gt;
+spark.local.dir                       /var/spark/scratch
+spark.eventLog.enabled                true
+spark.eventLog.dir                    s3a://spark-history/
+spark.history.fs.logDirectory         s3a://spark-history/
+spark.shuffle.compress                true
+spark.shuffle.spill.compress          true
+spark.io.compression.codec            snappy
+spark.sql.parquet.compression.codec   zstd
+spark.hadoop.fs.s3a.endpoint          &lt;Ceph RGW endpoint from P0.0&gt;
+spark.hadoop.fs.s3a.path.style.access true
+spark.hadoop.fs.s3a.access.key        &lt;from P0.0&gt;
+spark.hadoop.fs.s3a.secret.key        &lt;from P0.0&gt;</pre>
+
+            <div class="task-block">
+              <div class="task-block-title">Verification</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_ver_1" data-track><span class="cb-text"><code>spark-submit --version</code> shows Spark 3.5.3 on all Worker VMs</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_ver_2" data-track><span class="cb-text">SparkPi example completes successfully on YARN</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_ver_3" data-track><span class="cb-text">Event log written to <code>s3a://spark-history/</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-5a_ver_4" data-track><span class="cb-text">Spark History Server (P1.1) shows the test job after job completion</span></div>
+            </div>
+            <p class="muted"><strong>User Sign-Off:</strong> Confirm SparkPi smoke test succeeds before P1.8 (5 sample production jobs).<br>
+            <strong>Critical Note:</strong> Use the "without-hadoop" Spark distribution to leverage the existing Hadoop 3.4.1 install. Java 11 must be set as <code>JAVA_HOME</code>.</p>
+          </div>
+        </details>
+
+        <!-- P0.7 -->
+        <details class="task-details" id="task_p0-7">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.7</span>
+            <span class="task-title">Verify Network Connectivity: MSB-PMC01 ↔ MSB-PMC03</span>
+            <span class="task-status open">OPEN — NETWORK</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>OPEN (NETWORK TEAM COORDINATION)</dd>
+              <dt>Priority</dt><dd>CRITICAL — Gate for Remote Airflow Server provisioning (P1.0)</dd>
+              <dt>Owner</dt><dd>fqdn Network Team</dd>
+              <dt>Effort</dt><dd>2–4 hours (coordination + testing + documentation)</dd>
+            </dl>
+            <p><strong>Context:</strong> Remote Airflow server will be provisioned on MSB-PMC01 cluster. Ksolves requires verified connectivity between MSB-PMC01 and MSB-PMC03 (Spark cluster) for: Airflow DAG submission to YARN RM (8032), Spark driver logs/monitoring, Ansible SSH.</p>
+            <div class="task-block">
+              <div class="task-block-title">User Actions Required</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_1" data-track><span class="cb-text">Coordinate with fqdn Network Team to verify/establish network path: MSB-PMC01 ↔ MSB-PMC03</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_2" data-track><span class="cb-text">Confirm routing between clusters (same VLAN, or routable via firewall)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_3" data-track><span class="cb-text">Verify firewall rules: MSB-PMC01 → MSB-PMC03 (TCP 8032, 8088, 22, 9095) and return traffic</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_4" data-track><span class="cb-text">Test connectivity: ping from MSB-PMC01 to each MSB-PMC03 node; TCP port tests (<code>nc -zv</code>)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_5" data-track><span class="cb-text">Document network topology and firewall rules for audit trail</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_6" data-track><span class="cb-text">Share verification results with Ksolves before P1.0 provisioning begins</span></div>
+            </div>
+            <div class="task-block">
+              <div class="task-block-title">Verification</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-7_ver_1" data-track><span class="cb-text">Network team confirms connectivity in change ticket</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-7_ver_2" data-track><span class="cb-text">Ping response times &lt; 10 ms (same datacenter assumed)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-7_ver_3" data-track><span class="cb-text">TCP ports open: <code>nc -zv &lt;node&gt; 8032</code>, <code>8088</code> succeed on all three MSB-PMC03 nodes</span></div>
+            </div>
+            <p class="muted"><strong>Critical Note:</strong> Hard gate. P1.0 cannot proceed until network connectivity verified and documented.</p>
+          </div>
+        </details>
+
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close subsection</a></div>
+      </div>
+    </details>
+
+    <!-- ────────── PHASE 2B ────────── -->
+    <details class="sub-details" id="sub_phase2b">
+      <summary class="sub-summary">
+        <span class="sub-title">Phase 2B — High Priority</span>
+        <span class="sub-desc">Infrastructure Services &amp; HA (P1)</span>
+      </summary>
+      <div class="sub-body">
+
+        <!-- P1.0 -->
+        <details class="task-details" id="task_p1-0">
+          <summary class="task-summary">
+            <span class="task-icon">&#128992;</span><span class="task-code">P1.0</span>
+            <span class="task-title">Provision Remote Airflow Server (Ksolves Open Item #8)</span>
+            <span class="task-status pending">PENDING P0.7</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING P0.7 NETWORK VERIFICATION</dd>
+              <dt>Priority</dt><dd>HIGH — Prerequisite for Airflow orchestration and Ansible automation</dd>
+              <dt>Owner</dt><dd>Ksolves (provisioning) + fqdn (networking, SSO setup)</dd>
+              <dt>Effort</dt><dd>2–3 hours (provisioning + network setup)</dd>
+            </dl>
+            <p><strong>Context:</strong> Remote Airflow host coordinates ETL job submission to Spark cluster. Must run Airflow webserver/scheduler, Okta SSO integration, and Ansible control node. Ksolves specifies minimum 6c / 24GB RAM / 500GB SSD. Hosted on MSB-PMC01 cluster.</p>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_1" data-track><span class="cb-text">After network connectivity verified (P0.7), provision remote server on MSB-PMC01: 6c / 24GB RAM / 500GB SSD, RHEL 9.4</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_2" data-track><span class="cb-text">Configure hostname: <code>airflow-prod-01</code> (or fqdn-assigned name)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_3" data-track><span class="cb-text">Network setup: routable to all three MSB-PMC03 Spark nodes, to Snowflake, to cloud staging</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_4" data-track><span class="cb-text">Install Okta SSO integration (requires OIDC client ID/secret from fqdn Okta tenant)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_5" data-track><span class="cb-text">Verify SSH key access from Ansible control node (to be installed on this host)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_6" data-track><span class="cb-text">Verify network paths: Airflow → YARN RM (8032), Airflow → Ceph RGW, Airflow → Snowflake</span></div>
+            </div>
+            <div class="task-block">
+              <div class="task-block-title">User Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_usr_1" data-track><span class="cb-text">Confirm MSB-PMC01 hosting and IP allocation (coordinate with Network Team)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_usr_2" data-track><span class="cb-text">Provide Okta OIDC credentials for Airflow SSO configuration</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_usr_3" data-track><span class="cb-text">Ensure network connectivity verification (P0.7) complete before Ksolves begins provisioning</span></div>
+            </div>
+            <div class="task-block">
+              <div class="task-block-title">Prerequisites</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_pre_1" data-track><span class="cb-text"><strong>P0.7 network connectivity verified and documented</strong></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_pre_2" data-track><span class="cb-text">Okta SSO client provisioned</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_pre_3" data-track><span class="cb-text">MSB-PMC01 networking and IP allocation finalized</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> SSH to remote host successful; RHEL subscriptions active; network paths confirmed.<br>
+            <strong>Critical Note:</strong> P1.5 (Ansible) and later P2 items depend on this host being live and network-connected.</p>
+          </div>
+        </details>
+
+        <!-- P1.1 -->
+        <details class="task-details" id="task_p1-1">
+          <summary class="task-summary">
+            <span class="task-icon">&#128992;</span><span class="task-code">P1.1</span>
+            <span class="task-title">Deploy Spark History Server on Node02</span>
+            <span class="task-status pending">PENDING P0.0, P0.1, P0.5a</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING P0.0 (CEPH RGW) + P0.1 (WORKER VMs) + P0.5a (SPARK INSTALL)</dd>
+              <dt>Priority</dt><dd>HIGH — Phase 1 observability and diagnostics</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>1–2 hours</dd>
+            </dl>
+            <p><strong>Context:</strong> Spark History Server (GKPR-SPARK-HS-01) runs as 1 vCPU / 4 GB VM on Node02. Reads event logs from <code>s3a://spark-history/</code> on Ceph RGW. Required for Spark job monitoring and debugging during Phase 1 runs.</p>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-1_act_1" data-track><span class="cb-text">Provision Spark History Server VM on Node02 (1c / 4GB, RHEL 9.4)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-1_act_2" data-track><span class="cb-text">Install Spark 3.5.3 and configure to read event logs: <code>spark.history.fs.logDirectory=s3a://spark-history/</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-1_act_3" data-track><span class="cb-text">Create S3 bucket on Ceph RGW: <code>s3://spark-history</code> (uses RGW endpoint and S3 keys from P0.0)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-1_act_4" data-track><span class="cb-text">Configure S3A connector in <code>spark-defaults.conf</code> (endpoint, path-style access — see P0.5a)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-1_act_5" data-track><span class="cb-text">Start Spark History Server daemon (port 18080)</span></div>
+            </div>
+            <p class="muted"><strong>Prerequisites:</strong> Ceph RGW operational (P0.0); <code>spark-history</code> bucket created with RGW credentials from P0.0.<br>
+            <strong>Verification:</strong> Navigate to <code>http://Node02:18080</code>; confirm jobs appear after spark-submit runs.</p>
+          </div>
+        </details>
+
+        <!-- P1.2 -->
+        <details class="task-details" id="task_p1-2">
+          <summary class="task-summary">
+            <span class="task-icon">&#128992;</span><span class="task-code">P1.2</span>
+            <span class="task-title">Deploy YARN ResourceManager (Single Instance, Manual Recovery)</span>
+            <span class="task-status pending">PENDING P0.2, P0.5</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING P0.2 (YARN RM VM) + P0.5 (HADOOP) ON WORKER VMs</dd>
+              <dt>Priority</dt><dd>HIGH — Phase 1 compute orchestration</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>1–2 hours</dd>
+            </dl>
+            <p><strong>Context:</strong> YARN ResourceManager runs as a single daemon on <code>GKPR-YARN-RM-01</code> (Node01). Per vendor decision (2026-04-27), the development cluster does not run an HA pair; if the RM VM or daemon fails, recovery is manual (operator restarts the daemon or the VM). No standby VM, no ZooKeeper ensemble, and no nginx reverse proxy. Spark drivers and Airflow clients connect directly to the RM endpoint.</p>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-2_act_1" data-track><span class="cb-text">Install YARN ResourceManager on GKPR-YARN-RM-01 (Node01)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-2_act_2" data-track><span class="cb-text">Configure <code>yarn-site.xml</code> with single-RM settings: <code>yarn.resourcemanager.hostname=&lt;FQDN&gt;</code>; leave <code>yarn.resourcemanager.ha.enabled=false</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-2_act_3" data-track><span class="cb-text">Update <code>yarn-site.xml</code> on every Worker VM (P0.5) to point to GKPR-YARN-RM-01</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-2_act_4" data-track><span class="cb-text">Start the ResourceManager service and verify it accepts NodeManager registrations from all three Worker VMs</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-2_act_5" data-track><span class="cb-text">Document the manual recovery runbook (how to restart the RM daemon and the VM) and hand it to fqdn ops</span></div>
+            </div>
+            <div class="task-block">
+              <div class="task-block-title">Prerequisites</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-2_pre_1" data-track><span class="cb-text">YARN RM VM (P0.2) provisioned with Java 11</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-2_pre_2" data-track><span class="cb-text">Worker VMs (P0.1) running with NodeManager and <code>yarn-site.xml</code> pointing at the RM</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-2_pre_3" data-track><span class="cb-text">Network connectivity between RM VM and all three Worker VMs</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> YARN RM web UI reachable at <code>http://GKPR-YARN-RM-01:8088</code>; <code>yarn node -list</code> shows all three NodeManagers as RUNNING; a <code>spark-submit --master yarn</code> smoke job completes.<br>
+            <strong>User Sign-Off:</strong> Confirm YARN RM is stable and the manual-recovery runbook is in place before Phase 1 load tests.</p>
+          </div>
+        </details>
+
+        <!-- P1.5 -->
+        <details class="task-details" id="task_p1-5">
+          <summary class="task-summary">
+            <span class="task-icon">&#128992;</span><span class="task-code">P1.5</span>
+            <span class="task-title">Deploy Ansible Control Node on Remote Airflow Host</span>
+            <span class="task-status pending">PENDING P1.0</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING REMOTE AIRFLOW HOST (P1.0)</dd>
+              <dt>Priority</dt><dd>HIGH — Required for infrastructure automation</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>1–2 hours</dd>
+            </dl>
+            <p><strong>Context:</strong> Ansible control node on remote Airflow host enables programmatic cluster management, configuration updates, and VM lifecycle operations.</p>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_1" data-track><span class="cb-text">Provision remote Airflow host if not yet done (P1.0)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_2" data-track><span class="cb-text">Install Ansible 2.10+ and Python 3.11+ on remote Airflow host</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_3" data-track><span class="cb-text">Generate SSH keypair; distribute public key to all cluster nodes for passwordless access</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_4" data-track><span class="cb-text">Store Proxmox API token securely (recommend pass or dedicated secrets manager)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_5" data-track><span class="cb-text">Clone Ansible playbooks from git repository (if exists) or stage initial plays</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_6" data-track><span class="cb-text">Test connectivity: <code>ansible all -i hosts -m ping</code> reaches all nodes</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> <code>ansible -i hosts -m command -a "uname -a" all</code> returns kernel info from all nodes; Proxmox API token successfully authenticates.</p>
+          </div>
+        </details>
+
+        <!-- P1.6 -->
+        <details class="task-details" id="task_p1-6">
+          <summary class="task-summary">
+            <span class="task-icon">&#128992;</span><span class="task-code">P1.6</span>
+            <span class="task-title">Monitor Ceph OSD Memory Under Peak Ingest</span>
+            <span class="task-status pending">PENDING P0.0, P1.8</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING P0.0 (CEPH BOOTSTRAP) + LOAD TEST (P1.8)</dd>
+              <dt>Priority</dt><dd>HIGH — Critical for storage stability</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>1–2 hours (setup) + data collection during load test</dd>
+            </dl>
+            <p><strong>Context:</strong> Initial <code>osd_memory_target=4G</code> set during Ceph bootstrap (P0.0). Phase 1 assumes ~3 GB actual usage per OSD under typical load. Must monitor actual memory consumption under peak 4 TB/batch ingest load.</p>
+            <div class="task-note"><strong>Note on Metrics Collection:</strong> Phase 1 has no dedicated Grafana setup task — the existing Grafana instance is on the monitoring cluster and not yet connected to this Spark cluster's Ceph metrics. For Phase 1 monitoring, capture OSD memory via direct Ceph commands (<code>ceph osd df</code>, <code>ceph daemon osd.&lt;id&gt; dump_mempools</code>) and node-level tools (<code>top</code>, <code>pidstat</code>). Grafana dashboard build-out is deferred.</div>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-6_act_1" data-track><span class="cb-text">During Phase 1 load test (P1.8), capture OSD memory peaks across all ingest cycles using <code>ceph daemon osd.&lt;id&gt; dump_mempools</code> and <code>ps</code>/<code>top</code> snapshots at 30s intervals</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-6_act_2" data-track><span class="cb-text">If peak memory &gt; 3.5 GB, incrementally increase <code>osd_memory_target</code> (e.g., 4.5GB → 5GB) and re-test</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-6_act_3" data-track><span class="cb-text">Document final <code>osd_memory_target</code> value in as-built configuration</span></div>
+            </div>
+            <p class="muted"><strong>Success Criteria:</strong> OSD memory stays &lt; 3.5 GB peak during 4 TB batch (relative to initial 4 GB target).</p>
+          </div>
+        </details>
+
+        <!-- P1.7 -->
+        <details class="task-details" id="task_p1-7">
+          <summary class="task-summary">
+            <span class="task-icon">&#128992;</span><span class="task-code">P1.7</span>
+            <span class="task-title">Validate WAN Egress Throughput (1 Gbps Target)</span>
+            <span class="task-status pending">PENDING P1.8</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING LOAD TEST (P1.8)</dd>
+              <dt>Priority</dt><dd>HIGH — Critical for cloud staging speed</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>1–2 hours (measurement during load test)</dd>
+            </dl>
+            <p><strong>Context:</strong> Phase 1 assumes 1 Gbps (≈125 MB/s) outbound throughput from cluster to cloud staging (Azure Blob or AWS S3, TBD at P0.3). Must validate actual achievable throughput with Parquet transfers during Phase 1 load tests.</p>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-7_act_1" data-track><span class="cb-text">During Phase 1 load test (P1.8), measure WAN egress throughput in Stage 6 (cloud egress)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-7_act_2" data-track><span class="cb-text">Monitor exaBGP floating IP routing to Snowflake egress point; check for packet loss or latency anomalies</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-7_act_3" data-track><span class="cb-text">Capture sustained throughput over 5–10 minute transfer window</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-7_act_4" data-track><span class="cb-text">If sustained &lt; 100 MB/s: diagnose network path (QoS limits, jumbo frames, MTU mismatch)</span></div>
+            </div>
+            <p class="muted"><strong>Success Criteria:</strong> Sustained ≥ 100 MB/s during Parquet transfer; 0 packet loss.</p>
+          </div>
+        </details>
+
+        <!-- P1.8 -->
+        <details class="task-details" id="task_p1-8">
+          <summary class="task-summary">
+            <span class="task-icon">&#128992;</span><span class="task-code">P1.8</span>
+            <span class="task-title">Run 5 Production Sample Jobs — Phase 1 Integration Milestone</span>
+            <span class="task-status pending">PENDING FULL P0+P1</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING FULL P0 + P1 INFRASTRUCTURE (P0.0–P0.5a, P1.0–P1.2, P1.5)</dd>
+              <dt>Priority</dt><dd>HIGH — Validates Phase 1 assumptions; gates Phase 2C end-to-end pipeline validation (P2.3)</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>2–4 hours</dd>
+            </dl>
+            <p><strong>Context:</strong> Phase 1 assumes 7× shuffle amplification; actual measurement needed. P1.8 is the Phase 1 integration milestone — cannot run until VMs (P0.1–P0.2), Hadoop/Spark (P0.5–P0.5a), Ceph (P0.0), and YARN RM (P1.2) are all operational. Ksolves will execute 5 sample jobs at varying sizes (500 GB, 1 TB, 2 TB, 4 TB, 5 TB) and capture actual shuffle behavior. P1.6 (OSD memory) and P1.7 (WAN egress) collect their measurements concurrently.</p>
+            <div class="task-warn"><strong>SOW scope flag:</strong> SOW § 2.2 excludes "user load or performance testing" — P1.8 likely needs a Change Order or separate SOW per the Schedule &amp; SOW Status section.</div>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-8_act_1" data-track><span class="cb-text">Confirm full infrastructure is live: P0.0 (Ceph), P0.1 (Worker VMs), P0.2 (YARN RM VM), P0.5 (Hadoop+Java), P0.5a (Spark), P1.2 (YARN ResourceManager)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-8_act_2" data-track><span class="cb-text">Prepare sample CSV datasets (500 GB, 1 TB, 2 TB, 4 TB, 5 TB)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-8_act_3" data-track><span class="cb-text">Submit 5 sequential Spark jobs (one per dataset size) via direct <code>spark-submit</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-8_act_4" data-track><span class="cb-text">For each job, capture: shuffle output/input ratio, shuffle write bandwidth, RGW throughput ceiling, memory utilization, NVMe scratch I/O, OSD memory peaks (P1.6), WAN egress (P1.7)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-8_act_5" data-track><span class="cb-text">Calculate average amplification factor and update <code>phases/phase1/development/deliverables/dev_cluster_phase1_model.html</code> default</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> <code>phases/phase1/development/deliverables/dev_cluster_phase1_model.html</code> updated with measured value.<br>
+            <strong>User Sign-Off:</strong> Review measured amplification and confirm it satisfies Phase 1 SLA (40 jobs in 4 hours).</p>
+          </div>
+        </details>
+
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close subsection</a></div>
+      </div>
+    </details>
+
+    <!-- ────────── PHASE 2C ────────── -->
+    <details class="sub-details" id="sub_phase2c">
+      <summary class="sub-summary">
+        <span class="sub-title">Phase 2C — Medium Priority</span>
+        <span class="sub-desc">Configuration, Validation &amp; Integration (P2)</span>
+      </summary>
+      <div class="sub-body">
+
+        <!-- P2.2 -->
+        <details class="task-details" id="task_p2-2">
+          <summary class="task-summary">
+            <span class="task-icon">&#128993;</span><span class="task-code">P2.2</span>
+            <span class="task-title">Deploy Apache Airflow 2.10.4 on Remote Host</span>
+            <span class="task-status pending">PENDING P1.0</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING REMOTE HOST (P1.0)</dd>
+              <dt>Priority</dt><dd>MEDIUM — Phase 1 job orchestration</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>2–3 hours</dd>
+            </dl>
+            <p><strong>Context:</strong> Airflow triggers spark-submit via DAG scheduler. CeleryExecutor confirmed for distributed job submission to YARN RM. Database can be embedded (docker-compose PostgreSQL) or standalone.</p>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-2_act_1" data-track><span class="cb-text">Install Python 3.11+, pip, and dependencies</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-2_act_2" data-track><span class="cb-text">Install Apache Airflow 2.10.4: <code>pip install apache-airflow[celery,postgres]</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-2_act_3" data-track><span class="cb-text">Initialize Airflow database: <code>airflow db init</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-2_act_4" data-track><span class="cb-text">Configure CeleryExecutor in <code>airflow.cfg</code> (broker: Redis or RabbitMQ; backend: PostgreSQL)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-2_act_5" data-track><span class="cb-text">Create DAG for Phase 1: stage CSV ingest, trigger Spark jobs, track completion</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-2_act_6" data-track><span class="cb-text">Set up Airflow web UI (default <code>http://host:8080</code>) with basic auth or Okta integration</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> Airflow web UI accessible; DAG uploads successfully; manual trigger works.</p>
+          </div>
+        </details>
+
+        <!-- P2.3 -->
+        <details class="task-details" id="task_p2-3">
+          <summary class="task-summary">
+            <span class="task-icon">&#128993;</span><span class="task-code">P2.3</span>
+            <span class="task-title">Validate 8-Stage Data Flow Pipeline (CSV → Snowflake)</span>
+            <span class="task-status pending">PENDING FULL INFRA</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING FULL INFRASTRUCTURE (P0.0–P0.5a, P1.0, P1.2, P2.2)</dd>
+              <dt>Priority</dt><dd>MEDIUM — End-to-end integration test</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>3–4 hours</dd>
+            </dl>
+            <p><strong>Context:</strong> Phase 1 data flow spans 8 sequential stages from CSV ingest through Snowflake COPY. Each stage has specific requirements.</p>
+            <div class="task-block">
+              <div class="task-block-title">Stages to Validate</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_stg_1" data-track><span class="cb-text">CSV Ingest → Ceph RGW (<code>s3a://ingest/csv/</code>)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_stg_2" data-track><span class="cb-text">Airflow DAG trigger via Airflow scheduler</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_stg_3" data-track><span class="cb-text">YARN container scheduling (confirm executors allocated)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_stg_4" data-track><span class="cb-text">Spark ETL execution (CSV → Parquet, Snappy compression on shuffle)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_stg_5" data-track><span class="cb-text">Parquet writes to Ceph RGW (<code>s3a://output/parquet/</code>)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_stg_6" data-track><span class="cb-text">Cloud egress to Azure Blob / AWS S3 (requires cloud staging decision at P0.3)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_stg_7" data-track><span class="cb-text">Snowflake COPY INTO (internal stage → table)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_stg_8" data-track><span class="cb-text">Cleanup gate (delete Parquet from Ceph after Snowflake confirmation)</span></div>
+            </div>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_act_1" data-track><span class="cb-text">Prepare sample CSV dataset (500 GB or 1 TB)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_act_2" data-track><span class="cb-text">Upload CSV to Ceph ingest bucket: <code>s3a://ingest/csv/</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_act_3" data-track><span class="cb-text">Trigger Airflow DAG manually or via scheduler</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_act_4" data-track><span class="cb-text">Monitor Spark job execution: stages, executors, shuffle behavior</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_act_5" data-track><span class="cb-text">Verify Parquet output in Ceph: <code>s3a://output/parquet/</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_act_6" data-track><span class="cb-text">Test cloud staging egress (once P0.3 decision made)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_act_7" data-track><span class="cb-text">Verify Snowflake COPY INTO succeeds and data appears in target table</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-3_act_8" data-track><span class="cb-text">Confirm cleanup removes Parquet after Snowflake confirmation</span></div>
+            </div>
+            <div class="task-warn"><strong>Snowflake Scope Note:</strong> The Snowflake side of the pipeline is <strong>out of scope for Ksolves and this Phase 1 plan</strong>. fqdn is responsible for: (a) Snowflake account/warehouse provisioning and credentials, (b) target database/schema/table DDL, (c) <code>COPY INTO</code> statement authorship and stage configuration, (d) Snowflake-side IAM/storage integration, (e) Snowpipe or scheduled ingest if used. Ksolves' P2.3 validation ends at delivering a successful <code>COPY INTO</code> execution against fqdn-provided Snowflake objects.</div>
+            <p class="muted"><strong>Verification:</strong> End-to-end single job completes successfully; data visible in Snowflake; no data loss in pipeline.<br>
+            <strong>User Sign-Off:</strong> Review pipeline execution logs and confirm all stages work as expected.</p>
+          </div>
+        </details>
+
+        <!-- P2.4 -->
+        <details class="task-details" id="task_p2-4">
+          <summary class="task-summary">
+            <span class="task-icon">&#128993;</span><span class="task-code">P2.4</span>
+            <span class="task-title">Confirm Compression Codec Configuration</span>
+            <span class="task-status pending">PENDING SPARK CONFIG</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING SPARK CONFIG</dd>
+              <dt>Priority</dt><dd>MEDIUM — Performance and storage optimization</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>&lt; 1 hour (config) + observation during load test</dd>
+            </dl>
+            <p><strong>Context:</strong> Phase 1 specifies Snappy for shuffle intermediates (2.5× compression, low CPU) and ZSTD for Parquet output (5× compression, higher CPU). Ksolves will validate codec performance during Phase 1 load test (P1.8).</p>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-4_act_1" data-track><span class="cb-text">Configure spark-defaults.conf with compression settings (see config block below)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-4_act_2" data-track><span class="cb-text">During Phase 1 load test (P1.8), monitor CPU during shuffle, actual compression ratio, throughput impact</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-4_act_3" data-track><span class="cb-text">If compression overhead &gt; 5% CPU, consider codec swap (e.g., LZ4 for shuffle, ZSTD for output)</span></div>
+            </div>
+            <pre class="code-block">spark.shuffle.compress=true
+spark.shuffle.spill.compress=true
+spark.io.compression.codec=snappy
+spark.sql.parquet.compression.codec=zstd</pre>
+            <p class="muted"><strong>Verification:</strong> Phase 1 load test meets 4-hour SLA with compression enabled; compression ratios match expectations.</p>
+          </div>
+        </details>
+
+        <!-- P2.5 -->
+        <details class="task-details" id="task_p2-5">
+          <summary class="task-summary">
+            <span class="task-icon">&#128993;</span><span class="task-code">P2.5</span>
+            <span class="task-title">Validate JBOD Storage Configuration (NVMe Drives 4–7, XFS)</span>
+            <span class="task-status pending">PENDING P0.1</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING VM PROVISIONING (P0.1)</dd>
+              <dt>Priority</dt><dd>MEDIUM — Critical for shuffle performance</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>1–2 hours (mount + benchmark)</dd>
+            </dl>
+            <p><strong>Context:</strong> NVMe drives 4–7 on each node (15.36 TB per node) are configured as JBOD (not RAID) for Spark shuffle scratch using XFS filesystem. No replication. Ksolves will mount, configure permissions, and benchmark I/O during Phase 1 load test.</p>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-5_act_1" data-track><span class="cb-text">After NVMe drives attached to Worker VMs (P0.1), partition and format drives 4–7 with XFS</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-5_act_2" data-track><span class="cb-text">Mount to <code>/var/spark/scratch</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-5_act_3" data-track><span class="cb-text">Set permissions for Spark process user: <code>chmod 1777 /var/spark/scratch</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-5_act_4" data-track><span class="cb-text">Configure Spark to use scratch mount: <code>spark.local.dir=/var/spark/scratch</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-5_act_5" data-track><span class="cb-text">During P1.8, run <code>fio</code> random read/write test; capture peak I/O throughput (target ~3,000 MB/s aggregate); monitor for I/O bottlenecks</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> <code>fio</code> benchmark shows ≥ 2,500 MB/s random I/O; no I/O errors during Phase 1 load test.</p>
+          </div>
+        </details>
+
+        <!-- P2.6 -->
+        <details class="task-details" id="task_p2-6">
+          <summary class="task-summary">
+            <span class="task-icon">&#128993;</span><span class="task-code">P2.6</span>
+            <span class="task-title">Validate Network Topology (2×10G LACP Bond)</span>
+            <span class="task-status pending">PENDING P0.1</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING INFRASTRUCTURE (P0.1)</dd>
+              <dt>Priority</dt><dd>MEDIUM — Ensures cluster bandwidth availability</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>1–2 hours (validation during load test)</dd>
+            </dl>
+            <p><strong>Context:</strong> Each node has 2×10G NICs bonded via LACP. Phase 1 requires 20G per node effective bandwidth for intra-cluster replication, S3A reads/writes, and WAN egress.</p>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-6_act_1" data-track><span class="cb-text">After VMs provisioned (P0.1), verify LACP bond status: <code>cat /proc/net/bonding/bond0</code> shows "Bonding Mode: balance-alb" and both NICs active</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-6_act_2" data-track><span class="cb-text">If bond not yet configured, set up LACP on switch and VM network stack</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-6_act_3" data-track><span class="cb-text">During P1.8, validate throughput: Ceph replication ≥ 95 MB/s per node; S3A ≥ 284 MB/s aggregate; WAN egress ≥ 125 MB/s</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-6_act_4" data-track><span class="cb-text">Monitor for packet loss: <code>ethtool -S bond0 | grep errors</code> shows 0 after load test</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> Bond status shows both NICs active; throughput targets met; 0 packet loss.</p>
+          </div>
+        </details>
+
+        <!-- P2.7 -->
+        <details class="task-details" id="task_p2-7">
+          <summary class="task-summary">
+            <span class="task-icon">&#128993;</span><span class="task-code">P2.7</span>
+            <span class="task-title">Evaluate Phase 1 Node Addition Timeline (Ksolves Open Item #9)</span>
+            <span class="task-status pending">PENDING P1.8</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING PHASE 1 LOAD TEST RESULTS (P1.8)</dd>
+              <dt>Priority</dt><dd>MEDIUM — Critical for Phase 1 → Phase 2 transition planning</dd>
+              <dt>Owner</dt><dd>Ksolves (analysis) + fqdn (decision on 4th node budget/timeline)</dd>
+              <dt>Effort</dt><dd>2–4 hours (analysis) + 1–2 weeks (procurement/provisioning if approved)</dd>
+            </dl>
+            <p><strong>Context:</strong> Phase 1 report flags 40-job daily SLA as "marginal with 2.1 min buffer" on 3-node cluster. If actual shuffle amplification (P1.8) is higher than assumed 7×, or concurrent jobs need to exceed 2, a 4th node may be required.</p>
+            <div class="task-block">
+              <div class="task-block-title">Evaluation Criteria</div>
+              <ul style="list-style:disc;padding-left:22px;">
+                <li>Actual shuffle amplification factor (measured in P1.8)</li>
+                <li>Concurrent job capability with current 3-node setup</li>
+                <li>If SLA buffer &lt; 5 min for 40 jobs: recommend 4th node addition</li>
+                <li>If SLA buffer ≥ 5 min: proceed with Phase 2 on 3 nodes</li>
+              </ul>
+            </div>
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-7_act_1" data-track><span class="cb-text">After P1.8 completes, analyze: actual shuffle amplification vs. 7× assumption; peak memory/CPU/IO per node; concurrent job scaling</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-7_act_2" data-track><span class="cb-text">Calculate revised SLA buffer: (inter-job gap time - job duration) / job duration</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-7_act_3" data-track><span class="cb-text">If buffer &lt; 5 min: recommend 4th node (HPE DL385 Gen11, 32c/384GB, 7×3.84TB NVMe)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-7_act_4" data-track><span class="cb-text">Provide timeline estimate: can 4th node be provisioned/integrated before Phase 1 production runs?</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> Ksolves delivers node addition evaluation report with SLA projections and recommendation.<br>
+            <strong>Impact on Plan:</strong> If 4th node approved, extends Phase 1 completion by 1–2 weeks; Phase 2 scope does not change.</p>
+          </div>
+        </details>
+
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close subsection</a></div>
+      </div>
+    </details>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ CRITICAL PATH SEQUENCE ════════════════════════════ -->
+<details class="section-details" id="sec_critical_path">
+  <summary class="section-summary">
+    <span class="section-letter">CP</span>
+    <span class="section-title">Critical Path Sequence</span>
+    <span class="section-sub">· Linear Phase 2 sequence with dependencies</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <ul style="list-style:none;padding-left:0;">
+      <li style="padding:4px 0;"><span class="done-badge">&#x2705;</span> <strong>Phase 1 (Planning):</strong> COMPLETE — All discovery &amp; architecture finalized (Apr 24)</li>
+      <li style="padding:4px 0;"><strong>Phase 2 (Implementation):</strong> PENDING</li>
+    </ul>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_1" data-track><span class="cb-text">BLOCKER.1: Establish Ksolves remote access (user action — Phase 1A immediate, Phase 1B parallel)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_2" data-track><span class="cb-text"><strong>P0.0:</strong> Ksolves bootstraps Ceph cluster (MON, MGR, 9× OSD, RGW) — first Ksolves work after access granted</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_3" data-track><span class="cb-text">BLOCKER.2: User places RHEL ISO in Proxmox local storage (user action — <strong>after</strong> P0.0 HEALTH_OK)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_4" data-track><span class="cb-text"><em>Parallel user prerequisites:</em> P0.4 (RHEL subscriptions), P0.0a (CSV file info), P0.7 (network MSB-PMC01↔03)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_5" data-track><span class="cb-text">P0.1–P0.5: Ksolves provisions all VMs and base software (requires RHEL ISO from BLOCKER.2)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_6" data-track><span class="cb-text"><strong>P1.2:</strong> Ksolves deploys single-instance YARN ResourceManager on GKPR-YARN-RM-01 (manual recovery; no HA)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_7" data-track><span class="cb-text">P1.0, P1.5: Ksolves provisions Remote Airflow Server and Ansible control</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_8" data-track><span class="cb-text">P1.1: Spark History Server deployed on Node02 (depends on P0.0 RGW + P0.5a Spark)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_9" data-track><span class="cb-text"><strong>P1.8:</strong> Phase 1 integration milestone — run 5 sample jobs, measure shuffle amplification, OSD memory (P1.6), and WAN egress (P1.7)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_10" data-track><span class="cb-text">P2.2–P2.3: Ksolves deploys Airflow and validates end-to-end pipeline (Snowflake side is fqdn responsibility)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_11" data-track><span class="cb-text">Phase 2 sign-off: fqdn approves for production if all P0–P2 items pass</span></div>
+    <p class="muted" style="margin-top:10px;"><strong>Beyond Phase 2:</strong> Pending Ksolves clarification — see "Actions Outside Present Known Scope" section.</p>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ ACTIONS OUTSIDE SCOPE ════════════════════════════ -->
+<details class="section-details" id="sec_outside_scope">
+  <summary class="section-summary">
+    <span class="section-letter">?</span>
+    <span class="section-title">Actions Outside Present Known Scope</span>
+    <span class="section-sub">· Items pending Ksolves clarification</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <p>The following items are derived from Phase 1 report findings but are not explicitly assigned as Ksolves Phase 1 or Phase 2 responsibilities. Clarification from Ksolves required.</p>
+
+    <div class="task-block">
+      <div class="task-block-title">❓ Node Addition Timeline &amp; Phase 3 Planning</div>
+      <p><strong>Status:</strong> PENDING KSOLVES CLARIFICATION</p>
+      <p><strong>Context:</strong> Phase 1 report flags 40-job SLA as "marginal with 2.1 min buffer." Phase 2 may require 4+ nodes to support 60+ jobs. Timeline decision: add 4th node before production runs or defer?</p>
+      <p><strong>Options:</strong></p>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li>Option A: Add 1× HPE DL385 Gen11 node (4 nodes total, relaxes SLA to 5+ min buffer)</li>
+        <li>Option B: Accept Phase 1 2.1 min SLA buffer as acceptable risk</li>
+      </ul>
+      <div class="cb-row" style="margin-top:6px;"><input type="checkbox" id="cb_oos_1_1" data-track><span class="cb-text">Confirm with Ksolves whether this is Phase 3 scope or fqdn responsibility</span></div>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">❓ Phase 2 As-Built Documentation &amp; Handoff</div>
+      <p><strong>Status:</strong> PENDING KSOLVES CLARIFICATION</p>
+      <p><strong>Context:</strong> After Phase 2 infrastructure is live and validated, create final documentation showing actual configurations, tuning parameters, and lessons learned.</p>
+      <p><strong>Potential Deliverables:</strong></p>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li>Deployment playbooks and runbooks</li>
+        <li>Known issues, gotchas, and workarounds</li>
+        <li>Recommendations for scaling or Phase 3</li>
+      </ul>
+      <div class="cb-row" style="margin-top:6px;"><input type="checkbox" id="cb_oos_2_1" data-track><span class="cb-text">Confirm with Ksolves whether this is included in Phase 2 scope or separate engagement</span></div>
+    </div>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ ASSUMPTIONS ════════════════════════════ -->
+<details class="section-details" id="sec_assumptions">
+  <summary class="section-summary">
+    <span class="section-letter">A</span>
+    <span class="section-title">Assumptions &amp; Dependencies</span>
+    <span class="section-sub">· Phase 1 finalized · Phase 2 to validate · External dependencies</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <div class="task-block">
+      <div class="task-block-title">Phase 1 Assumptions — FINALIZED (Ksolves Apr 24, 2026)</div>
+      <ul>
+        <li><span class="done-badge">&#x2705;</span> Cluster topology: 3-node Proxmox (Node01, Node02, Node03)</li>
+        <li><span class="done-badge">&#x2705;</span> Storage: Ceph RGW (S3) + XFS on JBOD (no RAID on NVMe)</li>
+        <li><span class="done-badge">&#x2705;</span> Orchestration: Apache Airflow 2.10.4 with CeleryExecutor</li>
+        <li><span class="done-badge">&#x2705;</span> Authentication: Okta (not Keycloak)</li>
+        <li><span class="done-badge">&#x2705;</span> Spark version: 3.5.3</li>
+        <li><span class="done-badge">&#x2705;</span> Hadoop: 3.4.1 standalone</li>
+      </ul>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">Phase 2 Assumptions — TO BE VALIDATED</div>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li>Shuffle amplification: 7× (uncompressed) — actual measurement required (P1.8)</li>
+        <li>Concurrent jobs: 1 → 2 baseline (core-bound, not RAM-bound) — to be measured</li>
+        <li>WAN egress: 1 Gbps sustained (125 MB/s actual target, P1.7)</li>
+        <li>Cloud staging: Azure Blob or AWS S3 (TBD, P0.3 decision required)</li>
+        <li>RHEL 9.4: Active subscriptions on all VMs (P0.4)</li>
+        <li>No VMs exist yet; all provisioning is Ksolves responsibility</li>
+        <li>No NVMes assigned; Ksolves will allocate per spec (3× Ceph OSD, 4× Spark scratch per node)</li>
+      </ul>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">External Dependencies</div>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li>Ksolves technical contact: Karthik Hegde (karthik.hegde@ksolves.com, 8317382875)</li>
+        <li>Ksolves requires owner-level Proxmox access (BLOCKER.1) before any infrastructure work</li>
+        <li>fqdn sign-off required at user checkpoints (P0.2, P1.8, P1.2, P2.3) before proceeding to next phase</li>
+        <li>Cloud staging platform decision (P0.3) blocks Stage 6 pipeline implementation</li>
+      </ul>
+    </div>
+
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ REFERENCES ════════════════════════════ -->
+<details class="section-details" id="sec_references">
+  <summary class="section-summary">
+    <span class="section-letter">R</span>
+    <span class="section-title">Reference Documents</span>
+    <span class="section-sub">· Source materials and supporting docs</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <table class="ref-table">
+      <thead><tr><th>Document</th><th>Path</th></tr></thead>
+      <tbody>
+        <tr><td>Main Report</td><td><code>phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf</code></td></tr>
+        <tr><td>Prerequisites</td><td><code>phases/phase1/development/Incoming/vendor_prerequisites.docx.pdf</code></td></tr>
+        <tr><td>Hardware Reference</td><td><code>CLAUDE.md § Hardware Reference</code></td></tr>
+        <tr><td>Calculator</td><td><code>phases/phase1/development/deliverables/dev_cluster_phase1_model.html</code></td></tr>
+        <tr><td>Ksolves Walkthrough</td><td><code>phases/phase1/development/research/ksolves-directory-walkthrough.md</code></td></tr>
+        <tr><td>Vendor Questions</td><td><code>phases/phase1/development/vendor_comms/phase1_vendor_questions.txt</code></td></tr>
+        <tr><td>SOW V1.0 (Mar 16, 2026)</td><td><code>phases/phase2/development/Incoming/</code> (gitignored)</td></tr>
+        <tr><td>SOW Timeline Status</td><td><code>phases/phase2/development/Document/SOW_timeline_status.md</code></td></tr>
+        <tr><td>v1.0 → v1.1 Changelog</td><td><code>phases/phase2/development/Document/Phases_Critical_Path_Development_v1.1_changelog.md</code></td></tr>
+        <tr><td>Architecture Diagram</td><td><code>phases/phase2/development/Document/EDS_DataFlow_architecture_diagram_updated.png</code></td></tr>
+      </tbody>
+    </table>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ FOOTNOTES ════════════════════════════ -->
+<details class="section-details" id="sec_footnotes">
+  <summary class="section-summary">
+    <span class="section-letter">F</span>
+    <span class="section-title">Footnotes</span>
+    <span class="section-sub">· Citations and source documentation</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <p class="fn" id="fn-1"><span class="fn-num">1.</span> Apache Software Foundation, "Running Spark on YARN," in <em>Apache Spark Documentation</em>, accessed April 25, 2026, <a href="https://spark.apache.org/docs/latest/running-on-yarn.html">https://spark.apache.org/docs/latest/running-on-yarn.html</a>. The documentation establishes the prerequisite installation order for Spark on YARN: (1) Java/JDK with <code>JAVA_HOME</code> set, (2) Hadoop/YARN cluster operational with ResourceManager running, (3) <code>HADOOP_CONF_DIR</code> or <code>YARN_CONF_DIR</code> pointing to client-side Hadoop configuration, (4) Spark binary distribution built with YARN support. Java compatibility note: "Apache Hadoop 3.4.1 does not support Java 17, but Spark 4.0.0+ requires Java 17+" — for Spark 3.5.3 + Hadoop 3.4.1, Java 11 is the recommended common version. Confirmed with secondary sources: Cloudera/Hortonworks HDP documentation, "Spark Prerequisites," accessed April 25, 2026, <a href="https://docs-archive.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/installing-spark/content/installing_spark.html">https://docs-archive.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/installing-spark/content/installing_spark.html</a>, which states "HDFS and YARN deployed on the cluster" as Spark prerequisites.</p>
+    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+</div>
+
+<script>
+/* ── Theme ────────────────────────────────────────────────────────── */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('spark_theme_critpath_dev', theme);
+  document.getElementById('btn_theme').textContent = theme === 'dark' ? '☀ Light' : '☾ Dark';
+}
+function toggleTheme() {
+  var current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+applyTheme(localStorage.getItem('spark_theme_critpath_dev') || 'dark');
+
+/* ── Section helpers ──────────────────────────────────────────────── */
+function setAllSections(open) {
+  document.querySelectorAll('details.section-details').forEach(function(d) { d.open = open; });
+}
+function setSubsections(sectionId, open) {
+  var sec = document.getElementById(sectionId);
+  if (!sec) return;
+  sec.open = true; // ensure parent open so user sees the change
+  sec.querySelectorAll('details').forEach(function(d) { d.open = open; });
+}
+function closeSub(el) {
+  var d = el.closest('details');
+  d.open = false;
+  setTimeout(function() { d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+}
+
+/* ── Cross-section jump ───────────────────────────────────────────── */
+var _jumpedTo = null;
+function jumpTo(hash, sectionId) {
+  if (event) event.preventDefault();
+  _jumpedTo = {hash: hash, sectionId: sectionId};
+  history.pushState(null, '', '#' + hash);
+  var sec = document.getElementById(sectionId);
+  if (sec) {
+    sec.open = true;
+    var t = document.getElementById(hash);
+    if (t) {
+      var p = t;
+      while (p) {
+        if (p.tagName === 'DETAILS') p.open = true;
+        p = p.parentElement;
+        if (p === sec) break;
+      }
+    }
+  }
+  setTimeout(function() {
+    var t = document.getElementById(hash);
+    if (t) t.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 60);
+}
+window.addEventListener('popstate', function() {
+  if (_jumpedTo && location.hash !== '#' + _jumpedTo.hash) {
+    var sec = document.getElementById(_jumpedTo.sectionId);
+    if (sec) sec.open = false;
+    _jumpedTo = null;
+  }
+});
+
+/* ── Checkbox state — auto-save ───────────────────────────────────── */
+var STORAGE_KEY = 'spark_critpath_dev';
+var saveTimer = null;
+function flashSaved() {
+  var el = document.getElementById('save_status');
+  if (!el) return;
+  el.textContent = 'Saved ' + new Date().toLocaleTimeString();
+  el.classList.add('flash');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function() { el.classList.remove('flash'); }, 600);
+}
+function saveState() {
+  var state = {};
+  document.querySelectorAll('input[type=checkbox][data-track]').forEach(function(cb) {
+    state[cb.id] = cb.checked;
+  });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); flashSaved(); }
+  catch(e) { console.warn('Failed to save checkbox state:', e); }
+}
+function loadState() {
+  var raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    var state = JSON.parse(raw);
+    Object.keys(state).forEach(function(id) {
+      var cb = document.getElementById(id);
+      if (cb) cb.checked = state[id];
+    });
+  } catch(e) { console.warn('Failed to load checkbox state:', e); }
+}
+
+/* ── DOM ready: defaults, restore, bind ───────────────────────────── */
+document.addEventListener('DOMContentLoaded', function() {
+  // Default closed for all top-level sections (browser may remember; force closed)
+  document.querySelectorAll('details.section-details').forEach(function(d) {
+    if (d.id !== 'sec_overview') d.open = false;
+    else d.open = true; // keep Overview open by default
+  });
+  // Sub-sections and tasks default closed
+  document.querySelectorAll('details.sub-details, details.task-details').forEach(function(d) {
+    d.open = false;
+  });
+  // Restore checkbox state
+  loadState();
+  // Bind auto-save
+  document.querySelectorAll('input[type=checkbox][data-track]').forEach(function(cb) {
+    cb.addEventListener('change', saveState);
+  });
+  // Honor URL hash on load
+  if (location.hash && location.hash.length > 1) {
+    var hash = location.hash.substring(1);
+    var t = document.getElementById(hash);
+    if (t) {
+      var p = t;
+      while (p) {
+        if (p.tagName === 'DETAILS') p.open = true;
+        p = p.parentElement;
+      }
+      setTimeout(function() { t.scrollIntoView({behavior:'smooth', block:'center'}); }, 100);
+    }
+  }
+});
+</script>
+
+</body>
+</html>
