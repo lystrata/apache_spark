@@ -67,6 +67,13 @@ _Last updated 2026-04-24_
   - Impact: Determines which RHEL ISO to download and provision
   - See: phases/phase1/development/vendor_comms/phase1_vendor_questions.txt § RHEL Version Decision
 
+- [ ] [Phase1] [correspondence] Revisit YARN HA / ZooKeeper / Nginx decision with Ksolves — vendor appears to have changed their mind
+  - 2026-04-27 vendor guidance: single YARN RM VM (no HA), no ZooKeeper, no nginx, manual recovery
+  - Earlier guidance (Phase 1 report): active/standby YARN RM pair on Node01 + Node03 with ZooKeeper ensemble and nginx reverse proxy
+  - User flagged the reversal as suspicious — confirm which posture is final before proceeding with P0.2 / P1.2 implementation
+  - Knock-on effects: RHEL license count (4 vs 5), `dev_cluster_phase1_model.html` resource math, P1.3/P1.4 task scope
+  - See: phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.1.md § P0.2, P1.2 (and changelog at phases/phase2/development/Document/Phases_Critical_Path_Development_v1.1_changelog.md)
+
 ---
 
 ## Open Questions
