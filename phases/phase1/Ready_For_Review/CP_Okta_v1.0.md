@@ -1,6 +1,7 @@
 # Critical Path — Okta + Active Directory Integration for Spark Phase 1
 
-_Last updated 2026-04-26 · Companion document to `Phases_Critical_Path_v1.0.md` · Audit + critical-path additions for enterprise Okta SSO with AD as authoritative directory_
+_Version 1.0 · Last updated 2026-04-26_  
+_Companion document to `Phases_Critical_Path_v1.0.md` · Audit + critical-path additions for enterprise Okta SSO with AD as authoritative directory_
 
 ---
 
@@ -698,4 +699,4 @@ Snowflake Inc. "Overview of Federated Authentication and SSO." In *Snowflake Doc
 
 ---
 
-_End of CP_Okta.md_
+_End of CP_Okta_v1.0.md_
