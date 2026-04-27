@@ -156,7 +156,7 @@ P2.1–P2.3 (Airflow + end-to-end validation)
 | File | Purpose | Status |
 |---|---|---|
 | `phases/phase1/Incoming/ksolves_april_24_process_report.txt` | April 24 Ksolves status email | Source document |
-| `phases/phase1/Ready_For_Review/Phases_Critical_Path_Development_v1.0.md` | Detailed Phase 1 task breakdown | Master TODO (post-rewrite) |
+| `phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.0.md` | Detailed Phase 1 task breakdown | Master TODO (post-rewrite) |
 | `phases/phase1/deliverables/dev_cluster_phase1_model.html` | Phase 1 resource allocation calculator | Awaiting shuffle amplification input (P0.6) |
 | `TODO.md` (root) | Master project TODO (all contexts) | Phase 1 items tagged [Phase1] |
 | `phases/phase1/vendor_comms/phase1_vendor_questions.txt` | Vendor Q&A + communication log | Updated with access strategy |
