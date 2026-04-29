@@ -1,16 +1,15 @@
 #  Master TODO — All Contexts
-_Last updated 2026-04-24_
+_Last updated 2026-04-29_
 
 ---
 
 ## PHASE 1 — PRIORITY ITEMS
 
-### BLOCKING — Ksolves Remote Access (Must Complete Before P0)
+### BLOCKING — Ksolves Remote Access (Phase 1A cleared 2026-04-29)
 
-- [ ] [Phase1] [correspondence] Establish Ksolves Webex desktop access for Phase 1A interim infrastructure provisioning
-  - User action: Create temporary Proxmox credentials, schedule/initiate Webex share with Karthik Hegde
-  - Phase 1A (interim): Shared Webex desktop with fqdn team oversight (can begin immediately)
-  - Phase 1B (permanent): VMware Horizon desktops (pending fqdn Cyber Security approval — non-blocking for Phase 1 work)
+- [x] [Phase1] [correspondence] Establish Ksolves Webex desktop access for Phase 1A interim infrastructure provisioning **(closed 2026-04-29 — Ksolves connecting via Webex)**
+  - Phase 1A (interim): Shared Webex desktop with fqdn team oversight — **active**
+  - Phase 1B (permanent): VMware Horizon VDI — still pending fqdn Cyber Security approval (tracked under Pending Tasks > Correspondence; non-blocking for Phase 1/2 work)
   - See: phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.2.md § BLOCKER.1
 
 ### BLOCKING — RHEL ISO Provisioning (Must Complete Before P0.1–P0.2 VM Creation)
@@ -97,7 +96,8 @@ _Last updated 2026-04-24_
 _(All configuration items completed - see Completed section)_
 
 **Correspondence & Project Coordination:**
-- [ ] [correspondence] Work on Proxmox access method (screen sharing vs. direct) — target completion this week
+- [x] [correspondence] Work on Proxmox access method (screen sharing vs. direct) — **resolved 2026-04-29: Webex desktop sharing active for Phase 1A; VDI for Phase 1B**
+- [ ] [correspondence] Phase 1B — VMware Horizon VDI provisioning for Ksolves (permanent replacement for Webex sharing; pending fqdn Cyber Security approval; non-blocking for Phase 1/2 work)
 - [ ] [correspondence] Define required interconnections between remote Airflow server and Spark cluster — coordinate with Sean Klette
 - [ ] [correspondence] Review updated resource calculation document from Karthik (pending receipt)
 - [ ] [correspondence] Review and provide feedback on dev cluster resource calculations and mappings — see `calculators/Document/dev_cluster_math_reference.html`
