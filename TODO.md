@@ -41,6 +41,13 @@ _Last updated 2026-04-29_
 - [ ] [Phase1] [remote_services] Install Hadoop 3.4.1 separately on all Worker VMs and configure HADOOP_HOME
 - [ ] [Phase1] [calculators] Run first 5 production jobs and measure actual shuffle amplification factor (update phases/phase1/development/deliverables/dev_cluster_phase1_model.html default once measured)
 
+- [ ] [Phase1] [remote_services] **Determine max concurrent Airflow task slots** — gates final Airflow host sizing before P1.0 provisioning
+  - Currently spec'd at P1.0: 6c / 24 GB / 500 GB SSD on MSB-PMC01 (CeleryExecutor)
+  - Concurrency drives: Celery worker count, broker (Redis/RabbitMQ) sizing, scheduler RAM/CPU floor
+  - Baseline assumption today: 2 concurrent jobs (per `phases/phase1/development/deliverables/dev_cluster_phase1_model.html`)
+  - User action: Confirm peak concurrency with stakeholders (number of DAGs × overlap window) and share with Ksolves before P1.0 begins
+  - See: phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.2.md § P1.0
+
 ### P1 — Phase 1 Support & Validation
 
 - [ ] [Phase1] [correspondence] Evaluate Phase 1 node addition timeline — 40-job SLA fails without a 4th node
@@ -79,7 +86,6 @@ _Last updated 2026-04-29_
 
 - [ ] [remote_services] "Monitoring Apache" — Airflow dashboards, Spark dashboards, or both? Scopes Grafana build-out
 - [ ] [remote_services] Second Proxmox host specs (vCPU, RAM, storage) — sets VM allocation ceiling
-- [ ] [remote_services] Max concurrent Airflow task slots — drives scheduler RAM and CPU floor
 - [ ] [remote_services] Concurrent Jupyter users expected — drives driver memory reservation
 - [ ] [remote_services] Ingest batch window timing — validates job concurrency assumptions
 - [ ] [remote_services] Is exaBGP floating S3 IP routable from bastion host's network segment?
