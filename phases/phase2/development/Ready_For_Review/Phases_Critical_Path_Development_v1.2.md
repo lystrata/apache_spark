@@ -3,7 +3,7 @@
 
 # Phases Critical Path — fqdn Development Cluster
 
-_Version 1.2 · Last updated 2026-04-27_  
+_Version 1.2 · Last updated 2026-04-29_  
 _Phases 1–2 detailed plan from fqdn Phase 1 Report (Ksolves) — April 2026_  
 _Report Source: phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf_  
 _Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING BLOCKER.1 · Out-of-scope items flagged for vendor clarification_
@@ -532,10 +532,11 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 - **Status:** PENDING P0.7 NETWORK VERIFICATION (REMOTE INFRASTRUCTURE)
 - **Priority:** HIGH — Prerequisite for Airflow orchestration and Ansible automation
-- **Context:** Remote Airflow host coordinates ETL job submission to Spark cluster. Must run Airflow webserver/scheduler, Okta SSO integration, and Ansible control node. Ksolves specifies minimum 6c / 24GB RAM / 500GB SSD. Hosted on MSB-PMC01 cluster.
+- **Context:** Remote Airflow host coordinates ETL job submission to Spark cluster. Must run Airflow webserver/scheduler, Okta SSO integration, and Ansible control node. Spec: **6 vCPU / 24 GB RAM / 500 GB SSD**, RHEL 9.4. **Target node: `msb-pmc01-04`** — Intel Xeon Gold 6136 @ 3.00 GHz, 1 socket × 12 cores × 2 threads (24 logical CPUs), 130 GB RAM, single NUMA node, 6 Ceph OSDs. Cluster is fqdn-managed; Ksolves provisions services into it. See `phases/phase2/development/Document/MSB-PMC01_cluster_host_inventory.md` for full hardware inventory of all four nodes (msb-pmc01-01 through 04).
+- **Recommended Proxmox VM topology:** `sockets=1, cores=6`. Host is single-NUMA — no NUMA pinning required. 24 GB RAM ≈ 18% of host's 130 GB. 500 GB volume drawn from the `rbd_ssd` Ceph pool (visible in OSD tree as the dedicated SSD class).
 - **Dependency:** **P0.7 (Network Connectivity) must be completed and verified first** — MSB-PMC01 and MSB-PMC03 clusters must be on same network with confirmed firewall rules.
 - **Ksolves Actions:**
-  - [ ] After network connectivity verified (P0.7), provision remote server on MSB-PMC01: 6c / 24GB RAM / 500GB SSD, RHEL 9.4
+  - [ ] After network connectivity verified (P0.7), provision VM on `msb-pmc01-04`: `sockets=1, cores=6` / 24 GB RAM / 500 GB SSD (rbd_ssd pool), RHEL 9.4
   - [ ] Configure hostname: `airflow-prod-01` (or fqdn-assigned name)
   - [ ] Network setup: routable to all three MSB-PMC03 Spark nodes, to Snowflake, to cloud staging (Azure/AWS)
   - [ ] Install Okta SSO integration (requires OIDC client ID/secret from fqdn Okta tenant)
