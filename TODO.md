@@ -1,31 +1,40 @@
 #  Master TODO — All Contexts
-_Last updated 2026-04-29_
+_Last updated 2026-04-30_
 
 ---
 
 ## PHASE 1 — PRIORITY ITEMS
 
-### BLOCKING — Ksolves Remote Access (Phase 1A cleared 2026-04-29)
+### BLOCKING — Ksolves Remote Access (Phase 1A re-opened 2026-04-30)
 
-- [x] [Phase1] [correspondence] Establish Ksolves Webex desktop access for Phase 1A interim infrastructure provisioning **(closed 2026-04-29 — Ksolves connecting via Webex)**
-  - Phase 1A (interim): Shared Webex desktop with fqdn team oversight — **active**
+- [x] [Phase1] [correspondence] Establish Ksolves Webex desktop access for Phase 1A interim infrastructure provisioning **(closed 2026-04-29 — Ksolves connecting via Webex)** — **superseded; reopened 2026-04-30 due to Webex Linux/Windows remote-control limitation, see entry below**
+  - Phase 1A (interim): Shared Webex desktop with fqdn team oversight — **was active; now blocked**
   - Phase 1B (permanent): VMware Horizon VDI — still pending fqdn Cyber Security approval (tracked under Pending Tasks > Correspondence; non-blocking for Phase 1/2 work)
-  - See: phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.2.md § BLOCKER.1
+  - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § BLOCKER.1
 
-### BLOCKING — RHEL ISO Provisioning (Must Complete Before P0.1–P0.2 VM Creation)
+- [ ] [Phase1] [correspondence] **Phase 1A re-opened 2026-04-30** — Ksolves must provision Windows host (vendor-side, in India) to run Webex Desktop client with remote control enabled
+  - **Cause:** Webex's Linux desktop client does not support remote control of a Windows Webex share (verified by user — set up Linux Webex and confirmed remote-control unavailable). Ksolves is a Linux shop; fqdn shares from Windows. Without a Windows host on Ksolves' side, Phase 1A cannot proceed.
+  - **Vendor responsibility:** Ksolves provisions and maintains the Windows host on their side (in India)
+  - Vendor sub-tasks:
+    - [ ] Ksolves provisions Windows host capable of running Webex Desktop with remote-control support
+    - [ ] Ksolves installs and licenses Webex Desktop on the Windows host
+    - [ ] Joint connectivity test: Ksolves' Windows host → fqdn-shared Windows Webex session, with remote-control verified
+    - [ ] Ksolves notifies fqdn when Windows host is ready, so Phase 1A kickoff can be scheduled
+  - **Critical path impact:** All Phase 2 infrastructure provisioning is gated on this until vendor's Windows host is operational. Halt Period decision point (2026-05-04) may need re-evaluation depending on vendor turnaround.
+  - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § BLOCKER.1 (Hardware Prerequisite)
 
-- [ ] [Phase1] [correspondence] Confirm RHEL version: 9.4 (current assumption) vs. 9.7 (pending Ksolves Spark compatibility research)
-  - Awaiting Ksolves research on Apache Spark 3.5.3 compatibility with RHEL 9.7
-  - Current assumption: RHEL 9.4 (confirmed compatible)
-  - Decision required before ISO download and placement
+### RHEL ISO Provisioning (CLOSED 2026-04-30)
+
+- [x] [Phase1] [correspondence] Confirm RHEL version: 9.4 (current assumption) vs. 9.7 (pending Ksolves Spark compatibility research) **— resolved 2026-04-30: proceeding with RHEL 9.4 (vendor-requested); 9.7 ISO held on disk for future evaluation but not blocking**
+  - Decision: RHEL 9.4 committed for all Phase 1 VM provisioning
+  - 9.7 compatibility research with Ksolves is no longer on the critical path
   - See: phases/phase1/development/vendor_comms/phase1_vendor_questions.txt § RHEL Version Decision
 
-- [ ] [Phase1] [remote_services] Provision RHEL ISO to Proxmox local storage (user action — local provisioning after OSD setup)
-  - **Dependency:** Requires Ceph OSD configuration completion on all three nodes
-  - User downloads and uploads RHEL ISO to Proxmox local storage **after OSDs fully configured**
-  - Ksolves works remotely from India; user performs local ISO placement
-  - Timeline: Starts after OSD setup complete, must finish before P0.1 VM provisioning begins
-  - See: phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.2.md § BLOCKER.2
+- [x] [Phase1] [remote_services] Provision RHEL ISO to Proxmox local storage (user action) **— closed 2026-04-30: ISOs placed on all three dev-cluster nodes via local Directory storage at `/rpool/data/templates/iso/`; decoupled from P0.0 dependency**
+  - Resolution path: User added `/rpool/data` as Datacenter → Storage → Directory entry with ISO content type enabled; Proxmox auto-created `templates/iso/` subdirectory; ISOs moved there and visible in Create-VM wizard on all three nodes
+  - Versions placed: RHEL 9.4 (committed) + RHEL 9.7 (held)
+  - Original blocker (waiting for P0.0 / Ceph HEALTH_OK before placing ISOs) was bypassed by using node-local ZFS storage instead of Ceph-backed shared storage
+  - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § BLOCKER.2 (CLOSED)
 
 ### P0 — Critical Path (This Week)
 
@@ -34,7 +43,7 @@ _Last updated 2026-04-29_
   - Measure size distribution (breakdown by size ranges)
   - Test ZSTD compression ratio on representative samples
   - Share metrics with Ksolves before P0.1 VM provisioning
-  - See: phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.2.md § P0.0a
+  - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § P0.0a
 
 - [ ] [Phase1] [correspondence] Confirm cloud staging target — Azure Blob or AWS S3 — for Snowflake COPY INTO path
 - [ ] [Phase1] [correspondence] Confirm RHEL 9.4 subscriptions active on all Worker VMs and YARN RM VM
@@ -46,7 +55,7 @@ _Last updated 2026-04-29_
   - Concurrency drives: Celery worker count, broker (Redis/RabbitMQ) sizing, scheduler RAM/CPU floor
   - Baseline assumption today: 2 concurrent jobs (per `phases/phase1/development/deliverables/dev_cluster_phase1_model.html`)
   - User action: Confirm peak concurrency with stakeholders (number of DAGs × overlap window) and share with Ksolves before P1.0 begins
-  - See: phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.2.md § P1.0
+  - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § P1.0
 
 ### P1 — Phase 1 Support & Validation
 
@@ -56,10 +65,10 @@ _Last updated 2026-04-29_
 - [ ] [Phase1] [remote_services] Deploy Spark History Server on Node02 (1 vCPU / 4 GB VM — confirmed in Phase 1 report)
 - [ ] [Phase1] [remote_services] Deploy ZooKeeper ensemble for YARN RM automatic failover (**REQUIRED PREREQUISITE** — must complete before P1.2)
   - Per Apache Hadoop docs: ZooKeeper is a mandatory prerequisite for YARN RM HA
-  - See: phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.2.md § P1.3
+  - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § P1.3
 - [ ] [Phase1] [remote_services] Deploy YARN ResourceManager HA: active VM on Node01, standby VM on Node03 (vendor requirement)
   - **Depends on P1.3 (ZooKeeper) being operational first**
-  - See: phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.2.md § P1.2
+  - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § P1.2
 - [ ] [Phase1] [remote_services] Deploy Nginx reverse proxy on remote Airflow host for YARN RM HA stable endpoint
 - [ ] [Phase1] [remote_services] Deploy Ansible control node on remote Airflow host
 
@@ -67,18 +76,22 @@ _Last updated 2026-04-29_
 
 ## Waiting for Vendor Reply
 
-- [ ] [Phase1] RHEL version compatibility: Is Apache Spark 3.5.3 compatible with RHEL 9.7? (Ksolves researching)
-  - Current assumption: RHEL 9.4 (confirmed compatible)
-  - Under research: RHEL 9.7 (penultimate RHEL9 version)
-  - Impact: Determines which RHEL ISO to download and provision
+- [ ] [Phase1] RHEL version compatibility: Is Apache Spark 3.5.3 compatible with RHEL 9.7? (Ksolves researching) **— no longer blocking as of 2026-04-30; user committed to RHEL 9.4 for Phase 1**
+  - Decision: Proceeding with RHEL 9.4 (vendor-requested, confirmed compatible)
+  - 9.7 ISO is on disk at `/rpool/data/templates/iso/` for future use if Ksolves' compatibility research lands favorably
+  - Vendor reply still welcome but does not gate any Phase 1 work
   - See: phases/phase1/development/vendor_comms/phase1_vendor_questions.txt § RHEL Version Decision
+
+- [ ] [correspondence] [remote_services] [security] Awaiting Ksolves reply on network, firewall, and DNS access matrix for msb-pmc01 / msb-pmc02 / msb-pmc03 — vendor assumptions and scope (combined ACL matrix: network/firewall + switch VLAN + RGW S3 IAM; dev/prod isolation; Azure egress) — see correspondence/Document/Ksolves Network Firewall DNS Query.md
+  - Sent: 2026-04-30
+  - Held for separate follow-up after this reply: ExaBGP compatibility — does Ksolves' Spark/RGW client config support a single VIP with ExaBGP failover, or does it hardcode per-node RGW addresses?
 
 - [ ] [Phase1] [correspondence] Revisit YARN HA / ZooKeeper / Nginx decision with Ksolves — vendor appears to have changed their mind
   - 2026-04-27 vendor guidance: single YARN RM VM (no HA), no ZooKeeper, no nginx, manual recovery
   - Earlier guidance (Phase 1 report): active/standby YARN RM pair on Node01 + Node03 with ZooKeeper ensemble and nginx reverse proxy
   - User flagged the reversal as suspicious — confirm which posture is final before proceeding with P0.2 / P1.2 implementation
   - Knock-on effects: RHEL license count (4 vs 5), `dev_cluster_phase1_model.html` resource math, P1.3/P1.4 task scope
-  - See: phases/phase2/development/Ready_For_Review/Phases_Critical_Path_Development_v1.2.md § P0.2, P1.2 (and changelog at phases/phase2/development/Document/Phases_Critical_Path_Development_v1.1_changelog.md)
+  - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § P0.2, P1.2 (and changelog at phases/phase2/development/Document/Phases_Critical_Path_Development_v1.1_changelog.md)
 
 ---
 
