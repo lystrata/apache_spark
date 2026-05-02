@@ -365,7 +365,7 @@ All content sections use `<details class="section-details">` with `<summary clas
   </summary>
   <div class="section-body">
     <!-- content -->
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 ```
@@ -381,6 +381,59 @@ document.addEventListener('DOMContentLoaded', function() {
 ```
 
 Exception: reference documents may have one section open by default (e.g. Overview & Assumptions). Add its `id` to the exclusion condition: `if (d.id !== 'sec_overview') d.open = false;`
+
+### Global & Scoped Open/Close Controls
+
+Every HTML page that uses the section + sub-section pattern must include both:
+
+**Page-level (global) controls** — two buttons in the page header alongside the theme toggle: `▾ Expand all` and `▴ Collapse all`. They toggle every `<details class="section-details">` only — sub-sections inside are not touched, so any sub-section state the user has set is preserved when sections are reopened.
+
+**Section-level (scoped) controls** — within each main section that contains sub-sections, a two-link strip at the top of the `section-body`, above the first sub-section: `▾ Open all sub-sections · ▴ Close all`. Each strip operates only on `details.sub-details` within its parent main section — it never cascades to sibling sections. Sections that contain only cards (no `sub-details`) — like a pure Overview section — omit the scoped strip.
+
+Required JS (one copy per file):
+
+```js
+function expandAllSections()   { document.querySelectorAll('details.section-details').forEach(function(d) { d.open = true;  }); }
+function collapseAllSections() { document.querySelectorAll('details.section-details').forEach(function(d) { d.open = false; }); }
+function expandSubs(el) {
+  var s = el.closest('details.section-details');
+  if (s) s.querySelectorAll('details.sub-details').forEach(function(d) { d.open = true; });
+}
+function collapseSubs(el) {
+  var s = el.closest('details.section-details');
+  if (s) s.querySelectorAll('details.sub-details').forEach(function(d) { d.open = false; });
+}
+```
+
+Page-header HTML (replace the single theme-button with a wrapper):
+
+```html
+<div class="page-header-buttons">
+  <button class="btn-theme" id="btn_theme" onclick="toggleTheme()">&#9728; Light</button>
+  <button class="btn-theme" onclick="expandAllSections()">&#9662; Expand all</button>
+  <button class="btn-theme" onclick="collapseAllSections()">&#9652; Collapse all</button>
+</div>
+```
+
+Scoped strip HTML (immediately inside each main section's `section-body`, above the first `<details class="sub-details">`):
+
+```html
+<div class="sub-controls">
+  <a onclick="expandSubs(this)">&#9662; Open all sub-sections</a>
+  <span class="dot">&middot;</span>
+  <a onclick="collapseSubs(this)">&#9652; Close all</a>
+</div>
+```
+
+Required CSS:
+
+```css
+.page-header-buttons { display: flex; flex-direction: column; gap: 6px; align-items: stretch; flex-shrink: 0; }
+.sub-controls { font-size: 0.74rem; color: var(--muted); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border2); }
+.sub-controls a { color: var(--muted); cursor: pointer; }
+.sub-controls a:hover { color: var(--accent); text-decoration: underline; }
+.sub-controls .dot { margin: 0 8px; color: var(--label2); }
+```
 
 ### Theme Toggle
 
@@ -411,7 +464,7 @@ The `applyTheme()` call must run immediately (not inside DOMContentLoaded) to pr
 
 ### Sub-Section Pattern (within a section)
 
-When a section has multiple named sub-topics, convert them to nested collapsibles using `sub-details`. Sub-sections default closed (the parent `DOMContentLoaded` handler closes `details.section-details` only; sub-details are closed by the browser's default since they have no `open` attribute). The close link uses `closeSub()` to scroll the summary back into view after close.
+When a section has multiple named sub-topics, convert them to nested collapsibles using `sub-details`. Sub-sections default closed (the parent `DOMContentLoaded` handler closes `details.section-details` only; sub-details are closed by the browser's default since they have no `open` attribute). The close link uses `closeSub()` to collapse the `<details>` while keeping the user's eye stable: it captures the click's viewport Y, closes, then scrolls so the now-collapsed summary lands at the same viewport position the close link occupied. This compensates for the document-shrink jump that browsers don't always anchor away — important for `file://` distribution and deeply nested collapses. The same `closeSub()` is used for **both** sub-section close and main-section close — replace any inline `<a onclick="closeSub(this)">` with `<a onclick="closeSub(this)">`.
 
 ```html
 <details class="sub-details">
@@ -429,9 +482,15 @@ When a section has multiple named sub-topics, convert them to nested collapsible
 Required JS (add to script block):
 ```js
 function closeSub(el) {
+  // Position-preserving close — keeps user's eye stable when document shrinks
+  var clickY = el.getBoundingClientRect().top;
   var d = el.closest('details');
   d.open = false;
-  setTimeout(function() { d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+  var summary = d.querySelector(':scope > summary');
+  if (summary) {
+    var summaryY = summary.getBoundingClientRect().top;
+    if (summaryY < clickY) window.scrollBy(0, summaryY - clickY);
+  }
 }
 ```
 

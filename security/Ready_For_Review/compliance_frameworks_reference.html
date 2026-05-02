@@ -160,7 +160,7 @@ li { margin-bottom:2px; }
         <strong>Note:</strong> Control IDs and criteria numbers in this document are cited for reference only. Always verify against the current published version of each framework before formal mapping.
       </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -250,7 +250,7 @@ li { margin-bottom:2px; }
         </ol>
       </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -345,7 +345,7 @@ li { margin-bottom:2px; }
         </ol>
       </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -446,7 +446,7 @@ li { margin-bottom:2px; }
         </ol>
       </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -534,7 +534,7 @@ li { margin-bottom:2px; }
         </ol>
       </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -552,7 +552,7 @@ li { margin-bottom:2px; }
           <tr><td>2026-04-21</td><td>Initial version — CIS v8/v8.1, NIST SP 800-53 Rev 5 Update 1, SOC 2 Trust Services Criteria (2017, 2022 revised); authentication-relevant controls mapped to this infrastructure; comparison table and recommendation. Section-level citations added with verified URLs.</td></tr>
         </tbody>
       </table>
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -565,9 +565,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function closeSub(el) {
+  // Position-preserving close — keeps user's eye stable when document shrinks
+  var clickY = el.getBoundingClientRect().top;
   var d = el.closest('details');
   d.open = false;
-  setTimeout(function() { d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+  var summary = d.querySelector(':scope > summary');
+  if (summary) {
+    var summaryY = summary.getBoundingClientRect().top;
+    if (summaryY < clickY) window.scrollBy(0, summaryY - clickY);
+  }
 }
 
 var _jumpedTo = null;

@@ -517,7 +517,7 @@
       (range 128–384 GB, step 32 GB, default 384 GB). The physical maximum of 384 GB corresponds to 12 populated DIMMs × 32 GB.
       This design allows modelling a partially-populated node without editing the source.
     </div>
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -675,7 +675,7 @@
         </tbody>
       </table>
     </div>
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -1126,7 +1126,7 @@
         <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
       </div>
     </details>
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -1301,7 +1301,7 @@
         </tbody>
       </table>
     </div>
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -1560,7 +1560,7 @@
         </tbody>
       </table>
     </div>
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -1733,7 +1733,7 @@
         </tbody>
       </table>
     </div>
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -1876,7 +1876,7 @@
       </ul>
     </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -1989,7 +1989,7 @@
         <p style="font-size:12px;color:var(--muted);margin-top:12px;">New UI input: <code>n_parquet</code> slider (range 1–5, default 2). Warning language updated: "Snowflake flush schedule" → "outbound batch transfer pipeline".</p>
       </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -2006,9 +2006,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 var _jumpedTo = null;
 function closeSub(el) {
+  // Position-preserving close — keeps user's eye stable when document shrinks
+  var clickY = el.getBoundingClientRect().top;
   var d = el.closest('details');
   d.open = false;
-  setTimeout(function() { d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+  var summary = d.querySelector(':scope > summary');
+  if (summary) {
+    var summaryY = summary.getBoundingClientRect().top;
+    if (summaryY < clickY) window.scrollBy(0, summaryY - clickY);
+  }
 }
 function jumpTo(hash, sectionId) {
   _jumpedTo = {hash: hash, sectionId: sectionId};

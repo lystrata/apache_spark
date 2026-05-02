@@ -1,5 +1,5 @@
 #  Master TODO — All Contexts
-_Last updated 2026-04-30_
+_Last updated 2026-05-01_
 
 ---
 
@@ -22,6 +22,11 @@ _Last updated 2026-04-30_
     - [ ] Ksolves notifies fqdn when Windows host is ready, so Phase 1A kickoff can be scheduled
   - **Critical path impact:** All Phase 2 infrastructure provisioning is gated on this until vendor's Windows host is operational. Halt Period decision point (2026-05-04) may need re-evaluation depending on vendor turnaround.
   - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § BLOCKER.1 (Hardware Prerequisite)
+
+### Security — Credential Rotation (URGENT, 2026-05-01)
+
+- [ ] [Phase1] [security] **🚨 Rotate exposed iLO administrator credentials** — the iLO admin password used by Ksolves on `msb-pmc03-01-ilo` (10.1.32.64) appears in plain text inside the vendor's bash history. Rotate the iLO password on all three msb-pmc03 nodes; if the same credential is reused for any corporate-AD account, rotate that as well; scrub `~/.bash_history` on each node (and any vendor workstation copies); coordinate with corporate IT.
+  - Source: `phases/phase2/development/Incoming/ksolves_node1_commands.txt` (occurrences at lines 82–87, 121, 138–142, 168–172)
 
 ### RHEL ISO Provisioning (CLOSED 2026-04-30)
 
@@ -146,6 +151,19 @@ _(All configuration items completed - see Completed section)_
 - [ ] [security] Review and promote security/Ready_For_Review/compliance_frameworks_reference.html → security/Document/
 - [ ] [security] Define document categories within authentication scope
 - [ ] [security] Decide on-site revision control approach (deferred)
+
+---
+
+## Follow-Ups (from Ksolves msb-pmc03-01 baseline review, 2026-05-01)
+
+- [ ] [Phase1] [security] **Follow-Up:** Verify the `Ksolves-Admins` PVE group ACL was actually downgraded along with the per-user ACLs. The vendor's command history shows the group was granted `Administrator` role at `/`, then `prashant@pam` was set to `PVEAuditor` and `karthik@pam` to `PVEUser` via direct user ACLs — but the group-level grant was not visibly revoked. Run `pveum acl list | grep -i Ksolves-Admins`; if the Administrator entry is still present, remove it (`pveum acl delete / --group Ksolves-Admins --role Administrator`).
+  - Source: `phases/phase2/development/Incoming/ksolves_node1_commands.txt` (lines 196–308 group/role setup; lines 385–388 per-user downgrade)
+
+- [ ] [Phase1] [remote_services] **Follow-Up (network team):** msb-pmc03-01 bond0 is degraded — `nic1` is DOWN with LACP `churned` state, no LACP partner. Bond is currently 25 Gbps not 50. User has noted this will be resolved when new cables are run. Schedule with the network team; re-verify with `cat /proc/net/bonding/bond0` once cabling is in place; confirm `-02` and `-03` are similarly cabled (their baseline runs are scheduled today and will reveal their state).
+  - Source: `phases/phase2/development/Incoming/ksolves_session_capture.txt` (lines 84–92 ip link, 235–312 bond status)
+
+- [ ] [Phase1] [calculators] **Follow-Up:** Confirm the underlying media class for the 7× 3.5 TiB data drives on each msb-pmc03 node. `nvme list` returned empty on `-01`, and the HPE Smart Array presents all data drives as `LOGICAL VOLUME` (single-disk RAID0 LVs — Smart Array does not support JBOD/passthrough, so individual LVs is the only path to meet the Proxmox JBOD requirement). The CLAUDE.md hardware reference states "7× 3.84 TB NVMe per node"; verify whether the underlying media is actually NVMe or SAS/SATA, and update CLAUDE.md plus `calculators/Document/dev-cluster-storage-reference.html` if the spec was wrong. Throughput math may need revising if SAS.
+  - Source: `phases/phase2/development/Incoming/ksolves_session_capture.txt` (lines 16–58 lsblk + nvme list)
 
 ---
 

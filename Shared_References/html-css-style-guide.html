@@ -325,7 +325,7 @@ details.sub-details[open] > .sub-summary::before { transform: rotate(90deg); }
       <p>All new and refactored files go to <code>Ready_For_Review/</code> first. After user approval, copy to <code>Document/</code> and delete from staging. Update <code>calculators/Document/index.html</code> when promoting any new file to <code>Document/</code>.</p>
     </div>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -408,7 +408,7 @@ details.sub-details[open] > .sub-summary::before { transform: rotate(90deg); }
       </ul>
     </div>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -441,7 +441,7 @@ details.sub-details[open] > .sub-summary::before { transform: rotate(90deg); }
   &lt;div class="section-body"&gt;
     &lt;!-- cards go here --&gt;
     &lt;div class="section-close"&gt;
-      &lt;a onclick="this.closest('details').open=false"&gt;&amp;#x25B2; Close section&lt;/a&gt;
+      &lt;a onclick="closeSub(this)"&gt;&amp;#x25B2; Close section&lt;/a&gt;
     &lt;/div&gt;
   &lt;/div&gt;
 &lt;/details&gt;</div>
@@ -473,11 +473,15 @@ document.addEventListener('DOMContentLoaded', function() {
   &lt;/div&gt;
 &lt;/details&gt;</div>
         <div class="sg-code">function closeSub(el) {
+  // Position-preserving close — keeps user's eye stable when document shrinks
+  var clickY = el.getBoundingClientRect().top;
   var d = el.closest('details');
   d.open = false;
-  setTimeout(function() {
-    d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'});
-  }, 30);
+  var summary = d.querySelector(':scope > summary');
+  if (summary) {
+    var summaryY = summary.getBoundingClientRect().top;
+    if (summaryY < clickY) window.scrollBy(0, summaryY - clickY);
+  }
 }</div>
         <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
       </div>
@@ -627,7 +631,7 @@ function renderSparkConf(ec, em, eo, dc, te) {
       </div>
     </details>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -826,7 +830,7 @@ function setHTML(id, v) { var e = el(id); if (e) e.innerHTML = v; }</div>
       </div>
     </details>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -912,7 +916,7 @@ SCRATCH_PER_VM = (NVME_COUNT - OSD_NODE) / VMS_NODE * NVME_TB</div>
       <p style="font-size:0.82rem; color:var(--label); margin-top:6px;">Max <strong>32 vCPUs per VM</strong> with NUMA pinning enabled. One NUMA domain = one CPU socket = 32 cores on production hardware. Exceeding this causes NUMA boundary crossed error.</p>
     </div>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -950,7 +954,7 @@ SCRATCH_PER_VM = (NVME_COUNT - OSD_NODE) / VMS_NODE * NVME_TB</div>
       <p style="font-size:0.82rem; color:var(--label); margin-top:6px;">All new calculator and reference HTML files must include the light/dark theme toggle. Use <code>data-theme="dark"</code> on <code>&lt;html&gt;</code> as default. Use the warm amber palette for light mode (defined in Section B). Use a unique <code>localStorage</code> key per file (<code>spark_theme_&lt;context&gt;</code>).</p>
     </div>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -960,11 +964,15 @@ SCRATCH_PER_VM = (NVME_COUNT - OSD_NODE) / VMS_NODE * NVME_TB</div>
 function el(id) { return document.getElementById(id); }
 
 function closeSub(el) {
+  // Position-preserving close — keeps user's eye stable when document shrinks
+  var clickY = el.getBoundingClientRect().top;
   var d = el.closest('details');
   d.open = false;
-  setTimeout(function() {
-    d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'});
-  }, 30);
+  var summary = d.querySelector(':scope > summary');
+  if (summary) {
+    var summaryY = summary.getBoundingClientRect().top;
+    if (summaryY < clickY) window.scrollBy(0, summaryY - clickY);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function() {

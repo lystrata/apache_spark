@@ -154,7 +154,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
         <li><strong>Up to 2 jobs&rsquo; worth of Parquet output may coexist on local Ceph.</strong> If a new ingest job completes before the prior job&rsquo;s batch transfer is confirmed, both Parquet sets are present simultaneously. The Ceph capacity sizing in Section C is based on this worst-case assumption.</li>
       </ol>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -193,7 +193,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
       <h3>Network Interface</h3>
       <p>Each node carries a <strong>Broadcom BCM57414 dual-port SFP28 OCP3 adapter</strong>. Ports are capable of 10G or 25G depending on installed SFP modules. Current installation: 10G SFPs. RoCE v2 is supported at the NIC level but requires SR-IOV or PCIe passthrough to be accessible from Proxmox VMs &mdash; not currently configured.</p>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -228,7 +228,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
 
       <p>A single OSD per node provides <strong>3.84 TB usable</strong> &mdash; insufficient at every ingest size even for a single job, and well short of the 7.0 TB N=2 peak at 5 TB ingest. <strong>2 OSD/node is the minimum.</strong> VM OS disk consumption and the final OSD verdict including headroom analysis are in <a href="#osd-verdict" onclick="jumpTo('osd-verdict','sec_c')">Section C &mdash; OSD Configuration Verdict</a>.</p>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -312,7 +312,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
 
       <p><strong>2 OSD/node is confirmed sufficient</strong> for the full 4&ndash;5 TB ingest range at worst-case concurrent Parquet accumulation (2 jobs). However, headroom at the 5 TB ceiling is <strong>+0.44 TB</strong> &mdash; tight. Any unplanned growth in Parquet output size, VM disk allocation, or batch transfer delay beyond the 2-job assumption would exhaust this margin. 3 OSD/node would restore comfortable headroom (+4.28 TB at 5 TB peak) but reduces available scratch drives from 5 to 4 per node, requiring re-evaluation of scratch adequacy in Section D.</p>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -360,7 +360,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
         for how scratch adequacy combines with Ceph capacity and resiliency to determine the recommended configuration.
       </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -435,7 +435,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
       </table>
       </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -482,7 +482,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
         <strong>JBOD trade-off acknowledged:</strong> Config F provides no scratch drive fault tolerance. A failed NVMe scratch drive during a job causes that job to fail; the job must be resubmitted once the drive is replaced and XFS is reformatted. This is the accepted trade-off for the development cluster, where recompute tolerance is high and maximum scratch headroom is the priority.
       </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -747,7 +747,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
         <li>[7] C. Lettieri, &ldquo;Shuffling in Spark,&rdquo; <em>Medium</em>, 2024. [<code>Incoming/Shuffling in Spark_...pdf</code>]</li>
         <li>[8] A.C. Jadhav, &ldquo;Data Formats and Compression in Data Engineering,&rdquo; <em>LinkedIn Pulse</em>, 2025. [<code>Incoming/linkedin.com-8 Data Formats...pdf</code>]</li>
       </ul>
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -863,7 +863,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
         <p style="font-size:12px;color:var(--muted);margin-top:10px;">Section A RAID Controller section updated to note JBOD/XFS. Section D scratch table recommended-row moved to JBOD/XFS. Section E analysis inputs and both configuration matrices updated. Section F recommendation and spec table replaced with Config F. Section G ceiling analysis updated to 19.2 TB / 5.76&times; baseline; +1 NVMe expansion recalculated as 23.04 TB / 6.90&times;.</p>
       </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -882,9 +882,15 @@ document.addEventListener('DOMContentLoaded', function() {
   }, 0);
 });
 function closeSub(el) {
+  // Position-preserving close — keeps user's eye stable when document shrinks
+  var clickY = el.getBoundingClientRect().top;
   var d = el.closest('details');
   d.open = false;
-  setTimeout(function() { d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+  var summary = d.querySelector(':scope > summary');
+  if (summary) {
+    var summaryY = summary.getBoundingClientRect().top;
+    if (summaryY < clickY) window.scrollBy(0, summaryY - clickY);
+  }
 }
 var _jumpedTo = null;
 function jumpTo(hash, sectionId) {

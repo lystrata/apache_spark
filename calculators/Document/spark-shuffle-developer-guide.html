@@ -149,7 +149,7 @@
     pre-compressed input data, and you cannot observe it without measuring your specific
     workload.</p>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -223,7 +223,7 @@
     regime that motivated Magnet. The small-block IOPS problem is not applicable here.
     Scratch exhaustion — not IOPS — is the operational risk.</p>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -332,7 +332,7 @@ Ceiling:            shuffle_amp_max         = (scratch_per_node × nodes) / (dai
     files.<sup>[6]</sup> This is additive on top of baseline compression and is recommended
     in spark-defaults.conf. See Section D for the full parameter table.</p>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -547,7 +547,7 @@ large_df.repartition(200, "account_id").write.parquet("s3a://bucket/output/")</p
       </div>
     </details>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -688,7 +688,7 @@ spark.reducer.maxSizeInFlight               96m
 spark.sql.adaptive.enabled                  true
 spark.sql.adaptive.skewJoin.enabled         true</pre>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -796,7 +796,7 @@ print(f"Headroom:                   {'OK' if scratch_node &lt; ceiling else 'EXC
     submitting. The most common fix is replacing <code>groupByKey</code> with
     <code>reduceByKey</code> or adding a broadcast hint to the smaller join side.</p>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -846,7 +846,7 @@ print(f"Headroom:                   {'OK' if scratch_node &lt; ceiling else 'EXC
       [archived: <code>Incoming/spark.apache.org-Performance Tuning.pdf</code>]</li>
     </ol>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -858,11 +858,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function closeSub(el) {
+  // Position-preserving close — keeps user's eye stable when document shrinks
+  var clickY = el.getBoundingClientRect().top;
   var d = el.closest('details');
   d.open = false;
-  setTimeout(function() {
-    d.querySelector('summary').scrollIntoView({behavior: 'smooth', block: 'start'});
-  }, 30);
+  var summary = d.querySelector(':scope > summary');
+  if (summary) {
+    var summaryY = summary.getBoundingClientRect().top;
+    if (summaryY < clickY) window.scrollBy(0, summaryY - clickY);
+  }
 }
 
 var _jumpedTo = null;

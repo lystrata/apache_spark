@@ -264,7 +264,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
       </ul>
     </div>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -293,7 +293,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
       <p class="muted" style="margin-top:10px;"><strong>Completed Timeline:</strong> Apr 13–24, 2026 (12 days from project start to planning completion)</p>
     </div>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -385,7 +385,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
 
     <div class="task-warn"><strong>Critical Path Note:</strong> Phase 1A is now gated on vendor's Windows host provisioning. Phase 1B remains non-blocking; both can progress in parallel once Phase 1A is unblocked.</div>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -436,7 +436,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
 
     <p class="muted"><strong>Downstream impact:</strong> P0.1 and P0.2 VM creation no longer gated on this blocker; only BLOCKER.1 (Ksolves remote access, including the new vendor Windows-host hardware prerequisite) remains.</p>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -1283,7 +1283,7 @@ spark.sql.parquet.compression.codec=zstd</pre>
       </div>
     </details>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -1312,7 +1312,7 @@ spark.sql.parquet.compression.codec=zstd</pre>
     <div class="cb-row"><input type="checkbox" id="cb_cps_10" data-track><span class="cb-text">P2.2–P2.3: Ksolves deploys Airflow and validates end-to-end pipeline (Snowflake side is fqdn responsibility)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_11" data-track><span class="cb-text">Phase 2 sign-off: fqdn approves for production if all P0–P2 items pass</span></div>
     <p class="muted" style="margin-top:10px;"><strong>Beyond Phase 2:</strong> Pending Ksolves clarification — see "Actions Outside Present Known Scope" section.</p>
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -1352,7 +1352,7 @@ spark.sql.parquet.compression.codec=zstd</pre>
       <div class="cb-row" style="margin-top:6px;"><input type="checkbox" id="cb_oos_2_1" data-track data-md-only><span class="cb-text">Confirm with Ksolves whether this is included in Phase 2 scope or separate engagement</span></div>
     </div>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -1401,7 +1401,7 @@ spark.sql.parquet.compression.codec=zstd</pre>
       </ul>
     </div>
 
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -1429,7 +1429,7 @@ spark.sql.parquet.compression.codec=zstd</pre>
         <tr><td>Architecture Diagram</td><td><code>phases/phase2/development/Document/EDS_DataFlow_architecture_diagram_updated.png</code></td></tr>
       </tbody>
     </table>
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -1443,7 +1443,7 @@ spark.sql.parquet.compression.codec=zstd</pre>
   </summary>
   <div class="section-body">
     <p class="fn" id="fn-1"><span class="fn-num">1.</span> Apache Software Foundation, "Running Spark on YARN," in <em>Apache Spark Documentation</em>, accessed April 25, 2026, <a href="https://spark.apache.org/docs/latest/running-on-yarn.html">https://spark.apache.org/docs/latest/running-on-yarn.html</a>. The documentation establishes the prerequisite installation order for Spark on YARN: (1) Java/JDK with <code>JAVA_HOME</code> set, (2) Hadoop/YARN cluster operational with ResourceManager running, (3) <code>HADOOP_CONF_DIR</code> or <code>YARN_CONF_DIR</code> pointing to client-side Hadoop configuration, (4) Spark binary distribution built with YARN support. Java compatibility note: "Apache Hadoop 3.4.1 does not support Java 17, but Spark 4.0.0+ requires Java 17+" — for Spark 3.5.3 + Hadoop 3.4.1, Java 11 is the recommended common version. Confirmed with secondary sources: Cloudera/Hortonworks HDP documentation, "Spark Prerequisites," accessed April 25, 2026, <a href="https://docs-archive.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/installing-spark/content/installing_spark.html">https://docs-archive.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/installing-spark/content/installing_spark.html</a>, which states "HDFS and YARN deployed on the cluster" as Spark prerequisites.</p>
-    <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
@@ -1473,9 +1473,21 @@ function setSubsections(sectionId, open) {
   sec.querySelectorAll('details').forEach(function(d) { d.open = open; });
 }
 function closeSub(el) {
+  /* Position-preserving close.
+     Captures the click element's viewport Y, closes the nearest <details>,
+     then scrolls so that the now-collapsed summary lands at the same viewport Y
+     where the user clicked. Compensates for the document shrink that happens
+     when a tall section/sub-section/task collapses — keeps the user's eye stable
+     even when the browser's native scroll-anchoring fails (e.g., file:// URLs,
+     deeply nested collapses). */
+  var clickY = el.getBoundingClientRect().top;
   var d = el.closest('details');
   d.open = false;
-  setTimeout(function() { d.querySelector('summary').scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+  var summary = d.querySelector(':scope > summary');
+  if (summary) {
+    var summaryY = summary.getBoundingClientRect().top;
+    if (summaryY < clickY) window.scrollBy(0, summaryY - clickY);
+  }
 }
 
 /* ── Cross-section jump ───────────────────────────────────────────── */
