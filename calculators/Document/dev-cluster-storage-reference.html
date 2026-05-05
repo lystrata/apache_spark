@@ -755,7 +755,7 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
   <details class="section-details" id="sec_revisions">
     <summary class="section-summary">
       <span class="section-title">Revisions</span>
-      <span class="section-sub">&middot; Document change history &middot; 2026-04-17 through 2026-04-21</span>
+      <span class="section-sub">&middot; Document change history &middot; 2026-04-17 through 2026-05-05</span>
       <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
     </summary>
     <div class="section-body">
@@ -861,6 +861,22 @@ code { font-family:var(--mono); font-size:12px; background:var(--bg3); padding:2
           </tbody>
         </table>
         <p style="font-size:12px;color:var(--muted);margin-top:10px;">Section A RAID Controller section updated to note JBOD/XFS. Section D scratch table recommended-row moved to JBOD/XFS. Section E analysis inputs and both configuration matrices updated. Section F recommendation and spec table replaced with Config F. Section G ceiling analysis updated to 19.2 TB / 5.76&times; baseline; +1 NVMe expansion recalculated as 23.04 TB / 6.90&times;.</p>
+      </div>
+
+      <h3>2026-05-05 — Vendor XFS commands captured (Ksolves Spark/YARN Config v1.0 § 3.3)</h3>
+      <div class="card">
+        <div class="card-title">Vendor-blessed mkfs.xfs / mount options for the four NVMe scratch drives</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">Ksolves' configuration document § 3.3 specifies the literal commands the vendor will run during cluster provisioning to format and mount the four scratch NVMes (Config F) on each worker VM. Captured here so fqdn can verify post-install and reproduce in case of node rebuild.</p>
+        <table>
+          <thead><tr><th>Step</th><th>Command / option</th></tr></thead>
+          <tbody>
+            <tr><td>Format (per drive, drives 3&ndash;6)</td><td><code>mkfs.xfs -f -d su=256k,sw=1 /dev/nvme[3-6]n1</code></td></tr>
+            <tr><td>Mount options</td><td><code>defaults,noatime,nodiratime,discard,allocsize=64m</code></td></tr>
+            <tr><td>Mount points</td><td><code>/mnt/nvme1</code> &hellip; <code>/mnt/nvme4</code> (used by <code>yarn.nodemanager.local-dirs</code> for shuffle/spill)</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;">The <code>su=256k,sw=1</code> stripe geometry matches single-drive JBOD; <code>noatime,nodiratime</code> remove access-time writes that would otherwise compete with shuffle IO; <code>discard</code> issues TRIM continuously to keep NVMe wear-leveling healthy; <code>allocsize=64m</code> reduces fragmentation under bursty Spark spill writes.</p>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">Source: <code>phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf</code> § 3.3.</p>
       </div>
 
       <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>

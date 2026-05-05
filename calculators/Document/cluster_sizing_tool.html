@@ -43,6 +43,9 @@
   .hw-item:last-child { border-right: none; }
   .hw-label { font-size: 9px; font-family: var(--mono); color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
   .hw-val { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--accent2); }
+  .hw-val.ok   { color: var(--green); }
+  .hw-val.warn { color: var(--yellow); }
+  .hw-val.bad  { color: var(--red); }
   .hw-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
 
   /* ── Cards ───────────────────────────────────────────────────────────────── */
@@ -84,6 +87,33 @@
   select.ctrl-select { flex: 1; background: var(--bg4); color: var(--text); border: 1px solid var(--border2);
                        border-radius: 6px; padding: 6px 10px; font-family: var(--mono); font-size: 12px;
                        cursor: pointer; outline: none; }
+
+  /* ── Reservation blocks (Section B) ──────────────────────────────────────── */
+  .rsv-block { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .rsv-block:last-child { border-bottom: none; }
+  .rsv-block.disabled .rsv-block-body { opacity: 0.35; pointer-events: none; }
+  .rsv-block-row1 { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .rsv-block-row1 input[type=checkbox] { accent-color: var(--accent); cursor: pointer; transform: scale(1.25); flex-shrink: 0; }
+  .rsv-name { flex: 0 0 auto; font-size: 13px; min-width: 200px; }
+  .rsv-name strong { display: block; color: var(--text); }
+  .rsv-name small { font-size: 10px; color: var(--muted); }
+  .rsv-count-wrap { display: flex; align-items: center; gap: 8px; min-width: 220px; flex: 1; max-width: 360px; }
+  .rsv-count-wrap label { font-size: 10px; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; }
+  .rsv-count-wrap input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; min-width: 80px; }
+  .rsv-block-body { display: grid; grid-template-columns: 50px 1fr 60px 50px 1fr 70px; gap: 10px; align-items: center; padding-left: 30px; }
+  .rsv-mini { font-size: 10px; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; }
+  .rsv-block input[type=range] { accent-color: var(--accent); cursor: pointer; flex: none; width: 100%; }
+  .rsv-val { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--accent2); text-align: right; min-width: 50px; }
+
+  .rsv-summary { display: flex; flex-wrap: wrap; gap: 24px; padding: 14px 0 4px; margin-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+  .rsv-summary-item { display: flex; gap: 6px; }
+  .rsv-summary-item label { color: var(--muted); }
+  .rsv-summary-item .v { color: var(--text); font-family: var(--mono); font-weight: 600; }
+  .rsv-summary-item.warn .v { color: var(--yellow); }
+  .rsv-summary-item.bad  .v { color: var(--red); }
+
+  .rsv-card-note { font-size: 11px; color: var(--muted); margin-top: 10px; padding: 8px 12px; background: var(--bg3); border-left: 2px solid var(--accent); border-radius: 3px; line-height: 1.6; }
+  .rsv-card-note strong { color: var(--text); }
 
   /* ── Metrics grid ────────────────────────────────────────────────────────── */
   .metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
@@ -142,6 +172,8 @@
     .ctrl-label { flex: 0 0 180px; }
     .ceiling-hero { flex-direction: column; gap: 12px; }
     .section-sub { display: none; }
+    .rsv-block-body { grid-template-columns: 40px 1fr 60px; gap: 8px; }
+    .rsv-block-body .rsv-mini-2, .rsv-block-body .rsv-r-slider, .rsv-block-body .rsv-r-val { grid-column: span 1; }
   }
 </style>
 </head>
@@ -165,6 +197,8 @@
     <div class="hw-item"><div class="hw-label">Nodes</div><div class="hw-val" id="strip_nodes">3</div></div>
     <div class="hw-item"><div class="hw-label">Total Cores</div><div class="hw-val" id="strip_cores">96</div></div>
     <div class="hw-item"><div class="hw-label">Total RAM</div><div class="hw-val" id="strip_ram">1.1 TB</div></div>
+    <div class="hw-item"><div class="hw-label">Reserved / Node</div><div class="hw-val" id="strip_reserved">— c · — GB</div><div class="hw-sub" id="strip_reserved_sub">incl. averaged singletons</div></div>
+    <div class="hw-item"><div class="hw-label">Available / Node</div><div class="hw-val ok" id="strip_avail">— c · — GB</div><div class="hw-sub">for VM allocation</div></div>
     <div class="hw-item"><div class="hw-label">Scratch / Node</div><div class="hw-val" id="strip_scratch">19.2 TB</div><div class="hw-sub" id="strip_scratch_sub">HW RAID-5 · 5 drives</div></div>
     <div class="hw-item"><div class="hw-label">Ceph Usable</div><div class="hw-val" id="strip_ceph">7.68 TB</div><div class="hw-sub">rep 2 · 2 OSD/node</div></div>
     <div class="hw-item"><div class="hw-label">Shuffle Ceiling</div><div class="hw-val ok" id="strip_ceiling">—</div><div class="hw-sub" id="strip_ceiling_sub">@ configured ingest</div></div>
@@ -192,8 +226,8 @@
         </div>
         <div class="control-row">
           <div class="ctrl-label"><strong>RAM / node (GB)</strong><br><span style="font-size:10px">physical RAM per node</span></div>
-          <input type="range" id="ram_node" min="64" max="1024" step="32" value="384" oninput="recalc()">
-          <div class="ctrl-val" id="ram_node_val">384 GB</div>
+          <input type="range" id="ram_node" min="64" max="1024" step="32" value="320" oninput="recalc()">
+          <div class="ctrl-val" id="ram_node_val">320 GB</div>
         </div>
       </div>
 
@@ -234,14 +268,279 @@
         </div>
       </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
-  <!-- ══ Section B: Workload Parameters ════════════════════════════════════ -->
+  <!-- ══ Section B: Infrastructure Reservations (NEW) ═══════════════════════ -->
   <details class="section-details" id="sec_b">
     <summary class="section-summary">
       <span class="section-letter">B</span>
+      <span class="section-title">Infrastructure Reservations</span>
+      <span class="section-sub">· Per-node fixed · Cluster singletons · Remote host services</span>
+    </summary>
+    <div class="section-body">
+
+      <!-- ── Card B.1 — Per-Node Fixed Services ─────────────────────────────── -->
+      <div class="card">
+        <div class="card-title">B.1 Per-Node Fixed Services (uniform · all nodes)</div>
+
+        <div class="rsv-block">
+          <div class="rsv-block-row1">
+            <div class="rsv-name"><strong>Proxmox VE</strong><small>hypervisor overhead</small></div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="rsv_prox_c" min="0" max="8" step="0.5" value="2" oninput="recalc()">
+            <span class="rsv-val" id="rsv_prox_c_val">2 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="rsv_prox_r" min="0" max="32" step="1" value="8" oninput="recalc()">
+            <span class="rsv-val" id="rsv_prox_r_val">8 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-block">
+          <div class="rsv-block-row1">
+            <div class="rsv-name"><strong>ZFS ARC</strong><small><code>zfs_arc_max</code> kernel cache</small></div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="rsv_zfs_c" min="0" max="2" step="0.5" value="0" oninput="recalc()">
+            <span class="rsv-val" id="rsv_zfs_c_val">0 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="rsv_zfs_r" min="0" max="32" step="1" value="8" oninput="recalc()">
+            <span class="rsv-val" id="rsv_zfs_r_val">8 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-block">
+          <div class="rsv-block-row1">
+            <div class="rsv-name"><strong>Ceph MON</strong><small>quorum monitor · typically ≤ 3 nodes</small></div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="rsv_mon_c" min="0" max="6" step="0.5" value="2" oninput="recalc()">
+            <span class="rsv-val" id="rsv_mon_c_val">2 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="rsv_mon_r" min="0" max="16" step="1" value="6" oninput="recalc()">
+            <span class="rsv-val" id="rsv_mon_r_val">6 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-block">
+          <div class="rsv-block-row1">
+            <div class="rsv-name"><strong>Ceph MGR</strong><small>active on Node01 · standby elsewhere</small></div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="rsv_mgr_c" min="0" max="4" step="0.5" value="1" oninput="recalc()">
+            <span class="rsv-val" id="rsv_mgr_c_val">1 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="rsv_mgr_r" min="0" max="8" step="0.5" value="2" oninput="recalc()">
+            <span class="rsv-val" id="rsv_mgr_r_val">2 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-block">
+          <div class="rsv-block-row1">
+            <div class="rsv-name"><strong>Ceph OSD</strong><small id="rsv_osd_count_lbl">per drive · × 2 drives = 2c / 6 GB</small></div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="rsv_osd_c" min="0" max="4" step="0.5" value="1" oninput="recalc()">
+            <span class="rsv-val" id="rsv_osd_c_val">1 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="rsv_osd_r" min="0" max="8" step="0.5" value="3" oninput="recalc()">
+            <span class="rsv-val" id="rsv_osd_r_val">3 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-block">
+          <div class="rsv-block-row1">
+            <div class="rsv-name"><strong>Ceph RGW</strong><small>S3 gateway</small></div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="rsv_rgw_c" min="0" max="8" step="0.5" value="4" oninput="recalc()">
+            <span class="rsv-val" id="rsv_rgw_c_val">4 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="rsv_rgw_r" min="0" max="32" step="1" value="8" oninput="recalc()">
+            <span class="rsv-val" id="rsv_rgw_r_val">8 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-summary">
+          <div class="rsv-summary-item"><label>Per-node fixed:</label><span class="v" id="b1_total">— c · — GB</span></div>
+          <div class="rsv-summary-item"><label>Cluster total:</label><span class="v" id="b1_cluster">— c · — GB</span></div>
+        </div>
+      </div>
+
+      <!-- ── Card B.2 — Cluster-Singleton VMs ───────────────────────────────── -->
+      <div class="card">
+        <div class="card-title">B.2 Cluster-Singleton VMs (dedicated · one specific node each)</div>
+
+        <div class="rsv-block" id="block_yarn">
+          <div class="rsv-block-row1">
+            <input type="checkbox" id="sing_yarn_on" checked onchange="recalc()">
+            <div class="rsv-name"><strong>YARN ResourceManager</strong><small>dedicated VM(s) per cluster</small></div>
+            <div class="rsv-count-wrap">
+              <label for="sing_yarn_count">Count</label>
+              <input type="range" id="sing_yarn_count" min="1" max="10" step="1" value="1" oninput="recalc()">
+              <span class="rsv-val" id="sing_yarn_count_val">×1</span>
+            </div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="sing_yarn_c" min="0" max="8" step="0.5" value="2" oninput="recalc()">
+            <span class="rsv-val" id="sing_yarn_c_val">2 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="sing_yarn_r" min="0" max="32" step="1" value="4" oninput="recalc()">
+            <span class="rsv-val" id="sing_yarn_r_val">4 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-block" id="block_shs">
+          <div class="rsv-block-row1">
+            <input type="checkbox" id="sing_shs_on" checked onchange="recalc()">
+            <div class="rsv-name"><strong>Spark History Server</strong><small>reads event logs from <code>s3a://spark-history/</code></small></div>
+            <div class="rsv-count-wrap">
+              <label for="sing_shs_count">Count</label>
+              <input type="range" id="sing_shs_count" min="1" max="10" step="1" value="1" oninput="recalc()">
+              <span class="rsv-val" id="sing_shs_count_val">×1</span>
+            </div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="sing_shs_c" min="0" max="4" step="0.5" value="1" oninput="recalc()">
+            <span class="rsv-val" id="sing_shs_c_val">1 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="sing_shs_r" min="0" max="16" step="0.5" value="4" oninput="recalc()">
+            <span class="rsv-val" id="sing_shs_r_val">4 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-summary">
+          <div class="rsv-summary-item"><label>Cluster total:</label><span class="v" id="b2_total">— c · — GB</span></div>
+          <div class="rsv-summary-item"><label>Averaged / node:</label><span class="v" id="b2_avg">— c · — GB</span></div>
+          <div class="rsv-summary-item" id="b2_worst_wrap"><label>Worst-case node:</label><span class="v" id="b2_worst">— c · — GB</span></div>
+        </div>
+
+        <div class="rsv-card-note">
+          <strong>Modeling note:</strong> singletons are averaged across nodes for the "Available / Node" headline math (Section D executor sizing). The <em>worst-case node</em> figure shows what's left if all singleton VMs land on the same node — useful as a fit-check, not as an allocation budget.
+        </div>
+      </div>
+
+      <!-- ── Card B.3 — Remote Host Services ────────────────────────────────── -->
+      <div class="card">
+        <div class="card-title">B.3 Remote Host Services (live on the orchestration host · informational)</div>
+
+        <div class="rsv-block" id="block_nodeexp">
+          <div class="rsv-block-row1">
+            <input type="checkbox" id="opt_nodeexp_on" checked onchange="recalc()">
+            <div class="rsv-name"><strong>node_exporter</strong><small>Prometheus host metrics</small></div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="opt_nodeexp_c" min="0" max="4" step="0.25" value="0.5" oninput="recalc()">
+            <span class="rsv-val" id="opt_nodeexp_c_val">0.5 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="opt_nodeexp_r" min="0" max="4" step="0.25" value="0.5" oninput="recalc()">
+            <span class="rsv-val" id="opt_nodeexp_r_val">0.5 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-block" id="block_promtail">
+          <div class="rsv-block-row1">
+            <input type="checkbox" id="opt_promtail_on" checked onchange="recalc()">
+            <div class="rsv-name"><strong>Promtail / log shipper</strong><small>Loki ingest agent</small></div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="opt_promtail_c" min="0" max="4" step="0.25" value="0.5" oninput="recalc()">
+            <span class="rsv-val" id="opt_promtail_c_val">0.5 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="opt_promtail_r" min="0" max="4" step="0.25" value="1" oninput="recalc()">
+            <span class="rsv-val" id="opt_promtail_r_val">1 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-block" id="block_dash">
+          <div class="rsv-block-row1">
+            <input type="checkbox" id="opt_dash_on" onchange="recalc()">
+            <div class="rsv-name"><strong>Ceph Dashboard</strong><small>Mgr-hosted UI</small></div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="opt_dash_c" min="0" max="4" step="0.5" value="1" oninput="recalc()">
+            <span class="rsv-val" id="opt_dash_c_val">1 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="opt_dash_r" min="0" max="8" step="0.5" value="2" oninput="recalc()">
+            <span class="rsv-val" id="opt_dash_r_val">2 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-block" id="block_mds">
+          <div class="rsv-block-row1">
+            <input type="checkbox" id="opt_mds_on" onchange="recalc()">
+            <div class="rsv-name"><strong>Ceph MDS</strong><small>CephFS metadata server (only if CephFS used)</small></div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="opt_mds_c" min="0" max="8" step="0.5" value="2" oninput="recalc()">
+            <span class="rsv-val" id="opt_mds_c_val">2 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="opt_mds_r" min="0" max="16" step="0.5" value="4" oninput="recalc()">
+            <span class="rsv-val" id="opt_mds_r_val">4 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-block" id="block_cust1">
+          <div class="rsv-block-row1">
+            <input type="checkbox" id="opt_cust1_on" onchange="recalc()">
+            <div class="rsv-name"><strong>Custom slot 1</strong><small>operator-defined service</small></div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="opt_cust1_c" min="0" max="16" step="0.5" value="1" oninput="recalc()">
+            <span class="rsv-val" id="opt_cust1_c_val">1 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="opt_cust1_r" min="0" max="64" step="1" value="2" oninput="recalc()">
+            <span class="rsv-val" id="opt_cust1_r_val">2 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-block" id="block_cust2">
+          <div class="rsv-block-row1">
+            <input type="checkbox" id="opt_cust2_on" onchange="recalc()">
+            <div class="rsv-name"><strong>Custom slot 2</strong><small>operator-defined service</small></div>
+          </div>
+          <div class="rsv-block-body">
+            <span class="rsv-mini">vCPU</span>
+            <input type="range" id="opt_cust2_c" min="0" max="16" step="0.5" value="1" oninput="recalc()">
+            <span class="rsv-val" id="opt_cust2_c_val">1 c</span>
+            <span class="rsv-mini">RAM</span>
+            <input type="range" id="opt_cust2_r" min="0" max="64" step="1" value="2" oninput="recalc()">
+            <span class="rsv-val" id="opt_cust2_r_val">2 GB</span>
+          </div>
+        </div>
+
+        <div class="rsv-summary">
+          <div class="rsv-summary-item"><label>Remote host total:</label><span class="v" id="b3_total">— c · — GB</span></div>
+        </div>
+
+        <div class="rsv-card-note">
+          These services run on the dedicated orchestration host (e.g. <code>msb-pmc01-04</code> in the dev posture) — <strong>not</strong> deducted from the cluster's "Available / Node". Use the remote-services calculators to size that host separately.
+        </div>
+      </div>
+
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
+    </div>
+  </details>
+
+  <!-- ══ Section C: Workload Parameters (was B) ════════════════════════════ -->
+  <details class="section-details" id="sec_c">
+    <summary class="section-summary">
+      <span class="section-letter">C</span>
       <span class="section-title">Workload Parameters</span>
       <span class="section-sub">· Daily ingest · Shuffle amplification · Parquet compression · Pending outputs</span>
     </summary>
@@ -250,8 +549,8 @@
         <div class="card-title">Workload Sizing</div>
         <div class="control-row">
           <div class="ctrl-label"><strong>Daily ingest (TB)</strong><br><span style="font-size:10px">raw CSV ingest volume per day</span></div>
-          <input type="range" id="daily_tb" min="1" max="20" step="0.5" value="5" oninput="recalc()">
-          <div class="ctrl-val" id="daily_tb_val">5 TB</div>
+          <input type="range" id="daily_tb" min="1" max="20" step="0.5" value="1.5" oninput="recalc()">
+          <div class="ctrl-val" id="daily_tb_val">1.5 TB</div>
         </div>
         <div class="control-row">
           <div class="ctrl-label"><strong>Shuffle amplification</strong><br><span style="font-size:10px">1×=filtering only · 3–4×=sort-merge joins · 5–7×=multi-join + skew</span></div>
@@ -269,14 +568,14 @@
           <div class="ctrl-val" id="n_parquet_val">2</div>
         </div>
       </div>
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
-  <!-- ══ Section C: Executor Sizing ════════════════════════════════════════ -->
-  <details class="section-details" id="sec_c">
+  <!-- ══ Section D: Executor Sizing (was C) ═══════════════════════════════ -->
+  <details class="section-details" id="sec_d">
     <summary class="section-summary">
-      <span class="section-letter">C</span>
+      <span class="section-letter">D</span>
       <span class="section-title">Executor Sizing</span>
       <span class="section-sub">· VMs · vCPUs · Executor cores · Memory overhead</span>
     </summary>
@@ -309,14 +608,14 @@
           <div class="ctrl-val" id="ovh_pct_val">10%</div>
         </div>
       </div>
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
-  <!-- ══ Section D: Results ═════════════════════════════════════════════════ -->
-  <details class="section-details" id="sec_d">
+  <!-- ══ Section E: Results (was D) ══════════════════════════════════════════ -->
+  <details class="section-details" id="sec_e">
     <summary class="section-summary">
-      <span class="section-letter">D</span>
+      <span class="section-letter">E</span>
       <span class="section-title">Results</span>
       <span class="section-sub">· Shuffle ceiling · Executor sizing · Scratch adequacy · Ceph headroom</span>
     </summary>
@@ -368,7 +667,7 @@
         </div>
       </div>
 
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -380,10 +679,18 @@
     </summary>
     <div class="section-body">
       <div class="rev-section">
+        <div class="rev-date">2026-05-05 — Vendor config baseline alignment (Ksolves Spark/YARN v1.0)</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;">Updated defaults to match the vendor's authoritative configuration (<code>Ksolves_Spark_YARN_Config_v1.0.pdf</code>, 2026-05-04) and the 3-node hardware finalization on 2026-05-05: <strong style="color:var(--text)">RAM/node default 384 → 320 GB</strong> (10× 32 GB DIMMs per node); <strong style="color:var(--text)">Daily ingest default 5 → 1.5 TB</strong> (vendor's measured DEV volume, not the previously-assumed full-prod 4 TB). Vendor reference values worth knowing when configuring this tool: <code>spark.executor.cores = 8</code>, <code>spark.executor.memory = 28g</code>, <code>spark.sql.shuffle.partitions = 4096</code>, repartition formula for any compressed table &gt; 1 GB: <code>target_partitions = max(24, ceil(compressed_csv_mb / 50))</code> — the Airflow DAG injects <code>compressed_mb</code> per table at runtime. <strong style="color:var(--text)">Deferred to a follow-up:</strong> NUMA-pinning toggle (currently advisory via the &gt;32-cores warning) and AQE on/off toggle (currently the model assumes AQE-on with the vendor's 4096 partitions as a soft default). When those land they belong in Section A and Section C respectively.</p>
+      </div>
+      <div class="rev-section">
+        <div class="rev-date">2026-05-04 — Section B: Infrastructure Reservations</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;">Added a new <strong style="color:var(--text)">Section B — Infrastructure Reservations</strong> with three cards: <strong style="color:var(--text)">B.1 Per-Node Fixed Services</strong> (Proxmox · ZFS ARC · Ceph MON / MGR / OSD per drive / RGW), <strong style="color:var(--text)">B.2 Cluster-Singleton VMs</strong> (YARN ResourceManager and Spark History Server, each with a count slider 1 → NODES), and <strong style="color:var(--text)">B.3 Remote Host Services</strong> (node_exporter and Promtail default-on; Ceph Dashboard / MDS and two custom slots toggleable). The hardware strip gained two new chips: <strong style="color:var(--text)">Reserved / Node</strong> and <strong style="color:var(--text)">Available / Node</strong>. Section D executor math now reads from <code>AVAIL_R_NODE = RAM_NODE − fixed − averaged_singleton</code> instead of raw RAM. Singletons use averaged-per-node cost for the headline math; B.2 also reports a <em>worst-case node</em> figure (all singletons on one node) as a fit-check, with an error diagnostic if that exceeds remaining capacity. Existing close-section / close-subsection handlers updated to call <code>closeSub(this)</code> per the project-wide position-preserving close rule. Sections previously labeled B / C / D renumbered to C / D / E.</p>
+      </div>
+      <div class="rev-section">
         <div class="rev-date">2026-04-18 — Initial Release</div>
         <p style="font-size:13px;color:var(--muted);line-height:1.7;">General-purpose cluster sizing tool derived from the dev and production calculator math. All hardware parameters (nodes, cores, RAM, NVMe count, NVMe size, OSD count, RAID type) are exposed as inputs rather than baked-in constants, allowing any cluster configuration to be modelled. Key addition over the fixed calculators: the <strong style="color:var(--text)">Shuffle Amplification Ceiling</strong> metric, which directly answers "how complex a query can this hardware sustain at the configured ingest volume" without requiring manual scratch calculation.</p>
       </div>
-      <div class="section-close"><a onclick="this.closest('details').open=false">&#x25B2; Close section</a></div>
+      <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
 
@@ -397,6 +704,20 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('details').forEach(function(d) { d.open = false; });
   }, 0);
 });
+
+// ─── Position-preserving close (project rule) ───────────────────────────────
+function closeSub(el) {
+  // Capture click Y, close, scroll the now-collapsed summary back to click Y
+  // so the user's eye stays put when the document shrinks.
+  var clickY = el.getBoundingClientRect().top;
+  var d = el.closest('details');
+  d.open = false;
+  var summary = d.querySelector(':scope > summary');
+  if (summary) {
+    var summaryY = summary.getBoundingClientRect().top;
+    if (summaryY < clickY) window.scrollBy(0, summaryY - clickY);
+  }
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const el  = id => document.getElementById(id);
@@ -448,6 +769,102 @@ function recalc() {
   const OVH_PCT   = setVal('ovh_pct',    'ovh_pct_val',    '%');
   const OVH_FRAC  = OVH_PCT / 100;
 
+  // ── B.1 Per-Node Fixed reservations ─────────────────────────────────────
+  const RSV_PROX_C = setVal('rsv_prox_c', 'rsv_prox_c_val', ' c');
+  const RSV_PROX_R = setVal('rsv_prox_r', 'rsv_prox_r_val', ' GB');
+  const RSV_ZFS_C  = setVal('rsv_zfs_c',  'rsv_zfs_c_val',  ' c');
+  const RSV_ZFS_R  = setVal('rsv_zfs_r',  'rsv_zfs_r_val',  ' GB');
+  const RSV_MON_C  = setVal('rsv_mon_c',  'rsv_mon_c_val',  ' c');
+  const RSV_MON_R  = setVal('rsv_mon_r',  'rsv_mon_r_val',  ' GB');
+  const RSV_MGR_C  = setVal('rsv_mgr_c',  'rsv_mgr_c_val',  ' c');
+  const RSV_MGR_R  = setVal('rsv_mgr_r',  'rsv_mgr_r_val',  ' GB');
+  const RSV_OSD_C_PER = setVal('rsv_osd_c', 'rsv_osd_c_val', ' c');
+  const RSV_OSD_R_PER = setVal('rsv_osd_r', 'rsv_osd_r_val', ' GB');
+  const RSV_OSD_C  = OSD_NODE * RSV_OSD_C_PER;
+  const RSV_OSD_R  = OSD_NODE * RSV_OSD_R_PER;
+  const RSV_RGW_C  = setVal('rsv_rgw_c',  'rsv_rgw_c_val',  ' c');
+  const RSV_RGW_R  = setVal('rsv_rgw_r',  'rsv_rgw_r_val',  ' GB');
+
+  // Per-node OSD label updates with count
+  el('rsv_osd_count_lbl').textContent =
+    `per drive · × ${OSD_NODE} drives = ${fmt(RSV_OSD_C, 1)}c / ${fmt(RSV_OSD_R, 1)} GB`;
+
+  const FIXED_PER_NODE_C = RSV_PROX_C + RSV_ZFS_C + RSV_MON_C + RSV_MGR_C + RSV_OSD_C + RSV_RGW_C;
+  const FIXED_PER_NODE_R = RSV_PROX_R + RSV_ZFS_R + RSV_MON_R + RSV_MGR_R + RSV_OSD_R + RSV_RGW_R;
+  const FIXED_CLUSTER_C  = FIXED_PER_NODE_C * NODES;
+  const FIXED_CLUSTER_R  = FIXED_PER_NODE_R * NODES;
+
+  el('b1_total').textContent   = `${fmt(FIXED_PER_NODE_C, 1)} c · ${fmt(FIXED_PER_NODE_R, 1)} GB`;
+  el('b1_cluster').textContent = `${fmt(FIXED_CLUSTER_C, 1)} c · ${fmt(FIXED_CLUSTER_R, 1)} GB`;
+
+  // ── B.2 Cluster-Singleton VMs ───────────────────────────────────────────
+  // Clamp count sliders to NODES (re-rendered below)
+  const yarnCountInp = el('sing_yarn_count');
+  const shsCountInp  = el('sing_shs_count');
+  yarnCountInp.max = NODES; shsCountInp.max = NODES;
+  if (+yarnCountInp.value > NODES) yarnCountInp.value = NODES;
+  if (+shsCountInp.value  > NODES) shsCountInp.value  = NODES;
+
+  const SING_YARN_ON    = el('sing_yarn_on').checked;
+  const SING_YARN_CNT   = SING_YARN_ON ? +yarnCountInp.value : 0;
+  const SING_YARN_C_PER = +el('sing_yarn_c').value;
+  const SING_YARN_R_PER = +el('sing_yarn_r').value;
+  el('sing_yarn_count_val').textContent = '×' + (+yarnCountInp.value);
+  el('sing_yarn_c_val').textContent     = fmt(SING_YARN_C_PER, 1) + ' c';
+  el('sing_yarn_r_val').textContent     = fmt(SING_YARN_R_PER, 1) + ' GB';
+  el('block_yarn').classList.toggle('disabled', !SING_YARN_ON);
+
+  const SING_SHS_ON    = el('sing_shs_on').checked;
+  const SING_SHS_CNT   = SING_SHS_ON ? +shsCountInp.value : 0;
+  const SING_SHS_C_PER = +el('sing_shs_c').value;
+  const SING_SHS_R_PER = +el('sing_shs_r').value;
+  el('sing_shs_count_val').textContent = '×' + (+shsCountInp.value);
+  el('sing_shs_c_val').textContent     = fmt(SING_SHS_C_PER, 1) + ' c';
+  el('sing_shs_r_val').textContent     = fmt(SING_SHS_R_PER, 1) + ' GB';
+  el('block_shs').classList.toggle('disabled', !SING_SHS_ON);
+
+  const SING_TOTAL_C = SING_YARN_CNT * SING_YARN_C_PER + SING_SHS_CNT * SING_SHS_C_PER;
+  const SING_TOTAL_R = SING_YARN_CNT * SING_YARN_R_PER + SING_SHS_CNT * SING_SHS_R_PER;
+  const SING_AVG_C   = NODES > 0 ? SING_TOTAL_C / NODES : 0;
+  const SING_AVG_R   = NODES > 0 ? SING_TOTAL_R / NODES : 0;
+  // Worst-case: all singleton VMs land on one node
+  const SING_WORST_C = SING_TOTAL_C;
+  const SING_WORST_R = SING_TOTAL_R;
+
+  el('b2_total').textContent = `${fmt(SING_TOTAL_C, 1)} c · ${fmt(SING_TOTAL_R, 1)} GB`;
+  el('b2_avg').textContent   = `${fmt(SING_AVG_C, 2)} c · ${fmt(SING_AVG_R, 2)} GB`;
+  el('b2_worst').textContent = `${fmt(CORES_NODE - FIXED_PER_NODE_C - SING_WORST_C, 1)} c · ${fmt(RAM_NODE - FIXED_PER_NODE_R - SING_WORST_R, 1)} GB available`;
+
+  const worstFit = (CORES_NODE - FIXED_PER_NODE_C - SING_WORST_C) >= 0 && (RAM_NODE - FIXED_PER_NODE_R - SING_WORST_R) >= 0;
+  el('b2_worst_wrap').className = 'rsv-summary-item ' + (worstFit ? '' : 'bad');
+
+  // ── B.3 Remote Host Services ────────────────────────────────────────────
+  const optServices = [
+    { key: 'nodeexp',  block: 'block_nodeexp'  },
+    { key: 'promtail', block: 'block_promtail' },
+    { key: 'dash',     block: 'block_dash'     },
+    { key: 'mds',      block: 'block_mds'      },
+    { key: 'cust1',    block: 'block_cust1'    },
+    { key: 'cust2',    block: 'block_cust2'    }
+  ];
+  let OPT_TOTAL_C = 0, OPT_TOTAL_R = 0;
+  optServices.forEach(s => {
+    const on = el('opt_' + s.key + '_on').checked;
+    const c  = +el('opt_' + s.key + '_c').value;
+    const r  = +el('opt_' + s.key + '_r').value;
+    el('opt_' + s.key + '_c_val').textContent = fmt(c, 2) + ' c';
+    el('opt_' + s.key + '_r_val').textContent = fmt(r, 2) + ' GB';
+    el(s.block).classList.toggle('disabled', !on);
+    if (on) { OPT_TOTAL_C += c; OPT_TOTAL_R += r; }
+  });
+  el('b3_total').textContent = `${fmt(OPT_TOTAL_C, 2)} c · ${fmt(OPT_TOTAL_R, 2)} GB`;
+
+  // ── Available per node (the headline math) ──────────────────────────────
+  const RESERVED_C_NODE = FIXED_PER_NODE_C + SING_AVG_C;
+  const RESERVED_R_NODE = FIXED_PER_NODE_R + SING_AVG_R;
+  const AVAIL_C_NODE    = CORES_NODE - RESERVED_C_NODE;
+  const AVAIL_R_NODE    = RAM_NODE   - RESERVED_R_NODE;
+
   // ── Drive allocation ────────────────────────────────────────────────────
   const SCRATCH_D  = Math.max(0, NVME_COUNT - OSD_NODE);
   let   SCRATCH_TB = 0;
@@ -470,8 +887,8 @@ function recalc() {
   el('out_scratch_usable').textContent = SCRATCH_TB.toFixed(2) + ' TB';
   el('out_ceph_usable').textContent    = CEPH_USABLE.toFixed(2) + ' TB';
 
-  // ── Executor math ───────────────────────────────────────────────────────
-  const RAM_VM       = RAM_NODE / VMS_NODE;
+  // ── Executor math (now uses AVAIL_*_NODE) ───────────────────────────────
+  const RAM_VM       = AVAIL_R_NODE / VMS_NODE;
   const EXEC_PER_VM  = Math.max(0, Math.floor((VCPU_VM - 2) / EXEC_CORES));
   const TOTAL_VMS    = VMS_NODE * NODES;
   const TOTAL_EXEC   = Math.max(1, EXEC_PER_VM * TOTAL_VMS - 1);
@@ -498,13 +915,21 @@ function recalc() {
   el('strip_nodes').textContent   = NODES;
   el('strip_cores').textContent   = CORES_NODE * NODES;
   el('strip_ram').textContent     = totalRAM_TB >= 1 ? fmt(totalRAM_TB, 1) + ' TB' : (RAM_NODE * NODES) + ' GB';
+  el('strip_reserved').textContent = `${fmt(RESERVED_C_NODE, 1)} c · ${fmt(RESERVED_R_NODE, 1)} GB`;
+  el('strip_avail').textContent    = `${fmt(AVAIL_C_NODE, 1)} c · ${fmt(AVAIL_R_NODE, 1)} GB`;
+  // Color the Available/Node strip chip
+  const availPct = CORES_NODE > 0 ? AVAIL_C_NODE / CORES_NODE : 0;
+  const availRamPct = RAM_NODE > 0 ? AVAIL_R_NODE / RAM_NODE : 0;
+  const availMin = Math.min(availPct, availRamPct);
+  el('strip_avail').className = 'hw-val ' + (availMin < 0 ? 'bad' : availMin < 0.4 ? 'bad' : availMin < 0.7 ? 'warn' : 'ok');
+
   el('strip_scratch').textContent = SCRATCH_TB.toFixed(1) + ' TB';
   el('strip_scratch_sub').textContent = (RAID_TYPE === 'jbod' ? 'JBOD' : RAID_TYPE === 'raid5' ? 'HW RAID-5' : 'HW RAID-6') + ' · ' + SCRATCH_D + ' drives';
   el('strip_ceph').textContent    = CEPH_USABLE.toFixed(2) + ' TB';
 
   const ceilEl = el('strip_ceiling');
   ceilEl.textContent = SHUF_CEILING > 0 ? SHUF_CEILING.toFixed(2) + '×' : '—';
-  ceilEl.className   = 'metric-val ' + (SHUF_CEILING <= SHUF_AMP ? 'bad' : SHUF_CEILING <= SHUF_AMP + 1 ? 'warn' : 'ok');
+  ceilEl.className   = 'hw-val ' + (SHUF_CEILING <= SHUF_AMP ? 'bad' : SHUF_CEILING <= SHUF_AMP + 1 ? 'warn' : 'ok');
 
   // ── Ceiling hero ─────────────────────────────────────────────────────────
   const ceilHero = el('out_ceiling');
@@ -524,7 +949,7 @@ function recalc() {
   el('out_total_exec').textContent   = TOTAL_EXEC;
   el('out_exec_mem').textContent     = EXEC_MEM + ' GB';
   el('out_exec_mem').className       = 'metric-val ' + execCls;
-  el('out_exec_mem_sub').textContent = 'slot ' + fmt(SLOT_GB,1) + ' GB · offheap ' + OFFHEAP + ' GB';
+  el('out_exec_mem_sub').textContent = 'slot ' + fmt(SLOT_GB,1) + ' GB · offheap ' + OFFHEAP + ' GB · from ' + fmt(AVAIL_R_NODE, 1) + ' GB avail/node';
   el('out_oom').textContent          = fmt(OOM_MARGIN,2) + ' GB';
   el('out_oom').className            = 'metric-val ' + oomCls;
   el('out_blast').textContent        = fmt(BLAST_PCT,1) + '%';
@@ -534,7 +959,7 @@ function recalc() {
     <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
     <tbody>
       <tr><td>spark.executor.cores</td><td>${EXEC_CORES}</td><td>per executor</td></tr>
-      <tr><td>spark.executor.memory</td><td>${EXEC_MEM}g</td><td>heap only · 5% safety margin applied</td></tr>
+      <tr><td>spark.executor.memory</td><td>${EXEC_MEM}g</td><td>heap only · 5% safety margin · from ${fmt(AVAIL_R_NODE,1)} GB avail/node</td></tr>
       <tr><td>spark.executor.memoryOverhead</td><td>${Math.ceil(EXEC_MEM * OVH_FRAC * 1024)}m</td><td>${OVH_PCT}% of executor memory</td></tr>
       <tr><td>spark.memory.offHeap.size</td><td>${OFFHEAP > 0 ? Math.round(OFFHEAP * 1024) + 'm' : 'disabled'}</td><td>off-heap pool</td></tr>
       <tr><td>spark.executor.instances</td><td>${TOTAL_EXEC}</td><td>−1 for YARN cluster-mode driver</td></tr>
@@ -562,6 +987,7 @@ function recalc() {
   const raidLabel = RAID_TYPE === 'jbod' ? 'JBOD' : RAID_TYPE === 'raid5' ? 'HW RAID-5' : 'HW RAID-6';
   let w = '';
 
+  // Drive / RAID validation
   if (OSD_NODE >= NVME_COUNT)
     w += warn('error', '✕', 'Invalid drive allocation', `OSD count (${OSD_NODE}) must be less than NVMe count (${NVME_COUNT}). No drives remain for scratch.`);
   if (SCRATCH_D < 2 && RAID_TYPE !== 'jbod')
@@ -570,6 +996,22 @@ function recalc() {
     w += warn('error', '✕', 'RAID-6 requires minimum 4 drives', `${SCRATCH_D} scratch drives available. Increase NVMe count, reduce OSD count, or select RAID-5.`);
   if (SCRATCH_TB === 0 && OSD_NODE < NVME_COUNT)
     w += warn('error', '✕', 'No scratch usable', 'Scratch usable is zero — check drive count and RAID type combination.');
+
+  // Reservation validation
+  if (AVAIL_C_NODE < 0)
+    w += warn('error', '✕', 'Reservations exceed cores / node', `Reserved ${fmt(RESERVED_C_NODE,1)} c (fixed ${fmt(FIXED_PER_NODE_C,1)} + averaged singletons ${fmt(SING_AVG_C,2)}) exceeds the ${CORES_NODE} cores available per node. Reduce reservations or add cores.`);
+  if (AVAIL_R_NODE < 0)
+    w += warn('error', '✕', 'Reservations exceed RAM / node', `Reserved ${fmt(RESERVED_R_NODE,1)} GB (fixed ${fmt(FIXED_PER_NODE_R,1)} + averaged singletons ${fmt(SING_AVG_R,2)}) exceeds the ${RAM_NODE} GB available per node.`);
+  if (!worstFit && SING_TOTAL_C + SING_TOTAL_R > 0)
+    w += warn('error', '✕', 'Singleton VMs cannot fit on a single node', `If all singleton VMs land on the same node, they would need ${fmt(FIXED_PER_NODE_C + SING_WORST_C,1)} c / ${fmt(FIXED_PER_NODE_R + SING_WORST_R,1)} GB — exceeds the ${CORES_NODE} c / ${RAM_NODE} GB physical capacity. Reduce singleton count, lower per-instance cost, or distribute across more nodes.`);
+  if (NODES > 3 && RSV_MON_C > 0)
+    w += warn('info', 'ℹ', 'Ceph MON quorum is typically capped at 3', `You have ${NODES} nodes with MON reserved on each. Ceph quorum needs an odd number (typically 3). Consider zeroing MON cost on extra nodes, or accept the over-reservation.`);
+
+  // VM allocation validation (uses AVAIL_*_NODE)
+  if (VCPU_VM * VMS_NODE > AVAIL_C_NODE && AVAIL_C_NODE >= 0)
+    w += warn('warning', '⚠', 'VM cores exceed available', `Worker VM allocation ${VMS_NODE} VM × ${VCPU_VM} vCPU = ${VMS_NODE * VCPU_VM} c per node, but only ${fmt(AVAIL_C_NODE,1)} c available after reservations. Reduce VMs/node, vCPU/VM, or lower reservations.`);
+
+  // Shuffle / scratch / Ceph
   if (SHUF_CEILING <= SHUF_AMP && SCRATCH_TB > 0)
     w += warn('error', '✕', 'Scratch exhausted at target shuffle amplification', `Ceiling ${fmt(SHUF_CEILING,2)}× ≤ target ${SHUF_AMP}×. Per-node scratch (${SCRATCH_TB.toFixed(2)} TB) cannot sustain ${DAILY_TB} TB ingest at ${SHUF_AMP}× shuffle.`);
   else if (SHUF_CEILING < SHUF_AMP + 1 && SCRATCH_TB > 0)
@@ -578,6 +1020,8 @@ function recalc() {
     w += warn('error', '✕', 'Ceph fully reserved — no ingest headroom', `All ${CEPH_USABLE.toFixed(2)} TB Ceph usable is consumed by reserved allocations (${fmt(CEPH_RESERVED,2)} TB). Increase OSD count or reduce pending Parquet outputs.`);
   else if (CEPH_DAYS < 3)
     w += warn('warning', '⚠', 'Ceph headroom below 3 days', `Only ${fmt(CEPH_DAYS,1)} days of effective ingest headroom. ${fmt(CEPH_EFFECTIVE,2)} TB effective after ${fmt(CEPH_RESERVED,2)} TB reserved.`);
+
+  // Executor sizing
   if (EXEC_MEM < 4 && EXEC_PER_VM > 0)
     w += warn('error', '✕', 'Executor memory below 4 GB', `${EXEC_MEM} GB is too small for most Spark workloads. Reduce executor count, add RAM, or reduce overhead settings.`);
   else if (EXEC_MEM < 8 && EXEC_PER_VM > 0)
