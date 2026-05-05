@@ -608,7 +608,7 @@ All scripts live in `Scripts/`.
 |---|---|---|
 | Nodes | 3 | 3 |
 | Cores/node | 64 (2× 32c, dual NUMA) | 32 (1× 32c, single NUMA) |
-| RAM/node | 768 GB (24× 32 GB DIMMs) | 384 GB (12× 32 GB DIMMs) |
+| RAM/node | 768 GB (24× 32 GB DIMMs) | 320 GB (10× 32 GB DIMMs) |
 | NVMe/node | 9× 3.2 TB | 7× 3.84 TB |
 | SSD/node | 3× 480 GB (ZFS mirror + hot spare) | 3× 480 GB |
 | RAM slider step | 32 GB (one DIMM) | 32 GB |
