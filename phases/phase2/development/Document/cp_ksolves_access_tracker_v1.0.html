@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Critical Path Tracker — Ksolves Dev-Cluster Access v1.0</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+       background: var(--bg); color: var(--text); line-height: 1.6; }
+a { color: var(--accent); text-decoration: none; cursor: pointer; }
+a:hover { text-decoration: underline; }
+code { font-family: var(--mono); font-size: 0.85em; background: var(--bg);
+       padding: 1px 5px; border-radius: 3px; color: var(--accent); }
+strong { color: var(--text-hi); }
+em { color: var(--muted2); }
+
+:root {
+  --bg:#0f1117; --bg2:#141720; --bg3:#1a1d2e; --bg4:#1e2238;
+  --border:#2a2d3a; --border2:#1e2130;
+  --text:#d4d4d4; --text2:#c9d1e0; --text-hi:#e8eaf0;
+  --accent:#7ab3e0; --accent2:#2d5a8e;
+  --muted:#7a8298; --muted2:#8b97aa; --label:#8b93a8; --label2:#6b7280;
+  --ok:#4ade80; --warn:#f59e0b; --crit:#f87171; --purple:#b482ff;
+  --mono:'Cascadia Code','Fira Mono','Consolas',monospace;
+}
+[data-theme="light"] {
+  --bg:#e6dfd0; --bg2:#f7f2e8; --bg3:#ede7da; --bg4:#ddd6c8;
+  --border:#c8bfad; --border2:#d4ccbd;
+  --text:#2a2318; --text2:#3a3028; --text-hi:#1a1510;
+  --accent:#2d5a8e; --accent2:#2d5a8e;
+  --muted:#8a7d6a; --muted2:#9a8d7a; --label:#6a6055; --label2:#7a7065;
+  --ok:#1a5430; --warn:#7a4a00; --crit:#981818; --purple:#7040b8;
+}
+
+.page-header { background: linear-gradient(135deg, var(--bg3) 0%, var(--bg) 100%);
+               border-bottom: 2px solid var(--accent2); }
+.page-header-inner { max-width: 1100px; margin: 0 auto; padding: 26px 36px 18px;
+                     display: flex; align-items: flex-start; justify-content: space-between; }
+.header-text { flex: 1; }
+.page-header h1 { font-size: 1.55rem; font-weight: 700; color: var(--text-hi); }
+.page-header h2 { font-size: 0.95rem; font-weight: 400; color: var(--accent); margin-top: 3px; }
+.page-header p  { font-size: 0.78rem; color: var(--muted2); margin-top: 6px; }
+.page-header-buttons { display: flex; flex-direction: column; gap: 6px; align-items: stretch; flex-shrink: 0; }
+.btn-theme { font-size: 11px; font-weight: 500; padding: 6px 14px; border-radius: 6px;
+             cursor: pointer; border: 1px solid var(--border); background: var(--bg3);
+             color: var(--muted2); letter-spacing: 0.06em; transition: background 0.15s, color 0.15s;
+             margin-top: 0; flex-shrink: 0; }
+.btn-theme:hover { background: var(--border); color: var(--text); }
+.page-wrap { max-width: 1100px; margin: 0 auto; padding: 14px 36px 60px; }
+
+.page-controls { display: flex; gap: 14px; padding: 10px 4px 14px; font-size: 0.78rem;
+                 border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.page-controls a { color: var(--muted); }
+.page-controls a:hover { color: var(--accent); }
+.save-status { margin-left: auto; font-size: 0.74rem; color: var(--muted); font-style: italic; }
+.save-status.flash { color: var(--ok); transition: color 0.4s; }
+
+/* top-level section */
+.section-details { background: var(--bg2); border: 1px solid var(--border);
+                   border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+.section-summary { display: flex; align-items: center; gap: 10px;
+                   padding: 12px 18px; cursor: pointer; list-style: none;
+                   background: var(--bg3); user-select: none; }
+.section-summary::-webkit-details-marker { display: none; }
+.section-summary::before { content: '▶'; font-size: 9px; color: var(--muted);
+                           transition: transform 0.2s; flex-shrink: 0; }
+details[open] > .section-summary::before { transform: rotate(90deg); }
+.section-letter { display: inline-flex; align-items: center; justify-content: center;
+                  width: 28px; height: 28px; border-radius: 50%;
+                  background: var(--accent2); color: var(--text-hi);
+                  font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+.section-letter.crit { background: var(--crit); color: white; }
+.section-letter.warn { background: var(--warn); color: #2a2318; }
+.section-letter.ok   { background: var(--ok); color: #0f1117; }
+.section-title { font-weight: 600; color: var(--text2); font-size: 0.96rem; }
+.section-sub   { font-size: 0.76rem; color: var(--muted2); flex: 1; }
+.btt           { font-size: 0.7rem; color: var(--muted); margin-left: auto; flex-shrink: 0; }
+.section-body  { padding: 18px 22px 22px; }
+.section-close { text-align: center; padding-top: 16px;
+                 border-top: 1px solid var(--border); margin-top: 18px; }
+.section-close a { font-size: 0.74rem; color: var(--muted); }
+
+.sub-controls { display: flex; gap: 12px; padding: 6px 0 12px; font-size: 0.74rem;
+                border-bottom: 1px dashed var(--border); margin-bottom: 12px; }
+.sub-controls a { color: var(--muted); }
+.sub-controls a:hover { color: var(--accent); }
+
+/* sub-section (per-item) */
+.sub-details { background: var(--bg); border: 1px solid var(--border2);
+               border-radius: 5px; margin-bottom: 8px; overflow: hidden; }
+.sub-summary { display: flex; align-items: center; gap: 10px;
+               padding: 9px 14px; cursor: pointer; list-style: none;
+               background: var(--bg); user-select: none; }
+.sub-summary::-webkit-details-marker { display: none; }
+.sub-summary::before { content: '▶'; font-size: 8px; color: var(--muted);
+                       transition: transform 0.2s; flex-shrink: 0; }
+details.sub-details[open] > .sub-summary::before { transform: rotate(90deg); }
+.item-code { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 3px;
+             background: var(--bg3); border: 1px solid var(--border);
+             color: var(--accent); font-family: var(--mono); font-size: 0.75rem;
+             font-weight: 700; flex-shrink: 0; }
+.item-title { font-size: 0.84rem; color: var(--text); flex: 1; }
+.item-status { font-size: 0.7rem; color: var(--muted); font-family: var(--mono);
+               flex-shrink: 0; padding-left: 8px; text-transform: uppercase;
+               letter-spacing: 0.04em; }
+.item-status.in-progress { color: var(--accent); }
+.item-status.to-do       { color: var(--warn); }
+.item-status.open        { color: var(--muted); }
+.item-status.done        { color: var(--ok); }
+.item-status.held        { color: var(--purple); }
+.sub-body  { padding: 12px 16px 14px; }
+.sub-close { text-align: center; padding-top: 10px;
+             border-top: 1px solid var(--border); margin-top: 12px; }
+.sub-close a { font-size: 0.72rem; color: var(--muted); }
+
+/* item meta block (Status / Priority / Depends on / etc.) */
+.item-meta { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px;
+             margin-bottom: 10px; padding: 8px 12px; background: var(--bg2);
+             border: 1px solid var(--border2); border-radius: 4px; font-size: 0.78rem; }
+.item-meta dt { color: var(--label); font-weight: 600; font-size: 0.72rem;
+                text-transform: uppercase; letter-spacing: 0.04em; }
+.item-meta dd { color: var(--text); }
+
+.item-block { margin: 10px 0; }
+.item-block-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+                    color: var(--label); text-transform: uppercase;
+                    margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border2); }
+.item-block p { font-size: 0.84rem; line-height: 1.55; }
+.item-block ul { list-style: none; padding-left: 0; }
+.item-block li { padding: 3px 0; line-height: 1.55; font-size: 0.84rem; }
+
+.cb-row { display: flex; align-items: flex-start; gap: 10px; padding: 3px 0; }
+.cb-row > input[type="checkbox"] { margin-top: 4px; flex-shrink: 0;
+                                   width: 14px; height: 14px;
+                                   accent-color: var(--ok); cursor: pointer; }
+.cb-row > input[type="checkbox"]:checked + .cb-text { text-decoration: line-through;
+                                                       color: var(--muted); }
+.cb-text { flex: 1; line-height: 1.5; font-size: 0.84rem; }
+.cb-text code { font-size: 0.84em; }
+
+.code-block { font-family: var(--mono); font-size: 11.5px; line-height: 1.55;
+              background: var(--bg2); border: 1px solid var(--border);
+              border-radius: 5px; padding: 12px 16px; margin: 8px 0;
+              white-space: pre; overflow-x: auto; color: var(--text); }
+
+.note { font-size: 0.78rem; color: var(--muted); padding: 8px 12px; margin: 8px 0;
+        background: rgba(122,179,224,0.07); border: 1px solid rgba(122,179,224,0.25);
+        border-radius: 4px; color: #bae6fd; }
+[data-theme="light"] .note { background: rgba(45,90,142,0.07);
+                             border-color: rgba(45,90,142,0.25); color: #2d5a8e; }
+
+.dep-row { padding: 4px 0; font-size: 0.84rem; line-height: 1.55; }
+.dep-tag { display: inline-block; padding: 1px 6px; border-radius: 3px;
+           font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+           margin-right: 6px; }
+.dep-tag.blocks    { background: rgba(248,113,113,0.12); color: var(--crit); }
+.dep-tag.triggers  { background: rgba(122,179,224,0.12); color: var(--accent); }
+.dep-tag.validates { background: rgba(74,222,128,0.10); color: var(--ok); }
+.dep-tag.consumes  { background: rgba(245,158,11,0.12); color: var(--warn); }
+.dep-tag.adjacent  { background: rgba(180,130,255,0.10); color: var(--purple); }
+.dep-tag.none      { background: var(--bg3); color: var(--muted); }
+</style>
+</head>
+<body id="top">
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="header-text">
+      <h1>Critical Path — Ksolves Dev-Cluster Access</h1>
+      <h2>Interactive Tracker · Source: <code>CP_KSolves_Access_v1.0.md</code></h2>
+      <p>Version 1.0 · Last updated 2026-05-05 · Click checkboxes to mark steps complete; state auto-saves to this browser only</p>
+    </div>
+    <div class="page-header-buttons">
+      <button class="btn-theme" id="btn_theme" onclick="toggleTheme()">&#9728; Light</button>
+      <button class="btn-theme" onclick="expandAllSections()">&#9662; Expand all</button>
+      <button class="btn-theme" onclick="collapseAllSections()">&#9652; Collapse all</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+<div class="page-controls">
+  <a onclick="setAllSections(false)">▼ Collapse all sections</a>
+  <a onclick="setAllSections(true)">▶ Expand all sections</a>
+  <span class="save-status" id="save_status">Auto-save ready</span>
+</div>
+
+<!-- ════════════════════════════ OVERVIEW ════════════════════════════ -->
+<details class="section-details" id="sec_overview" open>
+  <summary class="section-summary">
+    <span class="section-letter">i</span>
+    <span class="section-title">Overview &amp; Goal</span>
+    <span class="section-sub">· Sub-project goal · Source meeting · Methodology</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <div class="item-meta">
+      <dt>Goal</dt>          <dd>Give Ksolves the access they need to install and configure Spark on the dev cluster (<code>msb-pmc03</code>) <strong>without exposing them to the trusted corporate network</strong>.</dd>
+      <dt>Source meeting</dt><dd>2026-05-01 18:09 — Paul Barber, Murali Noonela, Harper Dunning, Michelle Packert, Sean Klette, Austin Koburi, Wood, Rohn</dd>
+      <dt>Source transcript</dt><dd><code>phases/phase2/development/Incoming/Paul Barber's meeting-20260501 1809-1.txt</code></dd>
+      <dt>Status</dt>        <dd>Active — 13 fqdn-side items + 17 external-attendee dependencies</dd>
+    </div>
+
+    <div class="item-block">
+      <div class="item-block-title">Methodology</div>
+      <p>Captured every commitment Wood, Rohn made during the 2026-05-01 meeting (numbered <code>#1</code>–<code>#13</code>), plus every task assigned to or recognized for another attendee that <strong>triggers</strong>, <strong>blocks</strong>, <strong>validates</strong>, or <strong>consumes</strong> an <code>#N</code> item. External tasks merely adjacent to <code>#N</code> items (no causal edge) are listed but not tagged.</p>
+    </div>
+
+    <div class="item-block">
+      <div class="item-block-title">Exclusions</div>
+      <ul>
+        <li>· Phase 2 infrastructure provisioning (P0.x, P1.x, P2.x) — see <code>Phases_Critical_Path_Development_v1.3.md</code></li>
+        <li>· BLOCKER.1 Webex remote-control hardware prerequisite — see <code>Phases_Critical_Path_Development_v1.3.md</code> § BLOCKER.1</li>
+        <li>· Ksolves-side OpsWat client install, OpsWat policy setup, KSolves Tuesday call logistics</li>
+      </ul>
+    </div>
+
+    <div class="note">
+      <strong>Companion documents:</strong> <code>CP_KSolves_Access_v1.0.md</code> (canonical source for this tracker) · <code>CP_KSolves_Access_v1.0.pdf</code> (printable version) · <code>Notes/ksolves_dev_access_subproject.md</code> (working scratch — feeds the daily 07:30 digest email).
+    </div>
+
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ ACTIVE ITEMS ════════════════════════════ -->
+<details class="section-details" id="sec_active">
+  <summary class="section-summary">
+    <span class="section-letter warn">A</span>
+    <span class="section-title">Active Items — fqdn-side</span>
+    <span class="section-sub">· #4 #5 #6 #7 #8 #9 #10 #12 #13</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <div class="sub-controls">
+      <a onclick="expandSubs(this)">▾ Open all items</a>
+      <span style="color:var(--label2)">·</span>
+      <a onclick="collapseSubs(this)">▴ Close all</a>
+    </div>
+
+    <!-- ── #4 ── -->
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">#4</span>
+        <span class="item-title">Verify <code>fqdn</code> AD login on Proxmox</span>
+        <span class="item-status in-progress">in progress</span>
+      </summary>
+      <div class="sub-body">
+        <dl class="item-meta">
+          <dt>Priority</dt>     <dd>HIGH (foundational — informs #6, #7, #13)</dd>
+          <dt>Owner</dt>        <dd>Wood, Rohn</dd>
+          <dt>Depends on</dt>   <dd>—</dd>
+          <dt>Triggers</dt>     <dd>#6, #7, #13</dd>
+          <dt>Source</dt>       <dd>Meeting §166–167</dd>
+        </dl>
+        <div class="item-block">
+          <p>Verify that the <code>fqdn</code> AD account authenticates to the Proxmox cluster, and document Proxmox's PAM vs AD permission model. The model needs to be understood before designing <code>fqdn</code> group permissions on Proxmox so we can predict how AD-group permissions resolve at the Proxmox layer.</p>
+        </div>
+        <div class="item-block">
+          <div class="item-block-title">User actions</div>
+          <div class="cb-row"><input type="checkbox" id="cb_4_a" data-track><span class="cb-text">Test <code>fqdn</code> login via Proxmox web UI and SSH on at least one msb-pmc03 node</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_4_b" data-track><span class="cb-text">Document whether Proxmox is configured for PAM realm, AD realm, or both</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_4_c" data-track><span class="cb-text">Confirm whether AD groups (vs individual users) can be granted Proxmox roles</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_4_d" data-track><span class="cb-text">Capture findings in this CP doc and feed into #7 design</span></div>
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <!-- ── #5 ── -->
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">#5</span>
+        <span class="item-title">Install Tanium on the Proxmox hosts</span>
+        <span class="item-status to-do">to do</span>
+      </summary>
+      <div class="sub-body">
+        <dl class="item-meta">
+          <dt>Priority</dt>     <dd>MEDIUM (security visibility, not on critical path)</dd>
+          <dt>Owner</dt>        <dd>Wood, Rohn</dd>
+          <dt>Depends on</dt>   <dd>—</dd>
+          <dt>Triggers</dt>     <dd>— (independent)</dd>
+          <dt>Source</dt>       <dd>Meeting §200</dd>
+        </dl>
+        <div class="item-block">
+          <p>Tanium is not yet installed on the msb-pmc03 nodes. Adding it gives Cybersecurity (Paul) the same telemetry / alerting visibility on these hosts that exists for the rest of the corporate fleet. Independent of the network-isolation thread.</p>
+        </div>
+        <div class="item-block">
+          <div class="item-block-title">User actions</div>
+          <div class="cb-row"><input type="checkbox" id="cb_5_a" data-track><span class="cb-text">Coordinate with Paul / Cybersecurity for the Tanium install package</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_5_b" data-track><span class="cb-text">Install on msb-pmc03-01, -02, -03</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_5_c" data-track><span class="cb-text">Verify the agents are reporting back to the Tanium console</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_5_d" data-track><span class="cb-text">Confirm with Paul that visibility is in place</span></div>
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <!-- ── #6 ── -->
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">#6</span>
+        <span class="item-title">Investigate Proxmox guest-level permission delegation</span>
+        <span class="item-status to-do">to do</span>
+      </summary>
+      <div class="sub-body">
+        <dl class="item-meta">
+          <dt>Priority</dt>     <dd>HIGH (gates #7)</dd>
+          <dt>Owner</dt>        <dd>Wood, Rohn</dd>
+          <dt>Depends on</dt>   <dd>#4 (auth model understood)</dd>
+          <dt>Triggers</dt>     <dd>#7</dd>
+          <dt>Source</dt>       <dd>Meeting §201–217</dd>
+        </dl>
+        <div class="item-block">
+          <p>Goal: a Proxmox permission scheme where Ksolves can manage <strong>only the dev VMs</strong> they're meant to provision — not prod VMs, not Grafana, not anything else hosted on the cluster. Proxmox supports per-VM or per-pool ACLs; the exact configuration to express "<code>fqdn</code> gets Operator on dev pool, nothing else" needs to be tested.</p>
+        </div>
+        <div class="item-block">
+          <div class="item-block-title">User actions</div>
+          <div class="cb-row"><input type="checkbox" id="cb_6_a" data-track><span class="cb-text">Map all currently-provisioned VMs across msb-pmc03 (likely none yet for prod)</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_6_b" data-track><span class="cb-text">Decide on the Proxmox permission scope unit (per-VM vs per-pool vs per-node)</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_6_c" data-track><span class="cb-text">Draft the permission scheme on paper before applying to the cluster</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_6_d" data-track><span class="cb-text">Validate the scheme against Proxmox's role / privilege matrix</span></div>
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <!-- ── #7 ── -->
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">#7</span>
+        <span class="item-title">Configure console-login + selective guest access for Ksolves</span>
+        <span class="item-status to-do">to do</span>
+      </summary>
+      <div class="sub-body">
+        <dl class="item-meta">
+          <dt>Priority</dt>     <dd>HIGH (operational outcome of the access thread)</dd>
+          <dt>Owner</dt>        <dd>Wood, Rohn</dd>
+          <dt>Depends on</dt>   <dd>#4, #6, Michelle M1 + M2</dd>
+          <dt>Triggers</dt>     <dd>— (leaf)</dd>
+          <dt>Source</dt>       <dd>Meeting §218–221</dd>
+        </dl>
+        <div class="item-block">
+          <p>Combine the auth findings from #4, the permission scheme from #6, and the AD account/group from Michelle into the actual Proxmox configuration that grants Ksolves the access they need and nothing more. "Console login + selective guest access" was Paul's framing.</p>
+        </div>
+        <div class="item-block">
+          <div class="item-block-title">User actions</div>
+          <div class="cb-row"><input type="checkbox" id="cb_7_a" data-track><span class="cb-text">Once <code>fqdn</code> group exists in <code>remote.corp</code> (Michelle M2), create the Proxmox AAA realm entry</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_7_b" data-track><span class="cb-text">Apply the permission scheme from #6 to the realm</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_7_c" data-track><span class="cb-text">Test login as a <code>fqdn</code> member; confirm dev-VM ops succeed and prod-VM ops fail</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_7_d" data-track><span class="cb-text">Document the configuration in a runbook for production cluster reuse (msb-pmc02)</span></div>
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <!-- ── #8 ── -->
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">#8</span>
+        <span class="item-title">Research hostname-based config feasibility</span>
+        <span class="item-status to-do">to do</span>
+      </summary>
+      <div class="sub-body">
+        <dl class="item-meta">
+          <dt>Priority</dt>     <dd>HIGH (gates #9 and the entire VLAN-move option)</dd>
+          <dt>Owner</dt>        <dd>Wood, Rohn</dd>
+          <dt>Depends on</dt>   <dd>—</dd>
+          <dt>Triggers</dt>     <dd>#9</dd>
+          <dt>Source</dt>       <dd>Meeting §267–286</dd>
+          <dt>Status note</dt>  <dd>In active discussion with Sean / Austin</dd>
+        </dl>
+        <div class="item-block">
+          <p>Determine whether Proxmox + Apache Spark configurations can be driven by hostnames (resolved via DNS) instead of literal IPs. The cleanest way to give Ksolves cluster access without exposing them to corp network is to <strong>re-IP the cluster into the KSolves business-partner VLAN</strong>, do install work there, then re-IP back to corp at production cutover. This only works if every config tolerates a hostname → IP swap.</p>
+        </div>
+        <div class="item-block">
+          <div class="item-block-title">User actions</div>
+          <div class="cb-row"><input type="checkbox" id="cb_8_a" data-track><span class="cb-text">Audit Proxmox cluster config files for hardcoded IPs vs hostnames</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_8_b" data-track><span class="cb-text">Audit Spark / YARN configs (<code>yarn-site.xml</code>, <code>spark-defaults.conf</code>) for hardcoded IPs</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_8_c" data-track><span class="cb-text">Audit Ceph monmap and OSD config for hardcoded IPs</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_8_d" data-track><span class="cb-text">Document where IPs are unavoidable (i.e. would need config edits + restart on re-IP)</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_8_e" data-track><span class="cb-text">Decide go / no-go on the VLAN-move approach based on findings</span></div>
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <!-- ── #9 ── -->
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">#9</span>
+        <span class="item-title">Test IP / VLAN move on a non-Proxmox server first</span>
+        <span class="item-status to-do">to do</span>
+      </summary>
+      <div class="sub-body">
+        <dl class="item-meta">
+          <dt>Priority</dt>     <dd>HIGH (proves the concept before risking the cluster)</dd>
+          <dt>Owner</dt>        <dd>Wood, Rohn</dd>
+          <dt>Depends on</dt>   <dd>#8</dd>
+          <dt>Triggers</dt>     <dd>Austin A1 (executes actual move)</dd>
+          <dt>Source</dt>       <dd>Meeting §286</dd>
+          <dt>Status note</dt>  <dd>In active discussion</dd>
+        </dl>
+        <div class="item-block">
+          <p>Before risking a re-IP on the actual Proxmox cluster — where a missed hardcoded IP could brick the corosync or Ceph layer — exercise the procedure on a less-critical Linux server. Validate the playbook end-to-end before handing to Austin.</p>
+        </div>
+        <div class="item-block">
+          <div class="item-block-title">User actions</div>
+          <div class="cb-row"><input type="checkbox" id="cb_9_a" data-track><span class="cb-text">Identify a non-cluster Linux server suitable for the test</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_9_b" data-track><span class="cb-text">Coordinate with networking team on a test VLAN</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_9_c" data-track><span class="cb-text">Document the move procedure in a runbook</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_9_d" data-track><span class="cb-text">Execute the move; capture every config touched and every service restart needed</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_9_e" data-track><span class="cb-text">Reverse the move; confirm the server returns cleanly to its original state</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_9_f" data-track><span class="cb-text">If clean, hand the runbook to Austin for cluster execution (A1)</span></div>
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <!-- ── #10 ── -->
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">#10</span>
+        <span class="item-title">Document a Ksolves remote-config workflow</span>
+        <span class="item-status open">open</span>
+      </summary>
+      <div class="sub-body">
+        <dl class="item-meta">
+          <dt>Priority</dt>     <dd>MEDIUM (latency mitigation, not on critical path)</dd>
+          <dt>Owner</dt>        <dd>Wood, Rohn</dd>
+          <dt>Depends on</dt>   <dd>Mirali Mi3 (asks Ksolves)</dd>
+          <dt>Triggers</dt>     <dd>—</dd>
+          <dt>Source</dt>       <dd>Meeting §221–224</dd>
+        </dl>
+        <div class="item-block">
+          <p>Latency-mitigation alternative to live SSH-via-Webex sessions. If Ksolves is willing to send a written list of operations they want executed, Wood, Rohn drives the configuration on PMC01 himself rather than co-screen-sharing across 12 timezones. <strong>Conditional</strong> — viable only if Ksolves can fully describe their intended operations in advance.</p>
+        </div>
+        <div class="item-block">
+          <div class="item-block-title">User actions</div>
+          <div class="cb-row"><input type="checkbox" id="cb_10_a" data-track><span class="cb-text">Coordinate with Mirali on the ask (Mi3) — is Ksolves willing?</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_10_b" data-track><span class="cb-text">If yes, design the handoff format (text file, git repo, ticket queue?)</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_10_c" data-track><span class="cb-text">If yes, draft a runbook template Ksolves can fill in for each operation</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_10_d" data-track><span class="cb-text">If no, this item closes with note "vendor preferred live sessions"</span></div>
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <!-- ── #12 ── -->
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">#12</span>
+        <span class="item-title">Test new Horizon VDI pool as a Ksolves-equivalent user</span>
+        <span class="item-status open">open</span>
+      </summary>
+      <div class="sub-body">
+        <dl class="item-meta">
+          <dt>Priority</dt>     <dd>HIGH (proves access path before turnover)</dd>
+          <dt>Owner</dt>        <dd>Wood, Rohn</dd>
+          <dt>Depends on</dt>   <dd>Jason J1 + J2</dd>
+          <dt>Triggers</dt>     <dd>—</dd>
+          <dt>Source</dt>       <dd>Meeting §298–301</dd>
+        </dl>
+        <div class="item-block">
+          <p>Once Jason finishes the Horizon VDI pool and grants access, log in as a Ksolves-equivalent user and walk through the entire access path: VDI desktop → SSH session to msb-pmc03 → can do work / can't escape sandbox. Verify with Paul and Mirali also testing before turnover.</p>
+        </div>
+        <div class="item-block">
+          <div class="item-block-title">User actions</div>
+          <div class="cb-row"><input type="checkbox" id="cb_12_a" data-track><span class="cb-text">Wait for Jason notification that the VDI pool is ready (J1 / J2)</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_12_b" data-track><span class="cb-text">Log in to the VDI; verify desktop loads and standard tools available</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_12_c" data-track><span class="cb-text">SSH from VDI to msb-pmc03; verify connection succeeds and is scoped correctly</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_12_d" data-track><span class="cb-text">Attempt at least one prohibited operation; verify it's blocked</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_12_e" data-track><span class="cb-text">Compare experience with Paul and Mirali; surface concerns before turnover</span></div>
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <!-- ── #13 ── -->
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">#13</span>
+        <span class="item-title">Assign console-login rights on Proxmox to <code>fqdn</code> AD group</span>
+        <span class="item-status in-progress">in progress</span>
+      </summary>
+      <div class="sub-body">
+        <dl class="item-meta">
+          <dt>Priority</dt>     <dd>HIGH</dd>
+          <dt>Owner</dt>        <dd>Wood, Rohn</dd>
+          <dt>Depends on</dt>   <dd>Michelle M1 + M2, Paul P2</dd>
+          <dt>Triggers</dt>     <dd>—</dd>
+          <dt>Source</dt>       <dd>Meeting §303–305</dd>
+        </dl>
+        <div class="item-block">
+          <p>Once Michelle creates <code>fqdn</code> in <code>remote.corp</code> and Paul relays the group name back to Wood, Rohn, configure the Proxmox cluster's AAA so members of <code>fqdn</code> get console-login rights with the scoped permissions designed in #7. <strong>Two-step gate</strong>: Michelle (creates), then Paul (relays).</p>
+        </div>
+        <div class="item-block">
+          <div class="item-block-title">User actions</div>
+          <div class="cb-row"><input type="checkbox" id="cb_13_a" data-track><span class="cb-text">Wait for Paul P2 (group name relay)</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_13_b" data-track><span class="cb-text">Add <code>remote.corp</code> realm to Proxmox AAA if not already present</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_13_c" data-track><span class="cb-text">Bind <code>fqdn</code> AD group to the appropriate Proxmox role (per #7 design)</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_13_d" data-track><span class="cb-text">Test login as a member of the group; verify role enforcement</span></div>
+          <div class="cb-row"><input type="checkbox" id="cb_13_e" data-track><span class="cb-text">Document the configuration in a Phase 2 runbook for production-cluster reuse</span></div>
+        </div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ EXTERNAL DEPENDENCIES ════════════════════════════ -->
+<details class="section-details" id="sec_external">
+  <summary class="section-summary">
+    <span class="section-letter">E</span>
+    <span class="section-title">External Dependencies</span>
+    <span class="section-sub">· Other meeting attendees · 17 items across 7 people</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <div class="sub-controls">
+      <a onclick="expandSubs(this)">▾ Open all attendees</a>
+      <span style="color:var(--label2)">·</span>
+      <a onclick="collapseSubs(this)">▴ Close all</a>
+    </div>
+
+    <div class="note">
+      Items below belong to other people; they're tracked here because each one <strong>blocks</strong>, <strong>triggers</strong>, <strong>validates</strong>, or <strong>consumes</strong> an <code>#N</code> item. Check-marks aren't expected — they're someone else's checkboxes.
+    </div>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">M</span>
+        <span class="item-title">Michelle Packert — fqdn Networking / AD</span>
+        <span class="item-status">5 items</span>
+      </summary>
+      <div class="sub-body">
+        <div class="dep-row"><span class="dep-tag blocks">M1 blocks #7+#13</span> Create <code>fqdn</code> test admin <strong>account</strong> in <code>remote.corp</code>. <em>(§225–226)</em></div>
+        <div class="dep-row"><span class="dep-tag blocks">M2 blocks #7+#13</span> Create <code>fqdn</code> admin <strong>group</strong> in <code>remote.corp</code> and share name with Paul / Wood, Rohn. <em>(§303)</em></div>
+        <div class="dep-row"><span class="dep-tag none">M3</span> Create file share on the business-partner file server for KSolves doc handoff. <em>(§307)</em></div>
+        <div class="dep-row"><span class="dep-tag validates">M4 validates #7</span> Test whether <code>remote.corp</code> AD account permissions can be applied to a corp-domain Proxmox host. <em>(§155–160)</em></div>
+        <div class="dep-row"><span class="dep-tag none">M5</span> Find OpsWat persistent-client install link / instructions and share with Paul. <em>(§239–243)</em></div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">P</span>
+        <span class="item-title">Paul Barber — Cybersecurity</span>
+        <span class="item-status">5 items</span>
+      </summary>
+      <div class="sub-body">
+        <div class="dep-row"><span class="dep-tag none">P1</span> Send meeting notes summarizing what was defined / decided 2026-05-01. <em>(§291)</em></div>
+        <div class="dep-row"><span class="dep-tag triggers">P2 triggers #13</span> Tell Wood, Rohn the AD group name once Michelle creates it. <em>(§304)</em></div>
+        <div class="dep-row"><span class="dep-tag none">P3</span> Walk Ksolves through OpsWat install on a Tue+ Ksolves call (~08:00 MDT, scheduled by Mirali). <em>(§245–253)</em></div>
+        <div class="dep-row"><span class="dep-tag adjacent">P4 adjacent #7/#9</span> Plan SSH-from-KSolves-VLAN-to-cluster firewall policies (with Sean). <em>(§294)</em></div>
+        <div class="dep-row"><span class="dep-tag none">P5</span> Lock down the OpsWat client download link + steps (with Michelle). <em>(§227–243)</em></div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">Mi</span>
+        <span class="item-title">Mirali Noonela — fqdn Project Lead</span>
+        <span class="item-status">3 items</span>
+      </summary>
+      <div class="sub-body">
+        <div class="dep-row"><span class="dep-tag none">Mi1</span> Schedule a Ksolves call where Paul can walk them through OpsWat install. <em>(§245–251)</em></div>
+        <div class="dep-row"><span class="dep-tag triggers">Mi2 re-opens held #3</span> Report completed responsibilities back to Wood, Rohn so the Phases CP doc stays current. <em>(§47–48)</em></div>
+        <div class="dep-row"><span class="dep-tag triggers">Mi3 triggers #10</span> Ask Ksolves whether they can send a written ops list. <em>(§221–224)</em></div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">S</span>
+        <span class="item-title">Sean Klette — fqdn Networking</span>
+        <span class="item-status">2 items</span>
+      </summary>
+      <div class="sub-body">
+        <div class="dep-row"><span class="dep-tag none">S1</span> Continue Azure ExpressRoute / virtual-private-link setup. <em>(§101–102)</em></div>
+        <div class="dep-row"><span class="dep-tag adjacent">S2 related to #9</span> Plan SSH firewall policies for KSolves VLAN → cluster (with Paul). <em>(§294)</em></div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">A</span>
+        <span class="item-title">Austin Koburi — fqdn Networking</span>
+        <span class="item-status">1 item</span>
+      </summary>
+      <div class="sub-body">
+        <div class="dep-row"><span class="dep-tag consumes">A1 consumes #9</span> Once hostname-feasibility lands and the move is validated, execute the IP / VLAN move + DNS updates on the cluster. <em>(§283)</em></div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">J</span>
+        <span class="item-title">Jason Waites — fqdn VDI / Horizon</span>
+        <span class="item-status">2 items</span>
+      </summary>
+      <div class="sub-body">
+        <div class="dep-row"><span class="dep-tag blocks">J1 blocks #12</span> Finish setting up the KSolves Horizon VDI pool (PowerShell-command issues remaining). <em>(§296–297)</em></div>
+        <div class="dep-row"><span class="dep-tag blocks">J2 blocks #12</span> Grant Paul, Wood, Rohn, and Mirali access to the VDI pool for testing. <em>(§298–302)</em></div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <details class="sub-details">
+      <summary class="sub-summary">
+        <span class="item-code">H</span>
+        <span class="item-title">Harper Dunning — Project Manager</span>
+        <span class="item-status">1 item</span>
+      </summary>
+      <div class="sub-body">
+        <div class="dep-row"><span class="dep-tag none">H1</span> Update the EDS data-flow / roadmap diagram to include the Azure private-link / ExpressRoute icon. <em>(§88)</em></div>
+        <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close</a></div>
+      </div>
+    </details>
+
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ CLOSED ════════════════════════════ -->
+<details class="section-details" id="sec_closed">
+  <summary class="section-summary">
+    <span class="section-letter ok">C</span>
+    <span class="section-title">Closed Items</span>
+    <span class="section-sub">· #1 #2 #11</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <div class="cb-row"><input type="checkbox" id="cb_1" data-track checked disabled><span class="cb-text"><strong>#1</strong> — Run baseline capture commands on the other two cluster nodes. <em>Outputs cleaned and promoted as <code>node01_profile_v1.1.txt</code>, <code>node02_profile_v1.1.txt</code>, <code>node03_profile_v1.1.txt</code> in <code>Document/</code>.</em> <em>(§2)</em></span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_2" data-track checked disabled><span class="cb-text"><strong>#2</strong> — Add Paul Barber to the Phases Critical Path distribution list. <em>(§108)</em></span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_11" data-track checked disabled><span class="cb-text"><strong>#11</strong> — Send network / firewall / DNS questions to Ksolves. <em>Verified sent: <code>correspondence/Document/Ksolves Network Firewall DNS Query.md</code> (2026-04-30).</em> <em>(§313)</em></span></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ HELD ════════════════════════════ -->
+<details class="section-details" id="sec_held">
+  <summary class="section-summary">
+    <span class="section-letter">H</span>
+    <span class="section-title">Held Items</span>
+    <span class="section-sub">· No action at this time</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <div class="dep-row"><span class="dep-tag none">#3 held</span> Update Phases Critical Path doc as Mirali reports progress. Re-opens automatically if/when Mirali Mi2 fires (an update arrives that warrants a doc bump). <em>(§47–48)</em></div>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ CRITICAL PATH SEQUENCE ════════════════════════════ -->
+<details class="section-details" id="sec_sequence">
+  <summary class="section-summary">
+    <span class="section-letter">→</span>
+    <span class="section-title">Critical Path Sequence</span>
+    <span class="section-sub">· Dependency graph · Halt / fork conditions</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <p style="font-size:0.86rem; margin-bottom:10px;">The dependency chain from blockers to outcomes. Solid arrows indicate <strong>blocks</strong>; dashed arrows indicate <strong>informs / triggers / validates</strong>.</p>
+
+    <pre class="code-block">                                      ┌──────────────────────────┐
+                                      │  Michelle M1: account    │
+                                      │  Michelle M2: group      │
+                                      │  in remote.corp          │
+                                      └────────────┬─────────────┘
+                                                   │ (blocks)
+                                                   ▼
+                                          ┌────────────────┐
+                                          │ Paul P2: relay │
+                                          │ group name to  │
+                                          │ Wood, Rohn     │
+                                          └────────┬───────┘
+                                                   │ (triggers)
+                                          ┌────────┴────────┐
+                                          ▼                 ▼
+                          ┌──────────────────┐   ┌──────────────────────┐
+       Wood, Rohn #4  ─ ─▶ #7: console-login │   │ #13: assign console- │
+       (PAM/AD model)     │ + selective      │   │ login rights to AD   │
+                          │ guest access     │   │ group on Proxmox     │
+                          └────────▲─────────┘   └──────────────────────┘
+                                   │ (informs)
+                          ┌────────┴──────────────┐
+                          │ #6: investigate guest │
+                          │ permission delegation │
+                          └───────────────────────┘
+                                   ▲
+                                   │ (validates)
+                          ┌────────┴──────────────┐
+                          │ Michelle M4: AD-perm  │
+                          │ feasibility test      │
+                          └───────────────────────┘
+
+
+       Wood, Rohn #8 ────▶ Wood, Rohn #9 ─────▶ Austin A1: execute
+       hostname             test IP move on    IP/VLAN move + DNS
+       feasibility          non-cluster server
+
+
+       Mirali Mi3 ───────▶ Wood, Rohn #10:
+       (ask Ksolves for     drive config remotely
+       written ops list)    on PMC01
+
+
+       Jason J1 ─────────▶ Jason J2 ─────────▶ Wood, Rohn #12:
+       VDI pool ready      grant access        test VDI as
+                                                Ksolves-equivalent user
+
+
+       Wood, Rohn #5 ─── independent — no external dependency
+       (Tanium install)
+
+
+       Paul P4 / Sean S2 ─── adjacent — depends on outcome of #9
+       (SSH firewall policy planning)
+</pre>
+
+    <div class="item-block">
+      <div class="item-block-title">Halt / fork conditions</div>
+      <ul>
+        <li><strong>#8 returns "no":</strong> the VLAN-move plan dies; #9 closes as "not viable"; rely entirely on the permission-only path (#7 + #13) for isolation.</li>
+        <li><strong>Michelle M4 returns "no":</strong> the entire AAA approach for #7 needs rethinking — likely reverts to local-Proxmox-account-only, without <code>remote.corp</code> integration.</li>
+        <li><strong>Mirali Mi3 returns "no":</strong> #10 closes as "vendor preferred live sessions"; co-screen-sharing continues for the foreseeable future.</li>
+        <li><strong>Jason J1 stalls indefinitely:</strong> #12 stays open; if BLOCKER.1 (Phase 1A Webex hardware) closes first, work proceeds via Webex while VDI catches up.</li>
+      </ul>
+    </div>
+
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ════════════════════════════ FOOTNOTES ════════════════════════════ -->
+<details class="section-details" id="sec_footnotes">
+  <summary class="section-summary">
+    <span class="section-letter">¹</span>
+    <span class="section-title">Footnotes</span>
+    <span class="section-sub">· Source citations</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+    <p style="font-size:0.84rem; line-height:1.7;"><strong>¹</strong> Meeting transcript: <code>phases/phase2/development/Incoming/Paul Barber's meeting-20260501 1809-1.txt</code> — section numbers refer to the WEBVTT cue numbers in that transcript.</p>
+    <p style="font-size:0.84rem; line-height:1.7; margin-top:10px;"><strong>²</strong> <code>Phases_Critical_Path_Development_v1.3.md</code> — the parent Phase 2 critical path. KSolves-access concerns gate several P0/P1 items there; this CP doc isolates them for cleaner tracking.</p>
+    <p style="font-size:0.84rem; line-height:1.7; margin-top:10px;"><strong>³</strong> <code>Scripts/send_subproject_digest.py</code> — daily digest script that emails the working tracker (sanitized) every weekday morning.</p>
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+</div><!-- /.page-wrap -->
+
+<script>
+/* ── Theme ─────────────────────────────────────────────────────────────── */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('spark_theme_cp_ksolves_access', theme);
+  document.getElementById('btn_theme').textContent = theme === 'dark' ? '☀ Light' : '☾ Dark';
+}
+function toggleTheme() {
+  var current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+applyTheme(localStorage.getItem('spark_theme_cp_ksolves_access') || 'dark');
+
+/* ── Section helpers ───────────────────────────────────────────────────── */
+function setAllSections(open) {
+  document.querySelectorAll('details.section-details').forEach(function(d) { d.open = open; });
+}
+function expandAllSections()   { setAllSections(true);  }
+function collapseAllSections() { setAllSections(false); }
+function expandSubs(el) {
+  var s = el.closest('details.section-details');
+  if (s) s.querySelectorAll('details.sub-details').forEach(function(d) { d.open = true; });
+}
+function collapseSubs(el) {
+  var s = el.closest('details.section-details');
+  if (s) s.querySelectorAll('details.sub-details').forEach(function(d) { d.open = false; });
+}
+
+/* ── Position-preserving close (per project rule) ──────────────────────── */
+function closeSub(el) {
+  var clickY = el.getBoundingClientRect().top;
+  var d = el.closest('details');
+  d.open = false;
+  var summary = d.querySelector(':scope > summary');
+  if (summary) {
+    var summaryY = summary.getBoundingClientRect().top;
+    if (summaryY < clickY) window.scrollBy(0, summaryY - clickY);
+  }
+}
+
+/* ── Checkbox auto-save ────────────────────────────────────────────────── */
+var STORAGE_KEY = 'cp_ksolves_access_v1.0';
+var saveTimer = null;
+function flashSaved() {
+  var el = document.getElementById('save_status');
+  if (!el) return;
+  el.textContent = 'Saved ' + new Date().toLocaleTimeString();
+  el.classList.add('flash');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function() { el.classList.remove('flash'); }, 600);
+}
+function saveState() {
+  var state = {};
+  document.querySelectorAll('input[type=checkbox][data-track]').forEach(function(cb) {
+    state[cb.id] = cb.checked;
+  });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); flashSaved(); }
+  catch(e) { console.warn('Failed to save checkbox state:', e); }
+}
+function loadState() {
+  var raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    var state = JSON.parse(raw);
+    Object.keys(state).forEach(function(id) {
+      var cb = document.getElementById(id);
+      if (cb && !cb.disabled) cb.checked = state[id];
+    });
+  } catch(e) { console.warn('Failed to load checkbox state:', e); }
+}
+
+/* ── DOM ready: defaults, restore, bind ────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function() {
+  // Default closed for all sections except Overview
+  document.querySelectorAll('details.section-details').forEach(function(d) {
+    if (d.id !== 'sec_overview') d.open = false;
+  });
+  // Sub-sections default closed
+  document.querySelectorAll('details.sub-details').forEach(function(d) {
+    d.open = false;
+  });
+  // Restore checkbox state
+  loadState();
+  // Bind auto-save
+  document.querySelectorAll('input[type=checkbox][data-track]').forEach(function(cb) {
+    cb.addEventListener('change', saveState);
+  });
+});
+</script>
+</body>
+</html>
