@@ -113,6 +113,10 @@ _Owned by Rohn (fqdn):_
 - [ ] [Phase1] [security] **Investigate constrained vendor sudo** — verify `nft` / `iptables` / `ufw` / `firewall-cmd` can be carved out of vendor sudo without breaking install workflow (sudoers `Cmnd_Alias`, AppArmor on Debian, SELinux on RHEL).
 - [x] [Phase1] [security] **Enumerate AD domain controllers in scope** — pull from fqdn AD inventory. Needed regardless of design. **— Closed 2026-05-06: 7 DCs across 4 sites (Windsor ×2, Garfield ×1, South ×2, MSB RW + RO). See `security/Notes/vendor-access-isolation-plan_2026-05-06.md` § AD domain controllers. Open follow-up: confirm with fqdn AD admins whether vendor traffic should be DC-pool-wide or steered to specific DCs (e.g., MSB-RO for query, MSB-RW for writeback).**
 - [ ] [Phase1] [security] **Decide cloud egress allowlist mechanics** — Snowflake/Azure Blob endpoint IPs rotate. FQDN-based (DNS trust at firewall) vs published CSP IP ranges (periodic refresh) vs egress proxy.
+- [ ] [Phase1] [security] **Request Ksolves install OPSWAT security client on all vendor devices** — vendor-side device-posture attestation (patch status, password protection, screen-saver requirements, no screen-capture / keylogger software). Doesn't grant fqdn control of vendor devices; provides assurances of secure state. Item #6 from Harper's 2026-05-06 meeting summary. Owner: Rohn (vendor coordination).
+- [ ] [Phase1] [security] **Validate remote-domain credentials against required dev servers** — confirm that `remote.corp.<fqdn>` test-account logins work on the dev cluster RHEL servers Ksolves will console into. Item #7 from Harper's summary. Owner: Rohn / team.
+- [ ] [Phase1] [security] **Evaluate feasibility / legal implications of fqdn performing portions of the installation** — alternative path if VDI design doesn't land in time. Contract requires Ksolves to certify the build; if fqdn does the work, certification path needs review. Item #10 from Harper's summary. Owner: Rohn / leadership.
+- [ ] [Phase1] [security] **Provide Ksolves an updated estimate for when secure access will be available** — once Sean's design is sized + Cyber review timeline is clearer. Item #12 from Harper's summary. Owner: Rohn. Tracks alongside the email draft (now sent / awaiting Murali review).
 
 _Owned by reviewers (not yet ready):_
 - [ ] [Phase1] [security] **Cyber review of final design** — Paul Barber. Once Rohn + Sean have a candidate.
@@ -171,6 +175,8 @@ _Owned by reviewers (not yet ready):_
   - Held for separate follow-up after this reply: ExaBGP compatibility — does Ksolves' Spark/RGW client config support a single VIP with ExaBGP failover, or does it hardcode per-node RGW addresses?
 
 - [x] [Phase1] [correspondence] Revisit YARN HA / ZooKeeper / Nginx decision with Ksolves. **Closed 2026-05-05**: vendor's `Ksolves_Spark_YARN_Config_v1.0.pdf` § 4 implicitly confirms single-RM posture (no HA settings in `yarn-site.xml`). Single YARN RM VM is final. The 3-node decision (no 4th node) further validates: there is no 4th node available for active/standby pair anyway. ZooKeeper / Nginx scope already dropped from v1.3.
+
+- [ ] [Phase1] [security] **Awaiting Ksolves user list for VDI account provisioning** — vendor to deliver list of individual users who need accounts in the `remote.corp.<fqdn>` subdomain. Required regardless of design (host firewall vs Sean's VLAN approach). Item #8 from Harper's 2026-05-06 meeting summary. Owner: Ksolves.
 
 ---
 
