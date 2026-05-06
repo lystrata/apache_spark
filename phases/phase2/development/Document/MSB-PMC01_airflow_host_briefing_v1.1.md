@@ -2,8 +2,8 @@
 
 _For: Ksolves implementation team_
 _Prepared by: fqdn infrastructure (cluster owner)_
-_Version 1.0 · 2026-04-29_
-_Subject: Hardware and infrastructure context for P1.0 (Remote Airflow Server provisioning)_
+_Version 1.1 · 2026-05-05_
+_Subject: Hardware and infrastructure context for P1.0 (Remote Airflow Server provisioning), plus DAG behavior expectations carried over from the Ksolves Spark/YARN Config v1.0 baseline_
 
 ---
 
@@ -12,6 +12,8 @@ _Subject: Hardware and infrastructure context for P1.0 (Remote Airflow Server pr
 This briefing provides Ksolves with the hardware, storage, and network context required to provision the remote Airflow server VM (P1.0) on the MSB-PMC01 Proxmox cluster. The cluster is fqdn-managed; this document is the working reference Ksolves should use for VM placement, sizing, and storage allocation decisions during P1.0.
 
 MSB-PMC01 runs Proxmox VE (kernel `6.8.12-20-pve`) in a hyperconverged Ceph configuration. Ksolves' provisioning activities will land VMs into this cluster but will not modify cluster, Ceph, or networking infrastructure — those remain fqdn-managed.
+
+**v1.1 update (2026-05-05):** Section 6 finalized in light of decisions captured in `Phases_Critical_Path_Development_v1.4.md` (3-node cluster posture, 1 concurrent Spark job, Azure Blob staging confirmed). Added § 5.1 — Airflow DAG behavior expectations carried over from `Ksolves_Spark_YARN_Config_v1.0.pdf` (table ordering, runtime repartition parameter injection, retry handling, placeholder-table size-check gate).
 
 ---
 
@@ -134,7 +136,7 @@ Before the Airflow VM can be provisioned and tested, the fqdn network team must 
 
 **Verification artifacts:** `nc -zv <node> 8032` and `nc -zv <node> 8088` succeed against all three MSB-PMC03 worker nodes. Network team confirms in change ticket.
 
-This gate must close before Ksolves begins VM provisioning. Status tracking is in `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md` § P0.7.
+This gate must close before Ksolves begins VM provisioning. Status tracking is in `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.4.md` § P0.7.
 
 ---
 
@@ -150,19 +152,34 @@ This gate must close before Ksolves begins VM provisioning. Status tracking is i
 | SSH access patterns to all three MSB-PMC03 worker nodes | fqdn | Ansible control + Spark submission |
 | Ceph RGW S3 endpoint URL and access keys | fqdn (provisioned in P0.0) | `s3a://` connector for Spark/Airflow operations |
 
+### 5.1 Airflow DAG Behavior Expectations (added v1.1, 2026-05-05)
+
+The vendor's authoritative configuration document (`Ksolves_Spark_YARN_Config_v1.0.pdf`) was delivered 2026-05-04 and is built around an actual measurement of the DEV environment (`csv_file_sizes.xlsx`: 800 tables, 359 with data, 12,214 files, ~1.52 TB total compressed). It implies several DAG-level expectations that affect how Ksolves should structure Airflow's orchestration of Spark submissions.
+
+| Expectation | Source | Detail |
+|---|---|---|
+| **Table ordering — large-first** | Vendor § 1.3 SLA Risk Summary | At 3 nodes with 1 concurrent Spark job, the SLA is feasible-but-zero-buffer. The mitigation is to order the daily DAG to schedule the **12 largest tables first** (top-12 = 79.29 % of total daily volume). Long-tail small tables run after the SLA-critical bulk volume is already complete. |
+| **Placeholder-table size-check gate** | Vendor § 1.1 (table inventory) + 3-node decision (2026-05-05) | 184 of the 800 tables are placeholders / empty. Airflow should pre-flight each table with a size check (RGW HEAD or list-objects) and **skip empty/placeholder tables** rather than dispatch a no-op Spark job. Saves cluster time materially over a 800-table sweep. |
+| **Per-table repartition parameter injection** | Vendor § 7.2 (repartition formula) | For every compressed CSV table the DAG should compute and pass `--conf spark.sql.shuffle.partitions=<N>` (or pass `target_partitions` to the job) using the formula `target_partitions = max(24, ceil(compressed_csv_mb / 50))`. The DAG looks up `compressed_csv_mb` per table at runtime (RGW object size) and injects it into the Spark submission. |
+| **Static reference for shuffle partitions** | Vendor § 4 / § 7.2 | If a per-table override is not supplied, the cluster default is `spark.sql.shuffle.partitions = 4096`. This is a useful fallback but not a substitute for the per-table formula above on small tables, where it would create thousands of tiny shuffle files. |
+| **Retry handling lives in Airflow, not Spark** | Conventional Airflow + decision 2026-05-05 | Spark job retries are owned by the **Airflow task** (`retries`, `retry_delay`, `retry_exponential_backoff`), not by Spark's internal stage retries. This keeps every retry visible in the Airflow UI / metadata DB and prevents Spark from silently re-running on the cluster while Airflow believes the job has finished. Configure Spark itself for fast-fail. |
+| **Single concurrent Spark job** | 3-node cluster decision, 2026-05-05 | The cluster is sized to run **one Spark job at a time**. The Airflow DAG must serialize Spark submissions with a `max_active_runs=1` (DAG-level) or a pool-of-1 covering the Spark-submission task; otherwise Spark jobs will queue inside YARN and lose the timing guarantee that the large-first ordering above is meant to provide. |
+
+These expectations are not P1.0 sizing inputs — they are DAG-design inputs for P2.2 (Airflow installation + DAG bring-up). Captured here in the host-briefing so the team that provisions the host has the full operational context, not just the vCPU/RAM numbers.
+
 ---
 
 ## 6. Open Items Affecting Final Sizing
 
-These items remain open and may refine the P1.0 sizing before provisioning begins:
+The following items, previously open in v1.0, were resolved on 2026-05-05 alongside the vendor configuration baseline rollover. They are kept here for traceability:
 
-| Item | Current state | Effect on Airflow VM |
+| Item | State | Effect on Airflow VM |
 |---|---|---|
-| Max concurrent Airflow task slots | Open question with fqdn stakeholders | Drives Celery worker count and broker (Redis/RabbitMQ) sizing; current 6c/24GB has headroom for a 2-job concurrent baseline but should be re-checked once concurrency target is finalized |
-| Cluster outbound network path (MPLS vs DIA-direct vs DIA+VPN) | Open with fqdn networking | Determines WAN egress profile and feasible cloud staging target (Azure Blob vs AWS S3) |
-| Cloud staging target | Azure Blob leading candidate, not finalized | Influences `s3a://` configuration in Airflow operators |
+| Max concurrent Spark jobs | **Closed 2026-05-05 — 1** (3-node cluster decision) | Airflow DAG serializes Spark submissions (`max_active_runs=1` or pool-of-1). Celery worker count and broker (Redis/RabbitMQ) sizing scoped to a single concurrent submission flow; current 6c/24GB has comfortable headroom. |
+| Cloud staging target | **Closed 2026-05-05 — Azure Blob** (vendor § 1.1 Pipeline) | `s3a://` connector points to the on-cluster Ceph RGW endpoint; outbound batch-transfer to Azure Blob via SAS token / managed identity is a separate operator stage downstream of the Spark job. |
+| Cluster outbound network path (MPLS vs DIA-direct vs DIA+VPN) | Still open with fqdn networking | Determines WAN egress profile for the Azure Blob batch transfer; does not block Airflow VM provisioning. |
 
-These do not block the start of provisioning but should be resolved before production cutover.
+The remaining open item (outbound network path) does not block the start of provisioning but should be resolved before production cutover.
 
 ---
 
@@ -175,7 +192,11 @@ This briefing draws from the following authoritative artifacts in the fqdn proje
 - **Ceph OSD tree (`ceph osd df tree` output):**
   `phases/phase2/development/Incoming/PMC01_OSD_Tree/PMC01_OSD_Tree.md`
 - **Phase 2 critical path with P1.0 specification:**
-  `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md` § P1.0, P0.7
+  `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.4.md` § P1.0, P0.7
+- **Vendor Spark/YARN configuration baseline (delivered 2026-05-04):**
+  `phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` § 1.1 (table inventory), § 1.3 (SLA risk summary), § 4 (Spark defaults), § 7.2 (repartition formula)
+- **HIPAA compliance sub-project critical path:**
+  `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.0.md`
 - **Phase 1 report (delivered 2026-04-24):**
   `phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf`
 
