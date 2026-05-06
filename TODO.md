@@ -180,6 +180,8 @@ _Owned by reviewers (not yet ready):_
 
 - [ ] [Phase1] [security] **Awaiting Ksolves user list for VDI account provisioning** — vendor to deliver list of individual users who need accounts in the `remote.corp.<fqdn>` subdomain. Required regardless of design (host firewall vs Sean's VLAN approach). Item #8 from Harper's 2026-05-06 meeting summary. Owner: Ksolves.
 
+- [ ] [Phase1] [security] **Awaiting Ksolves confirmation: OPSWAT security client installed on all vendor devices** — fqdn requested install 2026-05-07; vendor to confirm install completion across all devices that will participate in Phase 1B VDI access. Required for the device-posture attestation chain (patch status, password protection, no screen-capture / keylogger software). Owner: Ksolves.
+
 ---
 
 ## Open Questions
