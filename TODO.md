@@ -105,13 +105,13 @@ CIO declined to authorize Phase 1B VDI access on the proposed terms in a 2026-05
 
 _Owned by Sean Klette (Network):_
 - [ ] [Phase1] [security] **Develop the VLAN-isolation proposal** — confirm tenancy on VLANs 37/38/39 exclusive to msb-pmc03; design VLAN 10 for ingress/egress; document routing topology enforcing "only path out is via VLAN 10". See `security/Notes/vendor-access-isolation-plan_2026-05-06.md` § "Sean's VLAN Isolation Approach".
-- [ ] [Phase1] [security] **Confirm consistent IP blocks for vendor-created VMs** — would let the allowlist use a CIDR rather than enumerated per-VM IPs. Carries either way the design lands.
+- [ ] [Phase1] [security] **Confirm consistent IP blocks for vendor-created VMs** — would let the allowlist use a CIDR rather than enumerated per-VM IPs. Carries either way the design lands. **Substantial progress 2026-05-06 (DNS-confirmed):** all 7 Proxmox hosts now mapped (msb-pmc03 at 10.1.37.31–33, msb-pmc01 at 10.1.37.48–51); 5 Spark VMs at 10.1.37.10–14. **Both clusters share `10.1.37.0/24`** — resolves the VLAN-scoping question in favor of "global VLAN namespace" reading. The 3 VMs on msb-pmc01-04 (Bastion, Airflow, GPL) and the 2 vendor Horizon VDI IPs remain TBD. Major implication for Sean's VLAN-isolation approach: msb-pmc03 cannot be the "sole tenant" of 37/38/39 without renumbering one cluster — see `security/Notes/vendor-access-isolation-plan_2026-05-06.md` § Sean's VLAN Isolation Approach addendum for the four design paths.
 
 _Owned by Rohn (fqdn):_
-- [ ] [Phase1] [security] **Draft vendor-isolation email to Ksolves** — Murali reviews + forwards. Don't commit to a date until the design is sized.
+- [x] [Phase1] [security] **Draft vendor-isolation email to Ksolves** — Murali reviews + forwards. Don't commit to a date until the design is sized. **— Drafted 2026-05-06; promoted to `correspondence/Document/vendor_email_horizon_vdi_security_revision_2026-05-06.md`. Awaiting Murali's review + send.**
 - [ ] [Phase1] [security] **Investigate nftables-based outbound filtering** as fallback / defense-in-depth — Proxmox layer (Debian, `nftables`) + VM layer (RHEL 9.4, `firewalld`). Confirm rule structure, package-manager update handling, blocked-outbound logging.
 - [ ] [Phase1] [security] **Investigate constrained vendor sudo** — verify `nft` / `iptables` / `ufw` / `firewall-cmd` can be carved out of vendor sudo without breaking install workflow (sudoers `Cmnd_Alias`, AppArmor on Debian, SELinux on RHEL).
-- [ ] [Phase1] [security] **Enumerate AD domain controllers in scope** — pull from fqdn AD inventory. Needed regardless of design.
+- [x] [Phase1] [security] **Enumerate AD domain controllers in scope** — pull from fqdn AD inventory. Needed regardless of design. **— Closed 2026-05-06: 7 DCs across 4 sites (Windsor ×2, Garfield ×1, South ×2, MSB RW + RO). See `security/Notes/vendor-access-isolation-plan_2026-05-06.md` § AD domain controllers. Open follow-up: confirm with fqdn AD admins whether vendor traffic should be DC-pool-wide or steered to specific DCs (e.g., MSB-RO for query, MSB-RW for writeback).**
 - [ ] [Phase1] [security] **Decide cloud egress allowlist mechanics** — Snowflake/Azure Blob endpoint IPs rotate. FQDN-based (DNS trust at firewall) vs published CSP IP ranges (periodic refresh) vs egress proxy.
 
 _Owned by reviewers (not yet ready):_
