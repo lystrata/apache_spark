@@ -198,6 +198,32 @@ Distribution markdown documents and their generated PDFs carry an explicit versi
 
 When in doubt, ask: "Will this document be distributed or referenced by others as a snapshot?" If yes, it gets a version. If no, edit in place.
 
+## File Naming — Embedded Date
+
+Files we author should embed the date of authorship in the filename, immediately before the extension, in ISO format. This makes files easier to find via timeline, prevents collisions when topics recur, and gives a quick read of "how recent is this?" without opening it.
+
+**Format:** `<basename>_<YYYY-MM-DD>.<ext>`
+
+**Examples:**
+- `dev_data_flow_diagram_2026-05-06.png`
+- `spark_vm_management_ips_2026-05-06.png`
+- `msb-pmc01-04_resource_analysis_2026-05-06.md`
+- `vendor-access-isolation-plan_2026-05-06.md`
+
+**Applies to:**
+- Notes files — planning, analysis, design proposals, meeting captures
+- Reference images and source captures (e.g., files in `reference_images/`)
+- Any file where a date helps disambiguation when grepping or browsing
+
+**Does NOT apply to:**
+- **Versioned distribution documents** — they use `_v<MAJOR>.<MINOR>` per the Document Versioning section above. Version is the identifier; the body's `_Last updated_` line carries the date.
+- **Operational / index files** edited in place — `CLAUDE.md`, `MEMORY.md`, `TODO.md`, `README.md`, `index.html`.
+- **Vendor-supplied files in `Incoming/`** — we don't rename their files. (Once promoted to `reference_images/` or another tracked location, give them descriptive + dated names.)
+- **Rolling files** that accumulate over time — e.g., `questions_for_vendors.txt`. These are not point-in-time snapshots.
+- **Changelog files** that are already tied to a version — e.g., `..._v1.0_changelog.md`. The version pins the moment.
+
+**Significant later rewrites:** if a file's content evolves substantially after creation, `git mv` it to embed the new date. Update any cross-references. For minor edits, keep the original date — the body's revision history captures the change history.
+
 ## Ready_For_Review Staging Rule
 
 **All new files and refactored existing files must be written to `Ready_For_Review/` first.** Do not write directly to the working location. The workflow is:

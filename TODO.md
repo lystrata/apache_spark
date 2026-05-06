@@ -86,6 +86,41 @@ vendor lead (Ksolves) forwarded a multi-section email on 2026-05-06 that bundles
 - [ ] [security] **Redact AD-group screenshot before tracking** — `phases/phase2/development/Incoming/eedfd24e-3c00-4d15-a7aa-19bfb61b1d70.png` shows `the corporate AD domain` in seven AD group strings and "an admin user" in the title bar. Useful as a corroboration of the AD group taxonomy that `CP_Okta_v1.1.md` § O0.3 will consume. Redact (blur or replace) FQDN + name, then move to `phases/phase2/development/reference_images/` with name `ad_group_membership_admin_user_example_2026-05-06.png`.
 - [ ] [correspondence] **NUC-failure refinement of BLOCKER.1** — Ksolves' email clarifies that the BLOCKER.1 vendor-Windows-host hardware prerequisite is specifically NUCs failing in their data center; Ksolves is debugging. The user has shifted to hosting Webex from his office host until they resolve hardware. Refine BLOCKER.1 wording in CP v1.5 to capture the specific cause (NUC reliability) and the interim host arrangement.
 
+### Vendor Access Isolation — Phase 1B VDI Security Gate (NEW 2026-05-06)
+
+CIO declined to authorize Phase 1B VDI access on the proposed terms in a 2026-05-06 meeting. Phase 1B is now gated on a vendor-isolation design that constrains the vendor's network exposure to a documented IP allowlist + host-level Linux firewalls. Phase 1A (Webex screen sharing) continues as the interim. **See `security/Notes/vendor-access-isolation-plan_2026-05-06.md` for the full meeting capture, CIO position, vendor lead Cyber's mitigation brainstorm, ruled-out approaches, and open architecture questions.**
+
+**Allowed-surface constraints (CIO directive 2026-05-06; list expected to grow):**
+- Spark Proxmox cluster (msb-pmc03) — all 3 hosts
+- VMs created on msb-pmc03
+- Bastion VM on `msb-pmc01-04` (vendor's only msb-pmc01 surface)
+- VLANs 37 (mgmt), 38 (cluster), 39 (CephFS) on msb-pmc03
+- AD domain controllers — all of them (Okta SSO is AD-tied; cannot subset)
+
+**Status (2026-05-06 update):** the meeting was a brainstorm — no path is yet committed. Rohn + Sean Klette are the active planners; Paul Barber + CIO are later reviewers. NUC issue **resolved** 2026-05-06 — Phase 1A Webex screen-sharing is active and vendor work is progressing during the design phase. OS context: Proxmox hosts are Debian; all VMs are RHEL 9.4.
+
+**Active design lead under exploration (Sean Klette, 2026-05-06):** make msb-pmc03 the **sole tenant** of VLANs 37 / 38 / 39, and add a new **VLAN 10** providing controlled public ingress/egress (Proxmox WebUI + SSH + VM access). If this lands, intra-cluster traffic is permitted by VLAN membership rather than per-IP allowlist, and VLAN 10 becomes the single chokepoint for the ~30–35 IP allowlist. Substantially simpler than per-host firewalls. Open items in the security note.
+
+**New action items (open):**
+
+_Owned by Sean Klette (Network):_
+- [ ] [Phase1] [security] **Develop the VLAN-isolation proposal** — confirm tenancy on VLANs 37/38/39 exclusive to msb-pmc03; design VLAN 10 for ingress/egress; document routing topology enforcing "only path out is via VLAN 10". See `security/Notes/vendor-access-isolation-plan_2026-05-06.md` § "Sean's VLAN Isolation Approach".
+- [ ] [Phase1] [security] **Confirm consistent IP blocks for vendor-created VMs** — would let the allowlist use a CIDR rather than enumerated per-VM IPs. Carries either way the design lands.
+
+_Owned by Rohn (fqdn):_
+- [ ] [Phase1] [security] **Draft vendor-isolation email to Ksolves** — Murali reviews + forwards. Don't commit to a date until the design is sized.
+- [ ] [Phase1] [security] **Investigate nftables-based outbound filtering** as fallback / defense-in-depth — Proxmox layer (Debian, `nftables`) + VM layer (RHEL 9.4, `firewalld`). Confirm rule structure, package-manager update handling, blocked-outbound logging.
+- [ ] [Phase1] [security] **Investigate constrained vendor sudo** — verify `nft` / `iptables` / `ufw` / `firewall-cmd` can be carved out of vendor sudo without breaking install workflow (sudoers `Cmnd_Alias`, AppArmor on Debian, SELinux on RHEL).
+- [ ] [Phase1] [security] **Enumerate AD domain controllers in scope** — pull from fqdn AD inventory. Needed regardless of design.
+- [ ] [Phase1] [security] **Decide cloud egress allowlist mechanics** — Snowflake/Azure Blob endpoint IPs rotate. FQDN-based (DNS trust at firewall) vs published CSP IP ranges (periodic refresh) vs egress proxy.
+
+_Owned by reviewers (not yet ready):_
+- [ ] [Phase1] [security] **Cyber review of final design** — Paul Barber. Once Rohn + Sean have a candidate.
+- [ ] [Phase1] [security] **CIO risk-acceptance sign-off** — Rob Ball. Once Cyber endorses.
+- [ ] [Phase1] [security] **Phase 1B exit-condition decision** — when does the design come off / what does the cluster's network posture revert to. Owner: Rohn + Paul Barber.
+
+**Critical-path implication:** This adds two new gates to Phase 1B, parallel to BLOCKER.1's vendor-Windows-host issue (now resolved on the NUC side). Capture in CP v1.5 alongside the other queued additions. All three of {BLOCKER.1, vendor-isolation firewall design, CIO sign-off} must close before VDI access goes live.
+
 ### RHEL ISO Provisioning (CLOSED 2026-04-30)
 
 - [x] [Phase1] [correspondence] Confirm RHEL version: 9.4 (current assumption) vs. 9.7 (pending Ksolves Spark compatibility research) **— resolved 2026-04-30: proceeding with RHEL 9.4 (vendor-requested); 9.7 ISO held on disk for future evaluation but not blocking**
