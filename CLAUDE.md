@@ -92,6 +92,25 @@ These rules apply in the **security context** at full strength. In other context
 - If fewer than two corroborating sources can be found, state explicitly: *"I cannot find corroborated evidence for this claim."* Do not assert it.
 - All citations must include a URL the user can verify directly. If a URL cannot be confirmed as live and correct, do not include it — state the source by title and publisher instead.
 
+## Verifying External Assertions
+
+Applies to **all assertions of external fact** in any context — what a standard says, how a tool behaves, what a vendor product does, what industry practice is, etc. Strengthens and operationalizes the Citation Rules above.
+
+**Rule:** No assertion of external fact without verified correlation to an authoritative external source.
+
+**Verification mechanism:** Always verify via WebFetch (or `curl` + a parser for non-HTML resources). Search-engine snippets and AI-summarized previews are starting points, not verification. For PDFs, extract to text (`pdftotext`) and grep for the cited passage to confirm it appears verbatim in the source.
+
+**Verbatim quotes** must appear verbatim in the source. Paraphrase is acceptable when not framed as a quote. Paraphrase-creep — a quote acquiring words or phrasing not present in the source — is a frequent failure mode; guard against it by direct text-level verification, especially before a document leaves the team.
+
+**Failure modes — state explicitly, no hedging:**
+
+- **Cannot verify** (paywalled, authentication-walled, URL doesn't resolve, cited text not located in the source): state *"I cannot find corroborated evidence for this claim"* and either drop the assertion or flag it as unverified.
+- **Don't know** (the relevant knowledge is simply not held): state *"I don't know"* and stop. Do not fill the gap with plausible-sounding language.
+
+There is no shame in admitting uncertainty. The cost of "I don't know" is small; the cost of an unsupported assertion that later proves wrong — particularly one that travels up an organizational chain — is high.
+
+This rule is strict for **security-context documents** and applies in all contexts. "Industry research suggests" and similar hedge-phrases are not substitutes for verified sources; if the verification cannot be done, the claim does not appear in the document.
+
 ## Documents for Distribution: Turabian Style Format
 
 Applies to **all contexts** (calculators, remote_services, security). Use this format for any HTML document intended for external distribution or formal review.
