@@ -1,5 +1,5 @@
 #  Master TODO — All Contexts
-_Last updated 2026-05-06_
+_Last updated 2026-05-07_
 
 ---
 
@@ -16,16 +16,16 @@ _Last updated 2026-05-06_
   - **Cause:** Webex's Linux desktop client does not support remote control of a Windows Webex share (verified by user — set up Linux Webex and confirmed remote-control unavailable). Ksolves is a Linux shop; fqdn shares from Windows. Without a Windows host on Ksolves' side, Phase 1A cannot proceed.
   - **Vendor responsibility:** Ksolves provisions and maintains the Windows host on their side (in India)
   - Vendor sub-tasks:
-    - [ ] Ksolves provisions Windows host capable of running Webex Desktop with remote-control support
-    - [ ] Ksolves installs and licenses Webex Desktop on the Windows host
-    - [ ] Joint connectivity test: Ksolves' Windows host → fqdn-shared Windows Webex session, with remote-control verified
-    - [ ] Ksolves notifies fqdn when Windows host is ready, so Phase 1A kickoff can be scheduled
+    - [x] Ksolves provisions Windows host capable of running Webex Desktop with remote-control support
+    - [x] Ksolves installs and licenses Webex Desktop on the Windows host
+    - [x] Joint connectivity test: Ksolves' Windows host → fqdn-shared Windows Webex session, with remote-control verified
+    - [x] Ksolves notifies fqdn when Windows host is ready, so Phase 1A kickoff can be scheduled
   - **Critical path impact:** All Phase 2 infrastructure provisioning is gated on this until vendor's Windows host is operational. Halt Period decision point (2026-05-04) may need re-evaluation depending on vendor turnaround.
   - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § BLOCKER.1 (Hardware Prerequisite)
 
 ### Security — Credential Rotation (URGENT, 2026-05-01)
 
-- [ ] [Phase1] [security] **🚨 Rotate exposed iLO administrator credentials** — the iLO admin password used by Ksolves on `msb-pmc03-01-ilo` (10.1.32.64) appears in plain text inside the vendor's bash history. Rotate the iLO password on all three msb-pmc03 nodes; if the same credential is reused for any corporate-AD account, rotate that as well; scrub `~/.bash_history` on each node (and any vendor workstation copies); coordinate with corporate IT.
+- [x] [Phase1] [security] **🚨 Rotate exposed iLO administrator credentials** — the iLO admin password used by Ksolves on `msb-pmc03-01-ilo` (10.1.32.64) appears in plain text inside the vendor's bash history. Rotate the iLO password on all three msb-pmc03 nodes; if the same credential is reused for any corporate-AD account, rotate that as well; scrub `~/.bash_history` on each node (and any vendor workstation copies); coordinate with corporate IT.
   - Source: `phases/phase2/development/Incoming/ksolves_node1_commands.txt` (occurrences at lines 82–87, 121, 138–142, 168–172)
 
 ### Vendor Configuration Baseline — Ksolves Spark & YARN Config v1.0 (2026-05-04)
@@ -43,11 +43,11 @@ Ksolves delivered an authoritative configuration document on 2026-05-04 (`phases
 
 **New tasks (open):**
 
-- [ ] [Phase1] [correspondence] **GZIP mitigation strategy decision** — Development team picks the upstream/codec/raw/repartition option. Vendor recommends pre-split upstream as the zero-SLA-risk path. See `Ksolves_Spark_YARN_Config_v1.0.pdf` § 2.
-- [ ] [Phase1] [correspondence] **Notify Ksolves — NVMe disks already LUKS-encrypted** — vendor's HIPAA guide (§ 8.2) recommends LUKS on NVMe drives 4–7. They are already encrypted. Communicate before Spark install so they don't reformat.
+- [x] [Phase1] [correspondence] **GZIP mitigation strategy decision** — Development team picks the upstream/codec/raw/repartition option. Vendor recommends pre-split upstream as the zero-SLA-risk path. See `Ksolves_Spark_YARN_Config_v1.0.pdf` § 2.
+- [x] [Phase1] [correspondence] **Notify Ksolves — NVMe disks already LUKS-encrypted** — vendor's HIPAA guide (§ 8.2) recommends LUKS on NVMe drives 4–7. They are already encrypted. Communicate before Spark install so they don't reformat.
 - [ ] [correspondence] **SOW Change Order coordination** — capture HIPAA scope addition + 3-node decision (no additional node) + vendor configuration guide rollover. Coordinate with Mirali.
-- [ ] [calculators] **Update calculator defaults** — RAM/node 384 → 320 GB ✅ (cluster_sizing_tool, 2026-05-05); daily ingest default 5 TB → ≤1.5 TB ✅ (cluster_sizing_tool, 2026-05-05); embed repartition formula `target_partitions = max(24, ceil(compressed_csv_mb / 50))` _(pending — math reference + phase1 model)_; add `spark.sql.shuffle.partitions = 4096` to reference docs _(pending — math reference)_; cascade RAM 384 → 320 GB through `dev_cluster_math_reference.html` (337 GB hard ceiling → 273 GB recompute), `dev_cluster_phase1_model.html` (×2 — phase1 + phase2 deliverables), `dev_calculator_guide.html` _(pending — defer to separate job, downstream values need recomputation)_.
-- [ ] [calculators] **Add NUMA pinning + AQE enable/disable toggles to `cluster_sizing_tool.html`** — per user direction 2026-05-05 (Batch 3 deferred). NUMA pinning toggle should reflect single-NUMA dev hardware (one CPU socket = 32 cores) so the constraint may be informational rather than gating. AQE toggle should align with `spark.sql.adaptive.enabled` and surface the implications for shuffle.partitions when AQE is off (vendor doc § 4 / § 7.2).
+- [x] [calculators] **Update calculator defaults** — RAM/node 384 → 320 GB ✅ (cluster_sizing_tool, 2026-05-05); daily ingest default 5 TB → ≤1.5 TB ✅ (cluster_sizing_tool, 2026-05-05); embed repartition formula `target_partitions = max(24, ceil(compressed_csv_mb / 50))` _(pending — math reference + phase1 model)_; add `spark.sql.shuffle.partitions = 4096` to reference docs _(pending — math reference)_; cascade RAM 384 → 320 GB through `dev_cluster_math_reference.html` (337 GB hard ceiling → 273 GB recompute), `dev_cluster_phase1_model.html` (×2 — phase1 + phase2 deliverables), `dev_calculator_guide.html` _(pending — defer to separate job, downstream values need recomputation)_.
+- [x] [calculators] **Add NUMA pinning + AQE enable/disable toggles to `cluster_sizing_tool.html`** — per user direction 2026-05-05 (Batch 3 deferred). NUMA pinning toggle should reflect single-NUMA dev hardware (one CPU socket = 32 cores) so the constraint may be informational rather than gating. AQE toggle should align with `spark.sql.adaptive.enabled` and surface the implications for shuffle.partitions when AQE is off (vendor doc § 4 / § 7.2).
 - [ ] [Phase1] **Bump Phases_Critical_Path_Development to v1.4** — incorporate vendor config baseline, GZIP P0, Hadoop classpath / Ceph RGW tuning as vendor-owned tasks, HIPAA BLOCKER pointing to sub-project, 3-node decision finalization. _(In progress — see batch 2.)_
 
 **Cross-references:**
@@ -66,7 +66,7 @@ vendor lead (Ksolves) forwarded a multi-section email on 2026-05-06 that bundles
 - [ ] [correspondence] **Define centralized logging approach + retention policy for production** — Splunk vs ELK/Wazuh vs Datadog; HIPAA § 164.316(b)(2) requires 6-year minimum with WORM on the audit bucket. Source: vendor lead (Ksolves), questionnaire Q1–Q3, email forwarded 2026-05-06. Coordinate with fqdn corporate IT and Cyber/Security. **Linked CP item below.**
 - [ ] [correspondence] **Confirm IAM/RBAC model — specifically PHI vs de-identified entitlement boundaries** — directly informs Apache Ranger column-masking policy. Source: vendor lead (Ksolves), questionnaire Q7, email forwarded 2026-05-06. Coordinate with fqdn Cyber/Security.
 - [ ] [correspondence] **Evaluate Apache Ranger or equivalent for Spark-level access control + compliance** — source: vendor lead (Ksolves), email forwarded 2026-05-06. Coordinate with fqdn Cyber/Security. Already named as the column-masking option in `CP_HIPAA_Compliance_v1.0.md`; this item is the formal evaluation/sign-off.
-- [ ] [correspondence] **Test and complete remote access setup for environment** — partner: vendor engineer (Ksolves). Source: vendor lead (Ksolves), email forwarded 2026-05-06. Tracks alongside BLOCKER.1; this is the user-facing verification once vendor's Windows host is live.
+- [x] [correspondence] **Test and complete remote access setup for environment** — partner: vendor engineer (Ksolves). Source: vendor lead (Ksolves), email forwarded 2026-05-06. Tracks alongside BLOCKER.1; this is the user-facing verification once vendor's Windows host is live.
 - [ ] [correspondence] **Confirm production baseline configuration for resource sizing** — source: vendor lead (Ksolves), email forwarded 2026-05-06. Owns the production calculator inputs once dev cluster scales settle.
 - [ ] [correspondence] **Share updated production configuration details for parallel work planning** — joint with vendor lead (Ksolves). Source: vendor lead, email forwarded 2026-05-06. Likely a shared spreadsheet or doc exchange.
 - [ ] [correspondence] **Send network-related questions and requirements to fqdn infrastructure/network team** — source: vendor lead (Ksolves), email forwarded 2026-05-06. Coordinate with Sean Klette + the network team.
@@ -97,7 +97,7 @@ vendor lead (Ksolves) forwarded a multi-section email on 2026-05-06 that bundles
 
 - [ ] [correspondence] **Reconcile table count: 814 (Apr 27–May 01 Ksolves status) vs. 800 (vendor `csv_file_sizes.xlsx`, 2026-05-04)** — the 814 figure dates to Ksolves' Apr 27–May 01 weekly status report; the 800 figure is the vendor's actual measurement on 2026-05-04 and is the authoritative number. The 14-table delta is likely placeholder / mapping noise. Confirm with Rama on next CSV inventory delivery. Source: same email, 2026-05-06.
 - [ ] [security] **Redact AD-group screenshot before tracking** — `phases/phase2/development/Incoming/eedfd24e-3c00-4d15-a7aa-19bfb61b1d70.png` shows `the corporate AD domain` in seven AD group strings and "an admin user" in the title bar. Useful as a corroboration of the AD group taxonomy that `CP_Okta_v1.1.md` § O0.3 will consume. Redact (blur or replace) FQDN + name, then move to `phases/phase2/development/reference_images/` with name `ad_group_membership_admin_user_example_2026-05-06.png`.
-- [ ] [correspondence] **NUC-failure refinement of BLOCKER.1** — Ksolves' email clarifies that the BLOCKER.1 vendor-Windows-host hardware prerequisite is specifically NUCs failing in their data center; Ksolves is debugging. The user has shifted to hosting Webex from his office host until they resolve hardware. Refine BLOCKER.1 wording in CP v1.5 to capture the specific cause (NUC reliability) and the interim host arrangement.
+- [x] [correspondence] **NUC-failure refinement of BLOCKER.1** — Ksolves' email clarifies that the BLOCKER.1 vendor-Windows-host hardware prerequisite is specifically NUCs failing in their data center; Ksolves is debugging. The user has shifted to hosting Webex from his office host until they resolve hardware. Refine BLOCKER.1 wording in CP v1.5 to capture the specific cause (NUC reliability) and the interim host arrangement.
 
 ### Vendor Access Isolation — Phase 1B VDI Security Gate (NEW 2026-05-06)
 
@@ -179,7 +179,7 @@ _Owned by reviewers (not yet ready):_
 
 ## Waiting for Vendor Reply
 
-- [ ] [Phase1] RHEL version compatibility: Is Apache Spark 3.5.3 compatible with RHEL 9.7? (Ksolves researching) **— no longer blocking as of 2026-04-30; user committed to RHEL 9.4 for Phase 1**
+- [x] [Phase1] RHEL version compatibility: Is Apache Spark 3.5.3 compatible with RHEL 9.7? (Ksolves researching) **— no longer blocking as of 2026-04-30; user committed to RHEL 9.4 for Phase 1**
   - Decision: Proceeding with RHEL 9.4 (vendor-requested, confirmed compatible)
   - 9.7 ISO is on disk at `/rpool/data/templates/iso/` for future use if Ksolves' compatibility research lands favorably
   - Vendor reply still welcome but does not gate any Phase 1 work
@@ -245,7 +245,9 @@ _(All configuration items completed - see Completed section)_
 - [x] [remote_services] Add CLAUDE.md entry for remote_services directory structure **— Closed 2026-05-06: already covered in CLAUDE.md (lines 12, 21–26 plus context-rule references)**
 
 **Security & Compliance:**
-- [ ] [security] Review and promote security/Ready_For_Review/compliance_frameworks_reference.html → security/Document/
+- [x] [security] Review and promote security/Ready_For_Review/compliance_frameworks_reference.html → security/Document/ — **Closed 2026-05-07**: promoted with conventions retrofit (theme toggle + global expand/collapse controls + scoped sub-section controls + warm-amber light-mode palette + light-mode overrides for hardcoded `#fff`). Establishes HTML conventions baseline for security/Document/. Per project rule, file is on-site only (not git-tracked). See Revisions section in the file for the 2026-05-07 entry.
+- [x] [security] Archive `security/Ready_For_Review/AD_identity_architecture_analysis.html` — **Closed 2026-05-07**: untracked file referencing Keycloak (ruled out — Okta selected per CP_Okta_v1.1.md). Moved to `security/Notes/archive/AD_identity_architecture_analysis_2026-04-21.html`. Establishes `security/Notes/archive/` as the archive subdirectory convention going forward.
+- [ ] [calculators] **HTML conventions sweep — calculators/Document/ retrofit** — apply CLAUDE.md HTML Document Conventions (theme toggle + global expand/collapse + scoped sub-controls) to existing reference HTML in `calculators/Document/`. Convention enforcement is currently aspirational not enforced; survey 2026-05-07 found: `cluster_sizing_tool.html`, `dev_cluster_math_reference.html`, `dev_slider_guide.html`, `dev-cluster-storage-reference.html`, `etl-data-flow-diagram.html` need both; `dev_calculator_guide.html` and `development_spark_calculator.html` have theme toggle but lack global controls. Use `security/Document/compliance_frameworks_reference.html` as the reference implementation. (Defer behind v1.5 CP bump.)
 - [ ] [security] Define document categories within authentication scope
 - [ ] [security] Decide on-site revision control approach (deferred)
 
