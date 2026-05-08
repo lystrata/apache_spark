@@ -1,0 +1,180 @@
+------------------------------------------------------------------------
+Reference attachment for the proxmox audit findings letter (2026-05-08).
+
+This is the raw output of the audit bash script we ran from msb-pmc03-01
+after your installation work. Authentication-key values have been
+redacted in transit ([REDACTED]); entity names and capabilities are
+preserved so the auth posture is visible. Corporate FQDN replaced with
+'corp.fqdn' placeholder.
+
+  -- Rohn
+------------------------------------------------------------------------
+
+==========================================
+CEPH / PROXMOX CLUSTER AUDIT REPORT
+Host: msb-pmc03-01.corp.fqdn
+Date: Fri May  8 12:23:49 PM MDT 2026
+==========================================
+
+=== CEPH VERSION ===
+ceph version 19.2.3 (d74d168b1c80fb01e1a30d5e4ca9a45b12bc145b) squid (stable)
+
+=== CEPH STATUS ===
+  cluster:
+    id:     fae5c441-0dab-4936-8473-723ab4b24287
+    health: HEALTH_OK
+
+  services:
+    mon: 3 daemons, quorum msb-pmc03-01,msb-pmc03-02,msb-pmc03-03 (age 2d)
+    mgr: msb-pmc03-01(active, since 2d), standbys: msb-pmc03-02, msb-pmc03-03
+    osd: 9 osds: 9 up (since 3h), 9 in (since 3h)
+    rgw: 1 daemon active (1 hosts, 1 zones)
+
+  data:
+    pools:   8 pools, 209 pgs
+    objects: 199 objects, 582 KiB
+    usage:   310 MiB used, 31 TiB / 31 TiB avail
+    pgs:     209 active+clean
+
+
+=== CEPH HEALTH DETAIL ===
+HEALTH_OK
+
+=== MONITOR STATUS ===
+e3: 3 mons at {msb-pmc03-01=[v2:10.1.37.31:3300/0,v1:10.1.37.31:6789/0],msb-pmc03-02=[v2:10.1.37.32:3300/0,v1:10.1.37.32:6789/0],msb-pmc03-03=[v2:10.1.37.33:3300/0,v1:10.1.37.33:6789/0]} removed_ranks: {} disallowed_leaders: {}, election epoch 336, leader 0 msb-pmc03-01, quorum 0,1,2 msb-pmc03-01,msb-pmc03-02,msb-pmc03-03
+
+=== MANAGER STATUS ===
+{
+    "epoch": 87,
+    "available": true,
+    "active_name": "msb-pmc03-01",
+    "num_standby": 2
+}
+
+=== OSD STATUS ===
+9 osds: 9 up (since 3h), 9 in (since 3h); epoch: e118
+
+=== OSD TREE ===
+ID  CLASS  WEIGHT    TYPE NAME              STATUS  REWEIGHT  PRI-AFF
+-1         31.43779  root default
+-3         10.47926      host msb-pmc03-01
+ 0    ssd   3.49309          osd.0              up   1.00000  1.00000
+ 1    ssd   3.49309          osd.1              up   1.00000  1.00000
+ 2    ssd   3.49309          osd.2              up   1.00000  1.00000
+-5         10.47926      host msb-pmc03-02
+ 3    ssd   3.49309          osd.3              up   1.00000  1.00000
+ 4    ssd   3.49309          osd.4              up   1.00000  1.00000
+ 5    ssd   3.49309          osd.5              up   1.00000  1.00000
+-7         10.47926      host msb-pmc03-03
+ 6    ssd   3.49309          osd.6              up   1.00000  1.00000
+ 7    ssd   3.49309          osd.7              up   1.00000  1.00000
+ 8    ssd   3.49309          osd.8              up   1.00000  1.00000
+
+=== OSD DF ===
+ID  CLASS  WEIGHT   REWEIGHT  SIZE     RAW USE  DATA     OMAP    META     AVAIL    %USE  VAR   PGS  STATUS
+ 0    ssd  3.49309   1.00000  3.5 TiB   32 MiB  1.2 MiB   1 KiB   30 MiB  3.5 TiB     0  0.92   73      up
+ 1    ssd  3.49309   1.00000  3.5 TiB   36 MiB  1.2 MiB   1 KiB   34 MiB  3.5 TiB     0  1.03   80      up
+ 2    ssd  3.49309   1.00000  3.5 TiB   36 MiB  1.7 MiB   1 KiB   34 MiB  3.5 TiB     0  1.05   56      up
+ 3    ssd  3.49309   1.00000  3.5 TiB   36 MiB  1.7 MiB   1 KiB   34 MiB  3.5 TiB     0  1.05   72      up
+ 4    ssd  3.49309   1.00000  3.5 TiB   32 MiB  1.2 MiB   1 KiB   30 MiB  3.5 TiB     0  0.92   69      up
+ 5    ssd  3.49309   1.00000  3.5 TiB   36 MiB  1.2 MiB   1 KiB   34 MiB  3.5 TiB     0  1.03   68      up
+ 6    ssd  3.49309   1.00000  3.5 TiB   36 MiB  1.2 MiB   1 KiB   34 MiB  3.5 TiB     0  1.03   65      up
+ 7    ssd  3.49309   1.00000  3.5 TiB   32 MiB  1.7 MiB   1 KiB   30 MiB  3.5 TiB     0  0.93   66      up
+ 8    ssd  3.49309   1.00000  3.5 TiB   36 MiB  1.2 MiB   1 KiB   34 MiB  3.5 TiB     0  1.03   78      up
+                       TOTAL   31 TiB  310 MiB   12 MiB  14 KiB  298 MiB   31 TiB     0
+MIN/MAX VAR: 0.92/1.05  STDDEV: 0
+
+=== POOLS ===
+pool 1 '.mgr' replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 1 pgp_num 1 autoscale_mode on last_change 54 flags hashpspool stripe_width 0 pg_num_max 32 pg_num_min 1 application mgr read_balance_score 9.09
+pool 2 'phi-data' replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 32 pgp_num 32 autoscale_mode on last_change 90 flags hashpspool stripe_width 0 application rgw read_balance_score 1.69
+pool 3 'vm-disks' replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 32 pgp_num 32 autoscale_mode on last_change 96 flags hashpspool,selfmanaged_snaps stripe_width 0 application rbd read_balance_score 1.69
+pool 4 'audit-logs' replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 16 pgp_num 16 autoscale_mode on last_change 99 flags hashpspool stripe_width 0 application rgw read_balance_score 2.25
+pool 5 '.rgw.root' replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 32 pgp_num 32 autoscale_mode on last_change 117 lfor 0/0/111 flags hashpspool stripe_width 0 application rgw read_balance_score 1.69
+pool 6 'default.rgw.log' replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 32 pgp_num 32 autoscale_mode on last_change 117 lfor 0/0/113 flags hashpspool stripe_width 0 application rgw read_balance_score 1.41
+pool 7 'default.rgw.control' replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 32 pgp_num 32 autoscale_mode on last_change 117 lfor 0/0/113 flags hashpspool stripe_width 0 application rgw read_balance_score 2.25
+pool 8 'default.rgw.meta' replicated size 3 min_size 2 crush_rule 0 object_hash rjenkins pg_num 32 pgp_num 32 autoscale_mode on last_change 117 lfor 0/0/115 flags hashpspool stripe_width 0 pg_autoscale_bias 4 application rgw read_balance_score 1.41
+
+
+=== PLACEMENT GROUPS ===
+209 pgs: 209 active+clean; 582 KiB data, 310 MiB used, 31 TiB / 31 TiB avail
+
+=== CEPHFS STATUS ===
+    STANDBY MDS
+msb-pmc03-01-cephFS
+msb-pmc03-03-cephFS
+MDS version: ceph version 19.2.3 (d74d168b1c80fb01e1a30d5e4ca9a45b12bc145b) squid (stable)
+
+=== CEPH CONFIG (DIFF) ===
+WHO    MASK  LEVEL     OPTION                                 VALUE         RO
+mon          advanced  auth_allow_insecure_global_id_reclaim  false
+osd.1        basic     osd_mclock_max_capacity_iops_ssd       70851.449262
+osd.2        basic     osd_mclock_max_capacity_iops_ssd       78995.761640
+osd.3        basic     osd_mclock_max_capacity_iops_ssd       79192.592452
+osd.5        basic     osd_mclock_max_capacity_iops_ssd       79819.178697
+osd.8        basic     osd_mclock_max_capacity_iops_ssd       73021.914826
+
+=== CEPH AUTH KEYS ===
+mds.msb-pmc03-01-cephFS
+	key: [REDACTED]
+	caps: [mds] allow *
+	caps: [mon] allow profile mds
+	caps: [osd] allow rwx
+mds.msb-pmc03-02-cephFS
+	key: [REDACTED]
+	caps: [mds] allow *
+	caps: [mon] allow profile mds
+	caps: [osd] allow rwx
+mds.msb-pmc03-03-cephFS
+	key: [REDACTED]
+	caps: [mds] allow *
+	caps: [mon] allow profile mds
+	caps: [osd] allow rwx
+osd.0
+	key: [REDACTED]
+	caps: [mgr] allow profile osd
+	caps: [mon] allow profile osd
+	caps: [osd] allow *
+osd.1
+	key: [REDACTED]
+	caps: [mgr] allow profile osd
+	caps: [mon] allow profile osd
+	caps: [osd] allow *
+osd.2
+	key: [REDACTED]
+	caps: [mgr] allow profile osd
+	caps: [mon] allow profile osd
+	caps: [osd] allow *
+osd.3
+	key: [REDACTED]
+	caps: [mgr] allow profile osd
+	caps: [mon] allow profile osd
+	caps: [osd] allow *
+osd.4
+	key: [REDACTED]
+	caps: [mgr] allow profile osd
+	caps: [mon] allow profile osd
+	caps: [osd] allow *
+osd.5
+	key: [REDACTED]
+	caps: [mgr] allow profile osd
+	caps: [mon] allow profile osd
+	caps: [osd] allow *
+osd.6
+	key: [REDACTED]
+	caps: [mgr] allow profile osd
+	caps: [mon] allow profile osd
+	caps: [osd] allow *
+osd.7
+	key: [REDACTED]
+	caps: [mgr] allow profile osd
+	caps: [mon] allow profile osd
+	caps: [osd] allow *
+osd.8
+	key: [REDACTED]
+	caps: [mgr] allow profile osd
+	caps: [mon] allow profile osd
+	caps: [osd] allow *
+client.admin
+	key: [REDACTED]
+	caps: [mds] allow *
+	caps: [mgr] allow *
