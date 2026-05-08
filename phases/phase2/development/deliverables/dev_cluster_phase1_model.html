@@ -415,7 +415,7 @@ input[type=range] { width:140px; accent-color:#2d5a8e; cursor:pointer; }
         <thead><tr><th>Resource</th><th>Per Node</th><th>Cluster Total (×3)</th><th>Notes</th></tr></thead>
         <tbody>
           <tr><td class="lbl">CPU</td><td class="v">32 cores</td><td class="v">96 cores</td><td class="nt">AMD EPYC · single socket · single NUMA domain</td></tr>
-          <tr><td class="lbl">RAM</td><td class="v">384 GB</td><td class="v">1,152 GB</td><td class="nt">DDR5 · 12 × 32 GB DIMMs</td></tr>
+          <tr><td class="lbl">RAM</td><td class="v">320 GB</td><td class="v">960 GB</td><td class="nt">DDR5 · 10 × 32 GB DIMMs</td></tr>
           <tr><td class="lbl">NVMe — Ceph OSD</td><td class="v">3 × 3.84 TB</td><td class="v">34.56 TB raw</td><td class="nt">Drives 1–3 · BlueStore · 3× replication → 11.52 TB usable cluster-wide</td></tr>
           <tr><td class="lbl">NVMe — Spark Scratch</td><td class="v">4 × 3.84 TB</td><td class="v">46.08 TB</td><td class="nt">Drives 4–7 · JBOD · XFS · ephemeral shuffle · no replication</td></tr>
           <tr><td class="lbl">SSD — Proxmox OS</td><td class="v">3 × 480 GB</td><td class="v">—</td><td class="nt">ZFS mirror (2 drives) + hot spare · ~480 GB usable per node</td></tr>
@@ -487,9 +487,9 @@ input[type=range] { width:140px; accent-color:#2d5a8e; cursor:pointer; }
       <div class="sg-h">Node 03</div>
       <!-- hardware -->
       <div class="sg-lbl">Physical</div>
-      <div class="sg-cell dim">32c / 384 GB</div>
-      <div class="sg-cell dim">32c / 384 GB</div>
-      <div class="sg-cell dim">32c / 384 GB</div>
+      <div class="sg-cell dim">32c / 320 GB</div>
+      <div class="sg-cell dim">32c / 320 GB</div>
+      <div class="sg-cell dim">32c / 320 GB</div>
       <!-- infra -->
       <div class="sg-lbl">&#8722; Infrastructure</div>
       <div class="sg-cell dim">&#8722;12c / &#8722;33 GB</div>
@@ -536,7 +536,7 @@ input[type=range] { width:140px; accent-color:#2d5a8e; cursor:pointer; }
         <div class="b-section">
           <div class="b-sec-title">Physical Hardware</div>
           <div class="b-row"><span class="b-lbl">CPU</span><span class="b-val">32 cores (AMD EPYC)</span></div>
-          <div class="b-row"><span class="b-lbl">RAM</span><span class="b-val">384 GB</span></div>
+          <div class="b-row"><span class="b-lbl">RAM</span><span class="b-val">320 GB</span></div>
           <div class="b-row"><span class="b-lbl">NVMe</span><span class="b-val">7 drives (3 OSD + 4 scratch)</span></div>
         </div>
         <div class="b-section">
@@ -570,7 +570,7 @@ input[type=range] { width:140px; accent-color:#2d5a8e; cursor:pointer; }
         <div class="b-section">
           <div class="b-sec-title">Physical Hardware</div>
           <div class="b-row"><span class="b-lbl">CPU</span><span class="b-val">32 cores (AMD EPYC)</span></div>
-          <div class="b-row"><span class="b-lbl">RAM</span><span class="b-val">384 GB</span></div>
+          <div class="b-row"><span class="b-lbl">RAM</span><span class="b-val">320 GB</span></div>
           <div class="b-row"><span class="b-lbl">NVMe</span><span class="b-val">7 drives (3 OSD + 4 scratch)</span></div>
         </div>
         <div class="b-section">
@@ -604,7 +604,7 @@ input[type=range] { width:140px; accent-color:#2d5a8e; cursor:pointer; }
         <div class="b-section">
           <div class="b-sec-title">Physical Hardware</div>
           <div class="b-row"><span class="b-lbl">CPU</span><span class="b-val">32 cores (AMD EPYC)</span></div>
-          <div class="b-row"><span class="b-lbl">RAM</span><span class="b-val">384 GB</span></div>
+          <div class="b-row"><span class="b-lbl">RAM</span><span class="b-val">320 GB</span></div>
           <div class="b-row"><span class="b-lbl">NVMe</span><span class="b-val">7 drives (3 OSD + 4 scratch)</span></div>
         </div>
         <div class="b-section">
@@ -832,6 +832,11 @@ input[type=range] { width:140px; accent-color:#2d5a8e; cursor:pointer; }
       <thead><tr><th>Date</th><th>Title</th><th>Description</th></tr></thead>
       <tbody>
         <tr>
+          <td class="rev-date">2026-05-07</td>
+          <td class="rev-title">RAM constant cascade: 384 GB → 320 GB</td>
+          <td class="rev-desc">Hardware spec correction — dev cluster has 10 × 32 GB DIMMs per node = 320 GB (per <code>CLAUDE.md § Hardware Reference</code>), not 12 DIMMs / 384 GB. Updated <code>RAM_NODE</code> constant (var declaration line); spec-row in hardware table; per-node "32c / 384 GB" labels in solver grid; "RAM 384 GB" in worker spec rows; physical-RAM warning threshold. Cluster total revised 1,152 GB → 960 GB. Companion to CP v1.5 cascade across <code>dev_cluster_math_reference.html</code>, both phase1 + phase2 model deliverables, and <code>dev_calculator_guide.html</code>.</td>
+        </tr>
+        <tr>
           <td class="rev-date">2026-04-24</td>
           <td class="rev-title">ZooKeeper, theme toggle, UI improvements</td>
           <td class="rev-desc">Added ZooKeeper ensemble to VENDOR_DEFAULTS (3 × 1c/2 GB, one per node — modeled as dedicated VMs pending vendor confirmation of host-process placement, Monday 2026-04-27). Added light/dark theme toggle with warm amber light palette and localStorage persistence (spark_theme_phase1). Brightened grey text palette for readability (#374151→#6b7280, #4b5563→#7a8298, #5a6170→#8b97aa). Made Diagnostics &amp; Warnings section (G) sticky and default-open, moved to top of page. Added per-node OOM margin to node cards and executor table. Fixed renderWarnings() wiring (scratches→headroom, workerRam removal, CSS class alignment).</td>
@@ -853,7 +858,7 @@ input[type=range] { width:140px; accent-color:#2d5a8e; cursor:pointer; }
 /* ── hardware constants ────────────────────────────────────────────────────── */
 var NODES        = 3;
 var CORES_NODE   = 32;
-var RAM_NODE     = 384;
+var RAM_NODE     = 320;
 var NVME_COUNT   = 7;
 var NVME_TB      = 3.84;
 var OSD_PER_NODE = 3;
@@ -1216,7 +1221,7 @@ function renderWarnings(perNode, worstOom, headroom, totalExec) {
   perNode.forEach(function(nd) {
     if (!nd.ramOk) {
       items.push({cls:'error', icon:'✗',
-        msg: 'Node 0' + nd.n + ': total RAM allocation (infra + mgmt VMs + Worker VM) exceeds 384 GB physical RAM. Reduce Worker VM RAM or mgmt VM count.'});
+        msg: 'Node 0' + nd.n + ': total RAM allocation (infra + mgmt VMs + Worker VM) exceeds 320 GB physical RAM. Reduce Worker VM RAM or mgmt VM count.'});
     }
   });
 

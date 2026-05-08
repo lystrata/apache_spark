@@ -81,7 +81,7 @@ figcaption { font-family:var(--mono); font-size:11px; color:var(--muted); margin
 
   <div class="doc-tag">&#9672; Infrastructure Sizing Tool</div>
   <h1>Dev Cluster Calculator / User Guide</h1>
-  <p class="doc-sub">Proxmox &middot; Spark Development Cluster &middot; 3 nodes &middot; 32c / 384 GB / 7&times; 3.84 TB NVMe &middot; 3&times; 480 GB SSD per node</p>
+  <p class="doc-sub">Proxmox &middot; Spark Development Cluster &middot; 3 nodes &middot; 32c / 320 GB / 7&times; 3.84 TB NVMe &middot; 3&times; 480 GB SSD per node</p>
 
   <nav class="toc">
     <div class="toc-title">Table of Contents</div>
@@ -104,7 +104,7 @@ figcaption { font-family:var(--mono); font-size:11px; color:var(--muted); margin
 
   <p>This calculator sizes a <strong>3-node Proxmox hyperconverged development cluster</strong> running Apache Spark via YARN, Ceph for distributed storage (with S3 access via RGW), and a daily ETL pipeline that reads raw CSV data, converts it to Parquet, stages it to Ceph RGW, then loads it into Snowflake via <code>COPY INTO</code>.</p>
 
-  <p>Hardware is fixed: 3 nodes, each with <strong>32 cores</strong> (single AMD EPYC socket), <strong>384 GB RAM</strong>, <strong>7&times; 3.84 TB NVMe</strong>, and <strong>3&times; 480 GB SSD</strong> (two-drive ZFS mirror + hot spare). The calculator models how those fixed resources are divided between infrastructure services, Spark worker VMs, and Spark executors.</p>
+  <p>Hardware is fixed: 3 nodes, each with <strong>32 cores</strong> (single AMD EPYC socket), <strong>320 GB RAM</strong> (10 &times; 32 GB DIMMs), <strong>7&times; 3.84 TB NVMe</strong>, and <strong>3&times; 480 GB SSD</strong> (two-drive ZFS mirror + hot spare). The calculator models how those fixed resources are divided between infrastructure services, Spark worker VMs, and Spark executors.</p>
 
   <p><strong>Key difference from production:</strong> the development cluster has a single CPU socket per node, which means a maximum of 32 vCPUs per VM with no cross-NUMA traffic. The production cluster has 2 sockets (64 cores per node) where the NUMA boundary constraint is more operationally significant. On dev, NUMA pinning has limited effect since there is only one memory domain per node.</p>
 
@@ -251,7 +251,7 @@ figcaption { font-family:var(--mono); font-size:11px; color:var(--muted); margin
       <tr>
         <td>RAM per node (GB)</td>
         <td>128&ndash;768 GB, step 32</td>
-        <td>One step equals one 32 GB DIMM. Sets the total memory budget for the node. Dynamically recalculates the RAM/VM slider&rsquo;s maximum ceiling every time it moves. At 256 GB (8 DIMMs) the dev cluster operates at 66.6% of peak memory bandwidth per HPE DDR5 DIMM population rules. Increasing toward 384 GB improves bandwidth utilization.</td>
+        <td>One step equals one 32 GB DIMM. Sets the total memory budget for the node. Dynamically recalculates the RAM/VM slider&rsquo;s maximum ceiling every time it moves. At 256 GB (8 DIMMs) the dev cluster operates at 66.6% of peak memory bandwidth per HPE DDR5 DIMM population rules. Increasing toward 320 GB (10 DIMMs, the dev cluster maximum) improves bandwidth utilization.</td>
       </tr>
       <tr>
         <td>VMs per node</td>
@@ -498,7 +498,7 @@ OOM_MARGIN   = SLOT_GB &minus; (EXEC_MEM &times; (1 + overhead) + offheap)
     <br><br>
     When Spark runs a job, YARN launches <strong>executor processes</strong> on your worker VMs &mdash; one or more per VM. Each executor is a self-contained JVM (Java Virtual Machine) process that gets its own slice of RAM and CPU cores. Tasks &mdash; the individual units of computation (&ldquo;process partition 47 of the CSV&rdquo;) &mdash; are handed to executors, which run them in parallel across their allocated cores.
     <br><br>
-    <pre style="margin:8px 0; font-size:11px;">Worker VM  (e.g. 384 GB RAM, 32 vCPUs)
+    <pre style="margin:8px 0; font-size:11px;">Worker VM  (e.g. 320 GB RAM, 32 vCPUs)
 ├── Executor 1  (e.g. 120 GB RAM, 5 cores)  ← JVM process
 ├── Executor 2  (e.g. 120 GB RAM, 5 cores)  ← JVM process
 └── OS + NodeManager overhead</pre>
@@ -911,8 +911,8 @@ OOM_MARGIN   = SLOT_GB &minus; (EXEC_MEM &times; (1 + overhead) + offheap)
   <p>There is one additional cascade that runs <em>before</em> the main calculation: the RAM/VM pre-scale block. It fires whenever any slider changes and must run first because it modifies another slider&rsquo;s range:</p>
 
   <ol style="padding-left:22px; line-height:2.2; margin-bottom:14px;">
-    <li>User moves the RAM/node slider (Section A) from 256 GB to 384 GB.</li>
-    <li>The pre-scale block runs immediately: it computes the new RAM/VM <code>max = floor((384 &minus; reservations) &divide; VMs_per_node / 32) &times; 32</code>.</li>
+    <li>User moves the RAM/node slider (Section A) from 256 GB to 320 GB.</li>
+    <li>The pre-scale block runs immediately: it computes the new RAM/VM <code>max = floor((320 &minus; reservations) &divide; VMs_per_node / 32) &times; 32</code>.</li>
     <li>The current RAM/VM value is proportionally rescaled: <code>new_val = round(current_pct &times; new_max / 32) &times; 32</code>, keeping the slider at the same relative position even though the range has changed.</li>
     <li>All downstream executor math (SLOT_GB, EXEC_MEM, OOM_MARGIN, everything in Section C) recalculates with the new RAM/VM value.</li>
     <li>The Warnings card re-evaluates all checks. If Section C is collapsed, its <span class="badge-demo">UPDATED</span> badge fires.</li>

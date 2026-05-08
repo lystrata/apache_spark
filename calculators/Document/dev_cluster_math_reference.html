@@ -514,7 +514,8 @@
     <div class="callout info">
       <div class="callout-title">Note on RAM</div>
       RAM per node is not a physical constant in the calculator — it is exposed as the <strong>RAM per node</strong> slider
-      (range 128–384 GB, step 32 GB, default 384 GB). The physical maximum of 384 GB corresponds to 12 populated DIMMs × 32 GB.
+      (range 128–320 GB, step 32 GB, default 320 GB). The physical maximum of 320 GB corresponds to 10 populated DIMMs × 32 GB
+      (per the dev cluster hardware spec — see <code>CLAUDE.md § Hardware Reference</code>).
       This design allows modelling a partially-populated node without editing the source.
     </div>
       <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
@@ -669,8 +670,8 @@
           <tr>
             <td class="name">AVAIL_RAM</td>
             <td class="formula">RAM_NODE − RESERVE_RAM</td>
-            <td class="val">337 GB</td>
-            <td class="note">384 GB (RAM_NODE at default) − 47 GB (RESERVE_RAM) = 337 GB. Hard ceiling for all VM RAM allocations on this node.</td>
+            <td class="val">273 GB</td>
+            <td class="note">320 GB (RAM_NODE at default) − 47 GB (RESERVE_RAM) = 273 GB. Hard ceiling for all VM RAM allocations on this node.</td>
           </tr>
         </tbody>
       </table>
@@ -713,10 +714,10 @@
           <tr>
             <td>RAM per node</td>
             <td class="name">ram_node</td>
-            <td class="val">384 GB</td>
-            <td>128–384</td>
+            <td class="val">320 GB</td>
+            <td>128–320</td>
             <td>32 GB</td>
-            <td class="note">Static range. Represents 4–12 populated 32 GB DIMMs. Changing this value triggers rescaling of the RAM/VM slider (see Dynamic Bounds below).</td>
+            <td class="note">Static range. Represents 4–10 populated 32 GB DIMMs (dev cluster hardware spec). Changing this value triggers rescaling of the RAM/VM slider (see Dynamic Bounds below).</td>
           </tr>
           <tr>
             <td>VMs per node</td>
@@ -1888,12 +1889,27 @@
     <summary class="section-summary">
       <div class="tier-badge" style="background:var(--muted);color:var(--bg)">Revisions</div>
       <span class="section-title">Revisions</span>
-      <span class="section-sub">&middot; Formula change history &middot; 2026-04-01 through 2026-04-21</span>
+      <span class="section-sub">&middot; Formula change history &middot; 2026-04-01 through 2026-05-07</span>
       <a href="#top" class="back-to-top" onclick="event.stopPropagation()">&#8593; Top</a>
     </summary>
     <div class="section-body">
 
       <div class="callout info"><span class="callout-title">Revision policy</span>Formula changes are recorded here with the original and revised expressions. Documentation-only changes (comments, labels) are noted but not given a full entry. The Revisions section in <code>Notes/chat-2026-04-17-calculator-review.md</code> is the companion prose document.</div>
+
+      <h3>2026-05-07 — RAM Per Node Cascade: 384 GB → 320 GB</h3>
+      <div class="card">
+        <div class="card-title">Hardware spec correction — dev cluster has 10 DIMMs, not 12</div>
+        <p style="font-size:13px;color:var(--muted);">No formula changes. Constants and ranges updated to match the dev cluster's actual hardware spec (per <code>CLAUDE.md § Hardware Reference</code>): 10× 32 GB DIMMs per node = 320 GB. Affected values:</p>
+        <table>
+          <thead><tr><th>Symbol</th><th>v1.0–v1.4</th><th>v1.5</th></tr></thead>
+          <tbody>
+            <tr><td class="name">RAM_NODE (default)</td><td>384 GB</td><td>320 GB</td></tr>
+            <tr><td class="name">RAM_NODE (slider range)</td><td>128–384 GB (4–12 DIMMs)</td><td>128–320 GB (4–10 DIMMs)</td></tr>
+            <tr><td class="name">AVAIL_RAM (at default)</td><td>337 GB</td><td>273 GB</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;">Cascade also lands in <code>phases/phase{1,2}/development/deliverables/dev_cluster_phase1_model.html</code> and <code>calculators/Document/dev_calculator_guide.html</code>. Companion to CP v1.5 bump.</p>
+      </div>
 
       <h3>2026-04-21 — Scratch Drive Notes Updated: JBOD/XFS</h3>
       <div class="card">
