@@ -685,6 +685,14 @@ All scripts live in `Scripts/`.
 
 `Scripts/export_chat.py` — converts a Claude Code JSONL session file to readable Markdown. Hardcoded to the session file for this project; pass a path argument to use a different session.
 
+`Scripts/check_fqdn.sh` — sanitization-pattern check for one or more files. Reads patterns from `~/.config/spark-hooks/patterns` (the same private patterns file used by the pre-commit hook), grep-checks each given file case-insensitively, and prints matches with `filename:line:content`. Use this before staging any new or edited file to confirm no corporate identifiers leaked. Usage: `./Scripts/check_fqdn.sh <file> [<file> ...]`. Exit code 0 always (script reports findings; doesn't fail the shell).
+
+## Project-Local Temporary Files
+
+Use `/Users/rohn/Serve/tmp/` for any temporary / scratch / helper files (Python helper scripts, intermediate outputs, sanity-check artifacts). Do **not** write to system `/tmp/` — that's outside the project directory and explicitly excluded from the project's permission posture.
+
+The `tmp/` directory is gitignored (entry added 2026-05-07). Files in it are local-only; safe to leave between sessions or delete at will.
+
 ## Hardware Reference
 
 | | Production | Development |
