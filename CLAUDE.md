@@ -160,6 +160,44 @@ When a natural stopping point is reached — a document is complete and staged, 
 
 ---
 
+## Critical Path Document Synchronization
+
+Applies to **all contexts**. Whenever new operational data is captured — meeting outcomes, vendor responses, decisions, status changes, infrastructure events, scope corrections, topology changes — **check every Critical Path document to determine which need updating, then update them in the same work cycle.** Don't capture an event in one place and let the others go stale; CP docs that drift become unreliable.
+
+**Critical Path documents in scope (current as of 2026-05-08; verify the version number is current at edit time):**
+
+| Document | Path | Type |
+|---|---|---|
+| Main Critical Path | `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.x.md` | Versioned distribution doc |
+| Visual Tracker (HTML) | `phases/phase2/development/Document/phases_critical_path_development_tracker_v1.x.html` | Versioned, lockstep with main |
+| HIPAA sub-project | `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.x.md` | Versioned distribution doc |
+| Okta sub-project | `phases/phase2/development/Document/CP_Okta_v1.x.md` | Versioned distribution doc |
+| Airflow host briefing (companion) | `phases/phase2/development/Document/MSB-PMC01_airflow_host_briefing_v1.x.md` | Versioned companion doc |
+| SOW timeline tracker | `phases/phase2/development/Document/SOW_timeline_status.md` | In-place operational |
+| Vendor-isolation planning note | `security/Notes/vendor-access-isolation-plan_2026-05-06.md` | On-site planning (not git-tracked) |
+| Production CP fork | `phases/phase2/development/Document/Phases_Critical_Path_Production_v0.x.md` | Versioned distribution doc |
+| Master TODO | `TODO.md` | In-place operational index |
+
+**For each new piece of operational data:**
+
+1. **Identify** which CP documents the data affects. Most data lands in one doc primarily but ripples to others — a vendor email may close a TODO item, change a BLOCKER status in the main CP, change a sub-task in a planning note, and need a cross-reference in a sub-project. The default assumption is "more than one document needs touching" — verify before assuming "only one".
+2. **Update each affected document.** For versioned distribution docs, prefer in-place edits during a working cycle and bump the version at the natural cut point (per the Document Versioning rule). For in-place operational files (TODO.md, README.md, SOW_timeline_status.md, planning notes), edit immediately.
+3. **Refresh cross-references.** When one document changes, others that reference it may need their cross-refs bumped. Use `grep -rln <basename>_v` (or equivalent) to find them.
+4. **Mirror structural changes** between paired documents (e.g., main CP § BLOCKER.4 ↔ `security/Notes/vendor-access-isolation-plan_2026-05-06.md` should carry compatible sub-task tables and owner sections; updating one without the other creates drift).
+
+**When this applies (not exhaustive):**
+
+- A meeting summary or correspondence captures a decision (CIO call, vendor sync, internal team call)
+- A vendor sends a response or update (email, status report, technical document)
+- An infrastructure event lands (provisioning complete, blocker resolved, new gate added, hardware spec change)
+- A scope correction or topology change is decided
+- A new task family is identified or an existing task is completed/closed
+- A version-controlled artifact (calculator, model) gets a behavior or default change
+
+**When in doubt, ask:** "Which Critical Path documents does this data belong in?" — and treat the answer as "these N docs, in this order" rather than "this one doc". The audit trail and decision history depend on consistency across the set.
+
+---
+
 ## Serving the Calculators
 
 Always serve via HTTP, not `file://`. localStorage scoping differs between origins and scenarios saved under one will be invisible to the other.

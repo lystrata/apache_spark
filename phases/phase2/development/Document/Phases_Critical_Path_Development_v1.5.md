@@ -233,40 +233,71 @@ Two-stage access strategy: an interim Webex desktop arrangement followed by a pe
 - **CIO declined still stands** — pool stand-up + initial allow/block posture is one BLOCKER.4 sub-task complete; all other vendor-isolation requirements remain open.
 - **Alignment email circulated** — `correspondence/Document/email_sean_austin_horizon_pool_alignment_2026-05-07.md` to Sean Klette and Austin asking for sync output on pool-↔-cluster-side design layering.
 
-#### Sub-tasks (in dependency order)
+#### Layering hypothesis (working assumption — pending Sean + Austin sync)
+
+Austin's pool-level egress policies constrain the **pool itself** (what the pool VMs can talk to). Sean's cluster-side work would constrain **what the pool can reach into msb-pmc03** (what the cluster accepts from the pool's allowed destinations). These layer rather than replace — pool-level controls bound the egress space; cluster-side controls bound the ingress space. Sean + Austin sync output (triggered by Rohn's 2026-05-07 alignment email) will confirm or correct this framing.
+
+#### Gate status table (full sub-task view, mirrors `security/Notes/vendor-access-isolation-plan_2026-05-06.md`)
+
+| Sub-task | Status | Owner |
+|---|---|---|
+| BLOCKER.1 Phase 1A — Vendor Windows-host hardware prerequisite | **Resolved 2026-05-06** (Webex active) | (closed) |
+| Ksolves Horizon pool stand-up + initial firewall posture | **Done 2026-05-07** (pending validation) | Jason / Austin |
+| Pool validation testing (`ks_test` group) | Open | Sean + Rohn |
+| Sean + Austin sync on pool ↔ cluster-side layering | Open | Sean + Austin |
+| Cluster-side isolation design (VLAN approach or alternative) | Open | Sean Klette |
+| Snowflake / Azure egress allowlist mechanics | Open | Rohn (fqdn) |
+| AD DC enumeration | **Closed 2026-05-06** (7 DCs documented) | (closed) |
+| OPSWAT install request | **Closed 2026-05-07** (awaiting vendor) | Rohn / Ksolves |
+| Vendor user list for VDI accounts | Open | Michelle (bridge) + Ksolves |
+| Cyber review of final design | Open (downstream) | Paul Barber |
+| CIO risk-acceptance sign-off | Open (downstream) | Rob Ball |
+| Phase 1B exit-condition decision | Open | Rohn + Paul Barber |
+| Phase 1B — Horizon VDI go-live | Open, **gated on rows above** | fqdn Cyber |
+
+#### Sub-tasks by owner (full detail)
 
 _Network (Sean Klette):_
-- [ ] Develop the VLAN-isolation proposal — confirm tenancy on VLANs 37/38/39 exclusive to msb-pmc03; design VLAN 10 ingress/egress; document routing topology enforcing "only path out is via VLAN 10"
-- [ ] Sync with Austin on Horizon pool ↔ cluster-side design layering (triggered by Rohn's 2026-05-07 email)
+- [ ] Develop the VLAN-isolation proposal — confirm tenancy on VLANs 37/38/39 exclusive to msb-pmc03; design VLAN 10 ingress/egress; document routing topology enforcing "only path out is via VLAN 10". **Open implication:** msb-pmc01 and msb-pmc03 share `10.1.37.0/24` (DNS-confirmed 2026-05-06) — sole-tenancy may require renumbering one cluster; see `security/Notes/vendor-access-isolation-plan_2026-05-06.md` § Sean's VLAN Isolation Approach addendum for the four design paths
+- [ ] Sync with Austin on Horizon pool ↔ cluster-side design layering (triggered by Rohn's 2026-05-07 email; confirm or correct the layering hypothesis above)
 - [ ] Confirm consistent IP blocks for vendor-created VMs (allowlist as CIDR vs. enumerated)
 - [ ] Address the 10.1.37.0/24 cluster overlap if VLAN-isolation path is chosen (renumbering vs. one of the alternative paths)
 
+_Network (Austin — Horizon pool admin):_
+- [x] Stand up Ksolves Horizon pool — built 2026-05-07; UAG-reachable; `ks_test` AD group attached for pre-vendor validation
+- [x] Set initial pool-egress firewall posture — DNS / AD / UAG / Connection Servers allowed; everything else blocked. Awaiting confirmation of policy enforcement layer (network FW vs NSX micro-seg vs host-level) per Rohn's 2026-05-07 email
+- [ ] Sync with Sean on layering (joint with Sean Klette item above)
+- [ ] Refine pool-egress allowlist as Snowflake/Azure egress mechanics land (Rohn's item below feeds this)
+
 _fqdn (Rohn):_
 - [x] Vendor-isolation email to Ksolves drafted + sent 2026-05-07 (`correspondence/Document/vendor_email_horizon_vdi_security_revision_2026-05-06.md`)
-- [x] Alignment email to Sean + Austin on Horizon pool stand-up sent 2026-05-07
-- [x] Enumerate AD domain controllers in scope — closed 2026-05-06 (7 DCs across 4 sites; see security note)
-- [x] Request Ksolves install OPSWAT security client — closed 2026-05-07 (requested; awaiting vendor confirmation)
-- [ ] Pool validation testing (Sean + Rohn) — confirm UAG → Connection Servers → AD auth → expected reachability/blocking
+- [x] Alignment email to Sean + Austin on Horizon pool stand-up sent 2026-05-07 (`correspondence/Document/email_sean_austin_horizon_pool_alignment_2026-05-07.md`)
+- [x] Enumerate AD domain controllers in scope — closed 2026-05-06 (7 DCs across 4 sites: Windsor ×2, Garfield ×1, South ×2, MSB RW + RO; see security note)
+- [x] Request Ksolves install OPSWAT security client — closed 2026-05-07 (requested; awaiting vendor confirmation of install across vendor devices)
+- [ ] Pool validation testing (Sean + Rohn) — confirm session brokering through UAG → Connection Servers, AD authentication via `ks_test` group, intended destinations reachable, blocked destinations actually blocked. **Predates any Ksolves user provisioning** — flips the pool from test-ready to ready-for-vendor-accounts
 - [ ] Investigate nftables-based outbound filtering as defense-in-depth (Proxmox `nftables` + RHEL VM `firewalld`)
 - [ ] Investigate constrained vendor sudo (carve out `nft` / `iptables` / `firewall-cmd` from vendor sudoers)
-- [ ] Decide cloud egress allowlist mechanics — Snowflake / Azure Blob endpoint IPs rotate (FQDN-based vs. published CSP IP ranges vs. egress proxy)
+- [ ] Decide cloud egress allowlist mechanics — Snowflake / Azure Blob endpoint IPs rotate (FQDN-based vs. published CSP IP ranges vs. egress proxy). Output feeds Austin's pool-egress allowlist refinement
 - [ ] Validate `remote.corp.<fqdn>` test-account logins work on dev cluster RHEL servers (Item #7 from Harper's summary)
 - [ ] Evaluate feasibility / legal implications of fqdn performing portions of the installation (Item #10 from Harper's summary)
 - [ ] Provide Ksolves an updated estimate for when secure access will be available (Item #12)
 
+_fqdn (Michelle — vendor user provisioning bridge):_
+- [ ] Vendor user list for Horizon pool — provision Ksolves AD accounts on the pool. Predicated on pool validation testing (above) passing first
+
 _Vendor (Ksolves):_
 - [ ] Confirm OPSWAT install across vendor devices (vendor-side device-posture attestation)
-- [ ] Vendor user list for VDI account provisioning (Michelle owns the bridge from fqdn side)
+- [ ] Vendor user list bridge — Ksolves supplies the names; Michelle provisions
 
 _Reviewers (downstream):_
 - [ ] Cyber review of final design (Paul Barber) — once Rohn + Sean have a candidate
 - [ ] CIO risk-acceptance sign-off (Rob Ball) — once Cyber endorses
 - [ ] Phase 1B exit-condition decision (Rohn + Paul Barber) — when does the design come off, what does cluster network posture revert to
 
-- **Verification gate (lifts BLOCKER.4 → unblocks Phase 1B):** all items above closed; design endorsed by Cyber; CIO risk-acceptance signed; pool validation testing passed.
-- **Owner:** Rohn (coordination) + Sean Klette (Network design) + Paul Barber (Cyber endorsement) + Rob Ball (CIO sign-off) + Ksolves (OPSWAT, user list)
+- **Verification gate (lifts BLOCKER.4 → unblocks Phase 1B):** all open items above closed; design endorsed by Cyber; CIO risk-acceptance signed; pool validation testing passed.
+- **Owner:** Rohn (coordination) + Sean Klette + Austin (Network design) + Michelle (vendor user bridge) + Paul Barber (Cyber endorsement) + Rob Ball (CIO sign-off) + Ksolves (OPSWAT, user list)
 - **Estimated Effort:** Multi-week. Cluster-side design + Cyber review + CIO sign-off measured in weeks; pool validation 1–2 hours once vendor accounts are provisioned.
-- **Critical Note:** Phase 1A (Webex) is the working interim access while BLOCKER.4 is sized; vendor work continues in the interim. Closing BLOCKER.4 is the gate that flips Ksolves from interim Webex screen-share to permanent multi-session VDI access.
+- **Critical Note:** Phase 1A (Webex) is the working interim access while BLOCKER.4 is sized; vendor work continues in the interim. Closing BLOCKER.4 is the gate that flips Ksolves from interim Webex screen-share to permanent multi-session VDI access. **The CIO declination still stands** — pool stand-up + initial firewall posture is one sub-task complete pending validation; the gate is reduced in scope, not lifted.
 
 ---
 
