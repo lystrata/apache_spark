@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phases Critical Path Tracker — Development Cluster v1.4</title>
+<title>Phases Critical Path Tracker — Development Cluster v1.5</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
@@ -202,8 +202,8 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
   <div class="page-header-inner">
     <div class="header-text">
       <h1>Phases Critical Path — Development Cluster</h1>
-      <h2>Interactive Tracker · Source: <code>Phases_Critical_Path_Development_v1.4.md</code></h2>
-      <p>Version 1.4 · Last updated 2026-05-05 · Click checkboxes to mark steps complete; state auto-saves to this browser only. <strong>v1.4 markdown content additions (BLOCKER.3 HIPAA, P0.0a closure, P0.0b GZIP, P0.3 closure, P0.6 Ceph RGW tuning) are not yet reflected in this tracker — see source markdown for full v1.4 content.</strong></p>
+      <h2>Interactive Tracker · Source: <code>Phases_Critical_Path_Development_v1.5.md</code></h2>
+      <p>Version 1.5 · Last updated 2026-05-07 · Click checkboxes to mark steps complete; state auto-saves to this browser only.</p>
     </div>
     <button class="btn-theme" id="btn_theme" onclick="toggleTheme()">&#9728; Light</button>
   </div>
@@ -214,7 +214,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
 <div class="page-controls">
   <a onclick="setAllSections(false)">▼ Collapse all sections</a>
   <a onclick="setAllSections(true)">▶ Expand all sections</a>
-  <a onclick="exportMarkdown()" style="color:var(--accent);">⬇ Export progress as v1.3 markdown</a>
+  <a onclick="exportMarkdown()" style="color:var(--accent);">⬇ Export progress as v1.5 markdown</a>
   <span class="save-status" id="save_status">Auto-save ready</span>
 </div>
 
@@ -302,88 +302,88 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
   <summary class="section-summary">
     <span class="section-letter crit">B1</span>
     <span class="section-title">BLOCKER.1 — Establish Ksolves Remote Access</span>
-    <span class="section-sub">· OPEN (re-opened 2026-04-30 — vendor Windows-host hardware prerequisite) · BLOCKING — All Ksolves infrastructure work waits on this</span>
+    <span class="section-sub">· Phase 1A ACTIVE 2026-05-06 (Webex) · Phase 1B GATED BY BLOCKER.4 · Long-pole gate is BLOCKER.4 closure</span>
     <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
   </summary>
   <div class="section-body">
 
     <dl class="task-meta">
-      <dt>Status</dt><dd>OPEN — re-opened 2026-04-30 due to newly identified Phase 1A hardware prerequisite (vendor Windows host required for Webex remote control)</dd>
-      <dt>Priority</dt><dd>BLOCKING — All Ksolves infrastructure work is waiting on this</dd>
-      <dt>Owner</dt><dd>Ksolves (Windows host hardware prerequisite) + fqdn infrastructure team (User actions) + fqdn Cyber Security (approval gate for Phase 1B)</dd>
-      <dt>Effort</dt><dd>Vendor Windows host provisioning: Ksolves estimate (added 2026-04-30) · Phase 1A setup (post-vendor-prereq): 1–2 hours · Phase 1B setup: 2–3 hours (post-security-approval)</dd>
+      <dt>Status</dt><dd>PARTIALLY OPEN — Phase 1A <strong>active 2026-05-06</strong> (NUC hardware prerequisite resolved); Phase 1B blocked on <strong>BLOCKER.4</strong> (vendor-access isolation design)</dd>
+      <dt>Priority</dt><dd>BLOCKING for Phase 1B; Phase 1A is unblocking some Ksolves work in the interim</dd>
+      <dt>Owner</dt><dd>fqdn infrastructure team (Phase 1A active) + Network/Cyber/CIO/Ksolves (BLOCKER.4 gate for Phase 1B)</dd>
+      <dt>Effort</dt><dd>Phase 1A: ongoing · Phase 1B: pool validation 1–2 hr; cluster-side design + Cyber/CIO sign-off measured in weeks (see BLOCKER.4)</dd>
     </dl>
 
-    <p><strong>Context:</strong> Ksolves will be granted owner-level access to both Proxmox clusters (Proxmox One for Service Host, Proxmox Two for Spark Development Cluster). No VMs created, no NVMes assigned. Ksolves requires remote access to begin Phase 1 infrastructure provisioning.</p>
+    <p><strong>Context:</strong> Ksolves will be granted owner-level access to both Proxmox clusters (Proxmox One for Service Host, Proxmox Two for Spark Development Cluster). No VMs created, no NVMes assigned. Ksolves requires remote access to begin Phase 1 infrastructure provisioning. Two-stage access strategy: Phase 1A (Webex screen share, active interim) followed by Phase 1B (VMware Horizon VDI, permanent).</p>
 
     <div class="task-block">
-      <div class="task-block-title">Phase 1A (Interim) — Shared Webex Desktop with fqdn Team Oversight</div>
+      <div class="task-block-title">Phase 1A (Interim) — Shared Webex Desktop — ACTIVE 2026-05-06</div>
       <ul style="list-style:disc;padding-left:22px;">
         <li>Ksolves vendor lead connects to fqdn Webex Desktop shared by fqdn infrastructure team member</li>
         <li>Ksolves executes Proxmox commands / VM provisioning through shared desktop screen</li>
         <li>fqdn team member retains visual oversight of all Ksolves actions (audit trail)</li>
-        <li><strong>Timeline:</strong> Pending Ksolves Windows host provisioning (see Hardware Prerequisite below)</li>
-        <li><strong>Duration:</strong> Temporary until secure secondary access ready (estimated 2–4 weeks)</li>
+        <li><strong>Status:</strong> Active 2026-05-06 — vendor's Windows-host hardware prerequisite resolved</li>
+        <li><strong>Throughput:</strong> Limited by single shared desktop; Phase 1B (Horizon VDI) targets parallel sessions</li>
       </ul>
     </div>
 
-    <div class="task-warn"><strong>🪟 Hardware Prerequisite (Vendor Action — added 2026-04-30):</strong> Webex's Linux desktop client does <strong>not support remote control</strong> of a Windows Webex share (or vice-versa). Ksolves is a Linux shop; fqdn is primarily a Windows shop and shares from a Windows host. Cross-platform remote control is not implemented in Webex's Linux client (verified by user — set up Linux Webex and confirmed remote-control unavailable). <strong>Ksolves must provision a Windows host on their side</strong> (in India) to run the Webex Desktop client and accept remote-control of fqdn's shared Windows session. Without this Windows host, Phase 1A cannot proceed and Ksolves cannot drive Proxmox provisioning through the shared session. This is a Ksolves-side responsibility (vendor provisions, vendor maintains).</div>
+    <div class="task-note"><strong>🪟 Hardware Prerequisite Resolution (2026-05-06):</strong> The original Phase 1A blocker was that Webex's Linux desktop client does not support remote control of a Windows Webex share (or vice-versa). Ksolves is a Linux shop; fqdn shares from a Windows host. Cross-platform remote control is not implemented in Webex's Linux client (verified 2026-04-30). The blocker was specifically <strong>NUC reliability issues</strong> in Ksolves' data center delaying their Windows-host provisioning. <strong>Resolution (2026-05-06):</strong> user shifted to hosting Webex from their fqdn-office host; Phase 1A activated on that path. Ksolves' NUC remediation is no longer on the critical path for Phase 1A.</div>
 
     <div class="task-block">
-      <div class="task-block-title">Phase 1B (Permanent) — VMware Horizon Desktop Access</div>
+      <div class="task-block-title">Phase 1B (Permanent) — VMware Horizon Desktop Access — GATED BY BLOCKER.4</div>
       <ul style="list-style:disc;padding-left:22px;">
-        <li>Two dedicated VMware Horizon Desktop sessions provisioned for Ksolves team</li>
-        <li>Ksolves authenticates to Horizon desktops with fqdn-issued credentials</li>
+        <li>Multiple VMware Horizon Desktop sessions provisioned for Ksolves team via the <strong>Ksolves Horizon pool</strong> stood up 2026-05-07</li>
+        <li>Ksolves authenticates to Horizon desktops with fqdn-issued credentials (vendor-account list pending — Michelle owns the bridge)</li>
         <li>Full owner-level Proxmox access via Horizon desktop environment</li>
-        <li><strong>Dependency:</strong> fqdn Horizons Teams infrastructure setup (fqdn Cyber Security approval required)</li>
-        <li><strong>Status:</strong> Blocked pending fqdn Cyber Security Approval of Horizons deployment</li>
-        <li><strong>Timeline:</strong> Estimated 2–4 weeks after security approval</li>
+        <li><strong>Dependency:</strong> <strong><a onclick="jumpTo('sec_blocker4','sec_blocker4')">BLOCKER.4</a></strong> (vendor-access isolation design + Cyber endorsement + CIO sign-off) — original Cyber Security approval was declined 2026-05-06 on the originally-proposed terms</li>
+        <li><strong>Status (2026-05-07):</strong> Pool stood up by vendor (UAG-reachable); pool-egress firewall policies set; <code>ks_test</code> AD group attached for fqdn-side validation. One BLOCKER.4 sub-task complete pending validation; remaining gates open. Ksolves user provisioning awaits Michelle's user-list completion.</li>
+        <li><strong>Timeline:</strong> Pool validation testing imminent (Sean + Rohn). Phase 1B go-live still gated on BLOCKER.4 closure.</li>
       </ul>
     </div>
 
     <div class="task-block">
-      <div class="task-block-title">Vendor Actions Required (Hardware Prerequisite — Phase 1A gating, added 2026-04-30)</div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_vendor_1" data-track><span class="cb-text">Ksolves provisions a Windows host (in India) capable of running the Webex Desktop client with remote-control support</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_vendor_2" data-track><span class="cb-text">Ksolves installs and licenses Webex Desktop on the Windows host</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_vendor_3" data-track><span class="cb-text">Ksolves confirms Webex remote-control connectivity from their Windows host into a fqdn-shared Windows Webex session (joint test with fqdn infrastructure team)</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_vendor_4" data-track><span class="cb-text">Ksolves notifies fqdn when the Windows host is ready, so fqdn can schedule the Phase 1A kickoff session</span></div>
+      <div class="task-block-title">Phase 1A — User Actions (Active 2026-05-06)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_imm_1" data-track checked><span class="cb-text">Set up shared Webex Desktop session from fqdn Windows host with Ksolves vendor lead — active 2026-05-06</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_imm_2" data-track checked><span class="cb-text">Create temporary Proxmox owner credentials for Ksolves to use during Webex session</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_imm_3" data-track checked><span class="cb-text">Document Ksolves actions via Webex recording / shared notes for audit trail</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_imm_4" data-track checked><span class="cb-text">Verify Webex connectivity and remote-control permissions</span></div>
     </div>
 
     <div class="task-block">
-      <div class="task-block-title">User Actions Required (Immediate — pending vendor hardware prerequisite)</div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_imm_1" data-track><span class="cb-text">Set up shared Webex Desktop session (from fqdn Windows host) with Ksolves vendor lead once vendor's Windows host is ready</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_imm_2" data-track><span class="cb-text">Create temporary Proxmox root or owner credentials for Ksolves to use during Webex session</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_imm_3" data-track><span class="cb-text">Document all Ksolves actions via Webex recording or shared notes for audit trail</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_imm_4" data-track><span class="cb-text">Verify Webex connectivity and remote-control permissions before Phase 1 infrastructure work begins</span></div>
+      <div class="task-block-title">Phase 1A — Vendor Actions (Resolved 2026-05-06)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_vendor_1" data-track checked><span class="cb-text">Ksolves Windows-host NUC remediation — no longer on Phase 1A critical path; user shifted to fqdn-office Windows host</span></div>
     </div>
 
     <div class="task-block">
-      <div class="task-block-title">User Actions Required (Parallel — does not block interim Webex access)</div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_par_1" data-track><span class="cb-text">Submit fqdn Horizons Teams infrastructure request (if not already submitted)</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_par_2" data-track><span class="cb-text">Obtain fqdn Cyber Security approval for Horizons desktop deployment</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_par_3" data-track><span class="cb-text">Upon approval, provision two Horizon desktop sessions for Ksolves team</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_par_4" data-track><span class="cb-text">Configure Proxmox AAA integration (if desired) or issue owner-level API tokens for Horizon sessions</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_par_5" data-track><span class="cb-text">Migrate Ksolves access from Webex interim to permanent Horizon desktops</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_par_6" data-track><span class="cb-text">Retire temporary Webex session once Horizon is live</span></div>
+      <div class="task-block-title">Phase 1B — User Actions (BLOCKER.4-gated; in flight 2026-05-07)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_1" data-track checked><span class="cb-text">Ksolves Horizon pool stood up (Jason / 2026-05-07) — UAG-reachable, <code>ks_test</code> AD group attached</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_2" data-track checked><span class="cb-text">Pool-egress firewall policies set (Austin / 2026-05-07) — DNS, AD, UAG, Connection Servers allowed; everything else blocked</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_3" data-track><span class="cb-text">Pool validation testing (Sean + Rohn) — confirm session brokering, AD auth, allow-list reachability, deny-list blocking</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_4" data-track><span class="cb-text">Vendor user list (Michelle owns) — provision Ksolves AD accounts on the pool</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_5" data-track><span class="cb-text">Cluster-side isolation design (Sean Klette lead — see BLOCKER.4)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_6" data-track><span class="cb-text">Cyber endorsement of design candidate (Paul Barber)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_7" data-track><span class="cb-text">CIO risk-acceptance sign-off (Rob Ball)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_8" data-track><span class="cb-text">Phase 1B exit-condition decision (Rohn + Paul)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_5" data-track><span class="cb-text">Migrate Ksolves access from Webex interim to permanent Horizon</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_6" data-track><span class="cb-text">Retire Phase 1A Webex session once Phase 1B is live</span></div>
     </div>
 
     <div class="task-block">
-      <div class="task-block-title">Verification — Phase 1A (Interim)</div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_v1a_0a" data-track><span class="cb-text">Ksolves' Windows host runs Webex Desktop and connects to a fqdn-hosted Windows Webex session</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_v1a_0b" data-track><span class="cb-text">Remote control from Ksolves' Windows host into fqdn's shared Windows desktop is functional (verified via test session)</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_v1a_1" data-track><span class="cb-text">Webex desktop session successfully displays Proxmox web UI</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_v1a_2" data-track><span class="cb-text">Ksolves confirms Proxmox access and can execute administrative commands via remote control</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_v1a_3" data-track><span class="cb-text">Webex recording captures all actions (audit trail)</span></div>
+      <div class="task-block-title">Verification — Phase 1A (Active)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_v1a_1" data-track checked><span class="cb-text">Webex desktop session displays Proxmox web UI</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_v1a_2" data-track checked><span class="cb-text">Ksolves vendor lead can execute administrative commands via remote control</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_v1a_3" data-track checked><span class="cb-text">Webex recording captures actions (audit trail)</span></div>
     </div>
 
     <div class="task-block">
-      <div class="task-block-title">Verification — Phase 1B (Permanent)</div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_v1b_1" data-track><span class="cb-text">Horizon desktop sessions authenticate successfully</span></div>
+      <div class="task-block-title">Verification — Phase 1B (Pending)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_v1b_1" data-track><span class="cb-text">Horizon desktop sessions authenticate via fqdn AD</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_v1b_pool" data-track><span class="cb-text">Pool validation confirms expected reachability/blocking posture</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b1_v1b_2" data-track><span class="cb-text">Ksolves confirms owner-level Proxmox access via Horizon</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_v1b_3" data-track><span class="cb-text">Webex session retired; all future access via Horizon</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_v1b_3" data-track><span class="cb-text">Phase 1A Webex session retired; all future access via Horizon</span></div>
     </div>
 
-    <div class="task-warn"><strong>Critical Path Note:</strong> Phase 1A is now gated on vendor's Windows host provisioning. Phase 1B remains non-blocking; both can progress in parallel once Phase 1A is unblocked.</div>
+    <div class="task-warn"><strong>Critical Path Note:</strong> Phase 1A is unblocking some work in the interim; Phase 1B closure is bound by BLOCKER.4 and is the long-pole gate.</div>
 
     <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
@@ -434,23 +434,157 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
       <div class="cb-row"><input type="checkbox" id="cb_b2_ver_3" data-track checked><span class="cb-text">Proxmox Create-VM wizard sees the ISOs as bootable</span></div>
     </div>
 
-    <p class="muted"><strong>Downstream impact:</strong> P0.1 and P0.2 VM creation no longer gated on this blocker; only BLOCKER.1 (Ksolves remote access, including the new vendor Windows-host hardware prerequisite) remains.</p>
+    <p class="muted"><strong>Downstream impact:</strong> P0.1 and P0.2 VM creation no longer gated on this blocker; BLOCKER.1 (Ksolves remote access — Phase 1A active 2026-05-06; Phase 1B gated by BLOCKER.4) and BLOCKER.3 (HIPAA compliance) remain as production gates, plus the newly-added BLOCKER.4 (Phase 1B vendor-access isolation).</p>
 
     <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
 </details>
 
-<!-- ════════════════════════════ PHASE 2 ════════════════════════════ -->
-<details class="section-details" id="sec_phase2">
+<!-- ============================ BLOCKER.3 ============================ -->
+<details class="section-details" id="sec_blocker3">
   <summary class="section-summary">
-    <span class="section-letter warn">2</span>
-    <span class="section-title">Phase 2 — Implementation</span>
-    <span class="section-sub">· PENDING BLOCKER.1 (re-opened 2026-04-30) · BLOCKER.2 closed · 2A Critical Path · 2B Infrastructure · 2C Configuration &amp; Validation</span>
+    <span class="section-letter crit">B3</span>
+    <span class="section-title">BLOCKER.3 — HIPAA Compliance (Spark / YARN / Ceph encryption + Web UI ACL)</span>
+    <span class="section-sub">· OPEN (added 2026-05-05) · Detail in CP_HIPAA_Compliance_v1.0.md sub-project · BLOCKING for production ePHI</span>
     <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
   </summary>
   <div class="section-body">
 
-    <p>All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access — re-opened 2026-04-30 pending Ksolves Windows-host hardware prerequisite). Once interim Phase 1A access (Webex) is established, Ksolves can execute all P0–P2 items in sequence. BLOCKER.2 (RHEL ISO placement) closed 2026-04-30 via node-local Directory storage at <code>/rpool/data/templates/iso/</code> — no longer dependent on P0.0.</p>
+    <dl class="task-meta">
+      <dt>Status</dt><dd>OPEN — added 2026-05-05; tracked in companion sub-project</dd>
+      <dt>Priority</dt><dd>BLOCKING — production handling of ePHI on the Spark cluster requires HIPAA encryption + access-control posture per 45 CFR § 164.312</dd>
+      <dt>Sub-project</dt><dd><strong><code>phases/phase2/development/Document/CP_HIPAA_Compliance_v1.0.md</code></strong> — owns all detailed items, owners, and verification steps</dd>
+      <dt>Source</dt><dd>Ksolves' <code>Ksolves_Spark_YARN_Config_v1.0.pdf</code> § 8 (HIPAA Compliance Architecture &amp; Guidelines)</dd>
+    </dl>
+
+    <p><strong>Why it's a separate sub-project:</strong> the scope spans three encryption pillars (transmission, at rest, web UI) plus a custom javax servlet filter that fqdn must develop; mixing it into the main critical path obscures the cross-team coordination needed (Cybersecurity / Dev / Vendor / Ops). The sub-project tracks each item with explicit ownership and a critical-path sequence of its own.</p>
+
+    <div class="task-block">
+      <div class="task-block-title">Quick summary (full detail in sub-project)</div>
+      <p><strong>Vendor-owned</strong> (configured during Spark install — § 8.1, § 8.2):</p>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li>TLS to Ceph S3A · authenticated + encrypted Spark RPC (AES-GCM) · SSL on Web UIs · local Spark I/O encryption · server-side encryption on Ceph buckets</li>
+      </ul>
+      <p style="margin-top:8px;"><strong>fqdn-owned</strong> (parallel work):</p>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li>Custom javax servlet filter for Spark Web UI / History Server ACL (Spark provides no built-in)</li>
+        <li>Decide auth integration target for the filter (Okta / LDAP / Kerberos)</li>
+        <li>Kerberos realm + <code>spark-etl@&lt;REALM&gt;</code> keytab for Spark service auth</li>
+        <li>Notify Ksolves: NVMe scratch drives are <strong>already LUKS-encrypted</strong> — vendor must not reformat</li>
+      </ul>
+      <p style="margin-top:8px;"><strong>Already done</strong> (fqdn side):</p>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li>LUKS encryption on the four NVMe scratch drives across all 3 dev nodes</li>
+      </ul>
+    </div>
+
+    <div class="task-warn"><strong>Verification gate (lifts BLOCKER.3):</strong> all items in <code>CP_HIPAA_Compliance_v1.0.md</code> closed; verification artifacts captured for HIPAA audit trail.</div>
+
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ============================ BLOCKER.4 ============================ -->
+<details class="section-details" id="sec_blocker4">
+  <summary class="section-summary">
+    <span class="section-letter crit">B4</span>
+    <span class="section-title">BLOCKER.4 — Phase 1B Vendor-Access Isolation Design (NEW 2026-05-06)</span>
+    <span class="section-sub">· OPEN — partial progress 2026-05-07 (Horizon pool + initial firewall posture) · BLOCKING for Phase 1B</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <dl class="task-meta">
+      <dt>Status</dt><dd>OPEN — added 2026-05-06 following CIO declination of Phase 1B on the originally-proposed terms; partial progress 2026-05-07 (Horizon pool stand-up + initial firewall posture)</dd>
+      <dt>Priority</dt><dd>BLOCKING for Phase 1B (Horizon VDI access) — does not block Phase 1A (Webex screen share active)</dd>
+      <dt>Owner</dt><dd>Rohn (coordination) + Sean Klette (Network) + Paul Barber (Cyber) + Rob Ball (CIO) + Ksolves (OPSWAT, user list)</dd>
+      <dt>Effort</dt><dd>Multi-week. Cluster-side design + Cyber review + CIO sign-off measured in weeks; pool validation 1–2 hours once vendor accounts provisioned.</dd>
+    </dl>
+
+    <p><strong>Context:</strong> A 2026-05-06 meeting with the CIO declined Phase 1B on the originally-proposed terms. Phase 1B is now gated on a vendor-access isolation design that constrains the vendor's network exposure to a documented IP allowlist + cluster-side network controls. The design must be sized, endorsed by Cyber, and signed off by the CIO before vendor accounts are created on the Horizon pool.</p>
+
+    <div class="task-note"><strong>Source documents (security context — on-site revision control only):</strong> <code>security/Notes/vendor-access-isolation-plan_2026-05-06.md</code> · <code>security/Document/vendor_security_design_overview_v1.0.md</code> · <code>security/Notes/harper_meeting_summary_vdi_security_2026-05-06.md</code></div>
+
+    <div class="task-block">
+      <div class="task-block-title">Allowed-Surface Constraints (CIO directive 2026-05-06; list expected to evolve)</div>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li>Spark Proxmox cluster (msb-pmc03) — all 3 hosts</li>
+        <li>VMs created on msb-pmc03</li>
+        <li>Bastion VM on <code>msb-pmc01-04</code> (vendor's only msb-pmc01 surface)</li>
+        <li>VLANs 37 (mgmt), 38 (cluster), 39 (CephFS) on msb-pmc03</li>
+        <li>AD domain controllers — all of them (Okta SSO is AD-tied; cannot subset)</li>
+      </ul>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">Active Design Candidate (Sean Klette, Network)</div>
+      <p>Make msb-pmc03 the <strong>sole tenant</strong> of VLANs 37/38/39 and add a new <strong>VLAN 10</strong> chokepoint for ingress/egress (Proxmox WebUI + SSH + VM access). If this lands, intra-cluster traffic is permitted by VLAN membership rather than per-IP allowlist, and VLAN 10 is the single chokepoint for the ~30–35 IP allowlist. Substantially simpler than per-host firewalls.</p>
+      <div class="task-warn"><strong>Open implication (DNS-confirmed 2026-05-06):</strong> msb-pmc01 and msb-pmc03 currently share <code>10.1.37.0/24</code>; making msb-pmc03 sole-tenant of 37/38/39 may require renumbering one cluster — see <code>security/Notes/vendor-access-isolation-plan_2026-05-06.md</code> § Sean's VLAN Isolation Approach addendum for the four design paths.</div>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">2026-05-07 Progress (one sub-task complete)</div>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li><strong>Ksolves Horizon pool stood up</strong> (Jason) — pool built and reachable via UAG; <code>ks_test</code> AD group attached for fqdn-side validation before vendor accounts come in</li>
+        <li><strong>Pool-egress firewall policies set</strong> (Austin) — pool can reach DNS, AD, UAG, and Connection Servers; everything else blocked until further notice</li>
+        <li><strong>CIO declined still stands</strong> — pool stand-up + initial allow/block posture is one BLOCKER.4 sub-task complete; all other vendor-isolation requirements remain open</li>
+        <li><strong>Alignment email circulated</strong> — <code>correspondence/Document/email_sean_austin_horizon_pool_alignment_2026-05-07.md</code> to Sean and Austin asking for sync output on pool-↔-cluster-side design layering</li>
+      </ul>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">Sub-Tasks — Network (Sean Klette)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_net_1" data-track><span class="cb-text">Develop the VLAN-isolation proposal — confirm tenancy on VLANs 37/38/39 exclusive to msb-pmc03; design VLAN 10 ingress/egress; document routing topology</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_net_2" data-track><span class="cb-text">Sync with Austin on Horizon pool ↔ cluster-side design layering (triggered by 2026-05-07 email)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_net_3" data-track><span class="cb-text">Confirm consistent IP blocks for vendor-created VMs (allowlist as CIDR vs. enumerated)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_net_4" data-track><span class="cb-text">Address the 10.1.37.0/24 cluster overlap if VLAN-isolation path is chosen (renumbering vs. one of the alternative paths)</span></div>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">Sub-Tasks — fqdn (Rohn)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_email_vendor" data-track checked><span class="cb-text">Vendor-isolation email to Ksolves drafted + sent 2026-05-07</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_email_pool" data-track checked><span class="cb-text">Alignment email to Sean + Austin on Horizon pool stand-up sent 2026-05-07</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_dc" data-track checked><span class="cb-text">Enumerate AD domain controllers in scope — closed 2026-05-06 (7 DCs across 4 sites)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_opswat" data-track checked><span class="cb-text">Request Ksolves install OPSWAT security client — closed 2026-05-07 (requested; awaiting vendor confirmation)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_validate" data-track><span class="cb-text">Pool validation testing (Sean + Rohn) — confirm UAG → Connection Servers → AD auth → expected reachability/blocking</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_nft" data-track><span class="cb-text">Investigate nftables-based outbound filtering as defense-in-depth</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_sudo" data-track><span class="cb-text">Investigate constrained vendor sudo (carve out <code>nft</code> / <code>iptables</code> / <code>firewall-cmd</code> from sudoers)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_egress" data-track><span class="cb-text">Decide cloud egress allowlist mechanics — Snowflake / Azure Blob endpoints rotate</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_remote_creds" data-track><span class="cb-text">Validate <code>remote.corp.&lt;fqdn&gt;</code> test-account logins work on dev cluster RHEL servers (Item #7)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_legal" data-track><span class="cb-text">Evaluate feasibility / legal implications of fqdn performing portions of the installation (Item #10)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_estimate" data-track><span class="cb-text">Provide Ksolves an updated estimate for when secure access will be available (Item #12)</span></div>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">Sub-Tasks — Vendor (Ksolves)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_vend_opswat" data-track><span class="cb-text">Confirm OPSWAT install across vendor devices (vendor-side device-posture attestation)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_vend_users" data-track><span class="cb-text">Vendor user list for VDI account provisioning (Michelle owns the bridge from fqdn side)</span></div>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">Sub-Tasks — Reviewers (downstream)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_rev_cyber" data-track><span class="cb-text">Cyber review of final design (Paul Barber) — once Rohn + Sean have a candidate</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_rev_cio" data-track><span class="cb-text">CIO risk-acceptance sign-off (Rob Ball) — once Cyber endorses</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_rev_exit" data-track><span class="cb-text">Phase 1B exit-condition decision (Rohn + Paul Barber)</span></div>
+    </div>
+
+    <div class="task-warn"><strong>Verification gate (lifts BLOCKER.4 → unblocks Phase 1B):</strong> all items above closed; design endorsed by Cyber; CIO risk-acceptance signed; pool validation testing passed.</div>
+
+    <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
+  </div>
+</details>
+
+<!-- ============================ PHASE 2 ============================ -->
+<details class="section-details" id="sec_phase2">
+  <summary class="section-summary">
+    <span class="section-letter warn">2</span>
+    <span class="section-title">Phase 2 — Implementation</span>
+    <span class="section-sub">· Phase 1A active 2026-05-06 · BLOCKER.3 + BLOCKER.4 open gates · 2A Critical Path · 2B Infrastructure · 2C Configuration &amp; Validation</span>
+    <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
+  </summary>
+  <div class="section-body">
+
+    <p>Phase 1A (Webex) is <strong>active 2026-05-06</strong> — vendor lead drives Proxmox provisioning over shared screen with fqdn oversight. BLOCKER.4 gates Phase 1B (Horizon VDI) on a vendor-access isolation design + Cyber endorsement + CIO sign-off. BLOCKER.2 (RHEL ISO placement) closed 2026-04-30 via node-local Directory storage at <code>/rpool/data/templates/iso/</code>. BLOCKER.3 (HIPAA compliance, separate sub-project) gates production ePHI processing.</p>
 
     <div class="sub-controls">
       <a onclick="setSubsections('sec_phase2', true)">Expand all subsections &amp; tasks</a>
@@ -547,28 +681,82 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
         <!-- P0.0a -->
         <details class="task-details" id="task_p0-0a">
           <summary class="task-summary">
-            <span class="task-icon">&#128308;</span><span class="task-code">P0.0a</span>
-            <span class="task-title">Gather CSV File Information for Storage &amp; Shuffle Verification</span>
-            <span class="task-status open">OPEN — USER</span>
+            <span class="task-icon">&#x2705;</span><span class="task-code">P0.0a</span>
+            <span class="task-title">Gather CSV File Information — CLOSED 2026-05-05 (vendor delivered)</span>
+            <span class="task-status done">CLOSED 2026-05-05</span>
           </summary>
           <div class="task-body">
             <dl class="task-meta">
-              <dt>Status</dt><dd>OPEN (USER DATA GATHERING)</dd>
-              <dt>Priority</dt><dd>CRITICAL — Required before infrastructure sizing validation</dd>
-              <dt>Owner</dt><dd>User (fqdn) — local data analysis</dd>
-              <dt>Effort</dt><dd>2–4 hours (depends on data accessibility and tooling)</dd>
+              <dt>Status</dt><dd>✅ CLOSED 2026-05-05 — vendor performed the analysis themselves using <code>csv_file_sizes.xlsx</code></dd>
+              <dt>Priority</dt><dd><em>Was CRITICAL</em> — informed infrastructure sizing validation</dd>
+              <dt>Owner (was)</dt><dd>User (fqdn); <em>now: vendor delivered</em></dd>
             </dl>
-            <p><strong>Context:</strong> Ksolves needs production CSV file statistics to verify storage allocation and shuffle amplification estimates. This data informs OSD capacity planning and scratch drive sizing decisions.</p>
+            <p><strong>Resolution:</strong> Ksolves performed the file inventory and compression analysis directly using <code>csv_file_sizes.xlsx</code>. Findings published in <code>Ksolves_Spark_YARN_Config_v1.0.pdf</code> (2026-05-04) § 1.1 Raw Data Characteristics.</p>
 
             <div class="task-block">
-              <div class="task-block-title">User Actions Required</div>
-              <div class="cb-row"><input type="checkbox" id="cb_p0-0a_usr_1" data-track><span class="cb-text">Analyze local CSV file inventory: count total files, determine size distribution (&lt;100MB, 100MB–1GB, 1GB–10GB, 10GB+), calculate average file size</span></div>
-              <div class="cb-row"><input type="checkbox" id="cb_p0-0a_usr_2" data-track><span class="cb-text">Measure compression ratio for production CSV files: select 10–20 representative samples, compress with ZSTD codec, calculate uncompressed/compressed ratio</span></div>
-              <div class="cb-row"><input type="checkbox" id="cb_p0-0a_usr_3" data-track><span class="cb-text">Document and share with Ksolves: total file count, size distribution table, measured ZSTD compression ratio, notes on file characteristics that affect compression</span></div>
+              <div class="task-block-title">Findings</div>
+              <ul style="list-style:disc;padding-left:22px;">
+                <li><strong>800 tables</strong> total in mapping definition</li>
+                <li><strong>359 tables</strong> with actual DEV data (size &gt; 0)</li>
+                <li><strong>257 tables</strong> are schema-only placeholders (size = 0)</li>
+                <li><strong>184 tables</strong> with no files / no fileform (not yet populated)</li>
+                <li><strong>12,214 files total</strong> in DEV batch · <strong>1.52 TB compressed CSV</strong> (revised down from 4 TB; DEV is a subset)</li>
+                <li><strong>Multi-file tables:</strong> Table A (527.95 GB, 293 cols, 5,800 files, ~97 MB/file) · Table B (113.10 GB, 94 cols, 5,800 files, ~21 MB/file)</li>
+                <li><strong>Single-file tables:</strong> 1 KB – 145.57 GB (extreme variance) · widest schema 384 cols; 14 tables &gt; 100 cols (impacts sort memory)</li>
+              </ul>
             </div>
-            <p class="muted"><strong>Deliverable:</strong> CSV file metrics document or email summary to Ksolves (contact details on file).<br>
-            <strong>Impact on Plan:</strong> Informs P0.1 (OSD capacity allocation) and storage headroom decisions. Ksolves will reassess if actual compression differs significantly from 7× shuffle amplification assumption.<br>
-            <strong>Critical Note:</strong> Compress samples with ZSTD (<code>zstd &lt;file&gt;</code>) to match production pipeline compression strategy.</p>
+
+            <div class="task-block">
+              <div class="task-block-title">SLA Implications (vendor § 1.3)</div>
+              <ul style="list-style:disc;padding-left:22px;">
+                <li>Top 12 tables = 1,234.15 GB = <strong>79.29% of total volume</strong> — must run first</li>
+                <li>Multi-file Table A (527 GB) = ~32 min at 1 TB/hr — single largest job</li>
+                <li>SLA window 4 hours (240 min); critical-path estimate ~159 min for top 12 tables; ~81 min buffer for 347 smaller jobs</li>
+                <li>Vendor recommended +1 node for 2-concurrent operation; <strong>fqdn declined 2026-05-05</strong> (budget) — 3-node posture is feasible-but-zero-buffer</li>
+              </ul>
+            </div>
+
+            <p class="muted"><strong>Downstream impact:</strong> Storage allocation, OSD capacity, and shuffle amplification estimates are now grounded in measured rather than assumed values. P0.1 (Worker VM creation) proceeds with confidence.</p>
+          </div>
+        </details>
+
+        <!-- P0.0b -->
+        <details class="task-details" id="task_p0-0b">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.0b</span>
+            <span class="task-title">GZIP Non-Splittability Mitigation Decision (Development-Team Owned)</span>
+            <span class="task-status open">OPEN — DEV TEAM</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>OPEN (DEV-TEAM DECISION)</dd>
+              <dt>Priority</dt><dd>CRITICAL — single most critical technical constraint per vendor § 2</dd>
+              <dt>Owner</dt><dd><strong>fqdn Development team</strong> (upstream / ETL design decision, not cluster config)</dd>
+              <dt>Source</dt><dd><code>Ksolves_Spark_YARN_Config_v1.0.pdf</code> § 2</dd>
+              <dt>Effort</dt><dd>Decision: 1–2 weeks (cross-team coordination). Implementation depends on chosen option.</dd>
+            </dl>
+            <p><strong>Context:</strong> Vendor identifies GZIP non-splittability as the dominant technical constraint. <code>spark.sql.files.maxPartitionBytes</code> has no effect on non-splittable formats; a 145 GB single <code>.csv.gz</code> file becomes exactly 1 Spark partition = 1 task = 1 executor core reading the entire file sequentially. All 8 executor cores sit idle for that table until a <code>repartition()</code> call redistributes the data.</p>
+
+            <div class="task-block">
+              <div class="task-block-title">Mitigation Options (choose one — vendor recommends Option 1)</div>
+              <ol style="padding-left:22px;">
+                <li><strong>Pre-split files upstream</strong> (Best Practice / Zero SLA Risk) — source system splits massive tables into 100–200 MB chunks before compression. Trade-off: requires coordination + engineering with upstream data providers.</li>
+                <li><strong>Change compression codec to bzip2</strong> (Excellent / Low SLA Risk) — bzip2 has internal block markers, splittable in Spark. Trade-off: slightly slower compression/decompression, but parallel processing wins.</li>
+                <li><strong>Send uncompressed CSVs</strong> (Good / Medium SLA Risk) — raw text is natively splittable. Trade-off: 4–6× larger storage footprint on Ceph + network transfer time.</li>
+                <li><strong>Post-read repartition</strong> (Last Resort / High SLA Risk) — <code>df.repartition()</code> immediately after <code>spark.read.csv()</code>. Forces shuffle to all task slots. Does NOT fix the initial read bottleneck; OOM risk before repartition completes.</li>
+              </ol>
+            </div>
+
+            <div class="task-note"><strong>Conditional fallback:</strong> If Options 1/2/3 cannot be implemented for some tables, vendor's repartition formula <code>target_partitions = max(24, ceil(compressed_csv_mb / 50))</code> must be embedded in the Spark job code per § 7.2 (Repartition Code Template). Airflow DAG must inject <code>compressed_mb</code> per-table as a job parameter.</div>
+
+            <div class="task-block">
+              <div class="task-block-title">Decision Tracker</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0b_dec_1" data-track><span class="cb-text">Cross-team review of options (Dev / upstream data team / vendor)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0b_dec_2" data-track><span class="cb-text">Decision selected and communicated to Ksolves</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-0b_dec_3" data-track><span class="cb-text">If fallback needed: repartition formula embedded in Spark job template; Airflow DAG injects <code>compressed_mb</code> per table</span></div>
+            </div>
+
+            <p class="muted"><strong>Impact on plan:</strong> Affects ETL job design but does not block infrastructure provisioning. P0.0–P0.5a can proceed in parallel.</p>
           </div>
         </details>
 
@@ -633,23 +821,21 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
         <!-- P0.3 -->
         <details class="task-details" id="task_p0-3">
           <summary class="task-summary">
-            <span class="task-icon">&#128308;</span><span class="task-code">P0.3</span>
-            <span class="task-title">Confirm Cloud Staging Target (Azure Blob vs AWS S3)</span>
-            <span class="task-status open">OPEN — DECISION</span>
+            <span class="task-icon">&#x2705;</span><span class="task-code">P0.3</span>
+            <span class="task-title">Confirm Cloud Staging Target — CLOSED 2026-05-05: Azure Blob</span>
+            <span class="task-status done">CLOSED 2026-05-05</span>
           </summary>
           <div class="task-body">
             <dl class="task-meta">
-              <dt>Status</dt><dd>OPEN (VENDOR DECISION)</dd>
-              <dt>Priority</dt><dd>CRITICAL — Blocks egress pipeline design (Stage 6)</dd>
-              <dt>Owner</dt><dd>fqdn data-platform / decision-maker</dd>
-              <dt>Deadline</dt><dd>Before Ksolves begins Stage 6 implementation (P2.3, Step 6)</dd>
+              <dt>Status</dt><dd>✅ CLOSED 2026-05-05 — Azure Blob confirmed</dd>
+              <dt>Priority</dt><dd><em>Was CRITICAL</em> — Stage 6 egress pipeline design</dd>
+              <dt>Owner (was)</dt><dd>fqdn data-platform decision-maker; <em>now: closed</em></dd>
             </dl>
-            <p><strong>Context:</strong> Phase 1 data flow (Stage 6) transfers Parquet output from Ceph RGW to cloud staging for Snowflake COPY INTO. Cloud platform decision not yet made.</p>
-            <p><strong>Required Decision:</strong> Azure Blob Storage or AWS S3?</p>
-            <p><strong>Impact:</strong> Determines IAM/SAS token configuration, network routing (exaBGP floating IP routing to Snowflake), and Snowflake COPY command syntax. Ksolves will implement credentials and network config once decision is made.</p>
+            <p><strong>Resolution (2026-05-05):</strong> Pipeline confirmed by vendor: <code>Airflow DAG → spark-submit per table → Ceph RGW (S3-compatible) → Parquet → Snowflake COPY INTO from Azure Blob</code> (per <code>Ksolves_Spark_YARN_Config_v1.0.pdf</code> § 1.1 Raw Data Characteristics: Pipeline row).</p>
+            <p><strong>Implementation impact:</strong> SAS token / managed identity / service principal authentication for Azure (TBD by fqdn data-platform team); network routing through exaBGP floating IP for Spark cluster → Azure egress; Snowflake <code>COPY INTO</code> reads from Azure stage.</p>
             <div class="task-block">
               <div class="task-block-title">Decision Tracker</div>
-              <div class="cb-row"><input type="checkbox" id="cb_p0-3_act_1" data-track data-md-only><span class="cb-text">Cloud staging platform decision communicated to Ksolves</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-3_act_1" data-track checked><span class="cb-text">Cloud staging platform decision: Azure Blob — confirmed by vendor, communicated 2026-05-05</span></div>
             </div>
           </div>
         </details>
@@ -817,6 +1003,41 @@ spark.hadoop.fs.s3a.secret.key        &lt;from P0.0&gt;</pre>
             </div>
             <p class="muted"><strong>User Sign-Off:</strong> Confirm SparkPi smoke test succeeds before P1.8 (5 sample production jobs).<br>
             <strong>Critical Note:</strong> Use the "without-hadoop" Spark distribution to leverage the existing Hadoop 3.4.1 install. Java 11 must be set as <code>JAVA_HOME</code>.</p>
+            <div class="task-note"><strong>Vendor Configuration Note (added 2026-05-05):</strong> Per <code>Ksolves_Spark_YARN_Config_v1.0.pdf</code> § 3.4 deployment note — Spark 3.5.x ships with Hadoop 3.3.x; this cluster uses Hadoop 3.4.1. Ksolves must set <code>HADOOP_HOME</code> → 3.4.1 + <code>spark.yarn.populateHadoopClasspath = true</code> in <code>spark-defaults.conf</code> so Spark uses the standalone Hadoop 3.4.1 libraries (not its bundled 3.3.x). <strong>Owner: Vendor (Ksolves) during Spark install.</strong></div>
+          </div>
+        </details>
+
+        <!-- P0.6 -->
+        <details class="task-details" id="task_p0-6">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.6</span>
+            <span class="task-title">Ceph RGW Server-Side Tuning (Vendor-Owned)</span>
+            <span class="task-status pending">PENDING P0.0</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>PENDING P0.0 (CEPH BOOTSTRAP)</dd>
+              <dt>Priority</dt><dd>HIGH — required for sustained S3 throughput at peak shuffle</dd>
+              <dt>Owner</dt><dd><strong>Vendor (Ksolves)</strong> — Ceph admin until cluster sign-over</dd>
+              <dt>Source</dt><dd><code>Ksolves_Spark_YARN_Config_v1.0.pdf</code> § 6.4 ("Ceph-Side RGW Tuning — Ceph Admin Action Required")</dd>
+            </dl>
+            <p><strong>Context:</strong> Default Ceph RGW thread pool becomes a bottleneck when 3 executors × 8 cores simultaneously issue range reads against 3 RGW instances — especially during the 5,800-partition multi-file table jobs (Table A: 527 GB, Table B: 113 GB). Vendor's analysis recommends raising thread pool and concurrent request limits.</p>
+
+            <div class="task-block">
+              <div class="task-block-title">Vendor Actions Required</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-6_act_1" data-track><span class="cb-text">Apply Ceph cluster-side config: <code>ceph config set client.rgw rgw_thread_pool_size 512</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-6_act_2" data-track><span class="cb-text">Apply Ceph cluster-side config: <code>ceph config set client.rgw rgw_max_concurrent_requests 1024</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-6_act_3" data-track><span class="cb-text">Restart RGW daemons on all three nodes for config to take effect</span></div>
+            </div>
+
+            <div class="task-block">
+              <div class="task-block-title">Verification (fqdn post-install)</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-6_ver_1" data-track><span class="cb-text"><code>ceph config get client.rgw rgw_thread_pool_size</code> returns 512</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-6_ver_2" data-track><span class="cb-text"><code>ceph config get client.rgw rgw_max_concurrent_requests</code> returns 1024</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-6_ver_3" data-track><span class="cb-text">RGW daemons restarted post-config-change</span></div>
+            </div>
+
+            <div class="task-warn"><strong>Critical Note:</strong> This tuning is on the <strong>cluster sign-over verification checklist</strong>; do not accept handover from Ksolves until this is in place and verified.</div>
           </div>
         </details>
 
@@ -834,13 +1055,14 @@ spark.hadoop.fs.s3a.secret.key        &lt;from P0.0&gt;</pre>
               <dt>Owner</dt><dd>fqdn Network Team</dd>
               <dt>Effort</dt><dd>2–4 hours (coordination + testing + documentation)</dd>
             </dl>
-            <p><strong>Context:</strong> Remote Airflow server will be provisioned on MSB-PMC01 cluster. Ksolves requires verified connectivity between MSB-PMC01 and MSB-PMC03 (Spark cluster) for: Airflow DAG submission to YARN RM (8032), Spark driver logs/monitoring, Ansible SSH.</p>
+            <p><strong>Context:</strong> Remote Airflow server will be provisioned on MSB-PMC01 cluster. Ksolves requires verified connectivity between MSB-PMC01 and MSB-PMC03 (Spark cluster) for: Airflow DAG submission to YARN RM (8032), Spark driver logs/monitoring, and Ansible (now running directly on Proxmox dev nodes per the 2026-05-07 topology decision; SSH key-based — low bandwidth).</p>
             <div class="task-block">
               <div class="task-block-title">User Actions Required</div>
               <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_1" data-track><span class="cb-text">Coordinate with fqdn Network Team to verify/establish network path: MSB-PMC01 ↔ MSB-PMC03</span></div>
               <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_2" data-track><span class="cb-text">Confirm routing between clusters (same VLAN, or routable via firewall)</span></div>
               <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_3" data-track><span class="cb-text">Verify firewall rules: MSB-PMC01 → MSB-PMC03 (TCP 8032, 8088, 22, 9095) and return traffic</span></div>
               <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_4" data-track><span class="cb-text">Test connectivity: ping from MSB-PMC01 to each MSB-PMC03 node; TCP port tests (<code>nc -zv</code>)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_mtu" data-track checked><span class="cb-text"><strong>MTU 1400/9000 mismatch resolved 2026-05-06</strong> — fqdn networking team aligned MTU between MSB-PMC01 and MSB-PMC03 paths</span></div>
               <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_5" data-track><span class="cb-text">Document network topology and firewall rules for audit trail</span></div>
               <div class="cb-row"><input type="checkbox" id="cb_p0-7_usr_6" data-track><span class="cb-text">Share verification results with Ksolves before P1.0 provisioning begins</span></div>
             </div>
@@ -848,9 +1070,10 @@ spark.hadoop.fs.s3a.secret.key        &lt;from P0.0&gt;</pre>
               <div class="task-block-title">Verification</div>
               <div class="cb-row"><input type="checkbox" id="cb_p0-7_ver_1" data-track><span class="cb-text">Network team confirms connectivity in change ticket</span></div>
               <div class="cb-row"><input type="checkbox" id="cb_p0-7_ver_2" data-track><span class="cb-text">Ping response times &lt; 10 ms (same datacenter assumed)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-7_ver_mtu" data-track checked><span class="cb-text">MTU consistent end-to-end (resolved 2026-05-06)</span></div>
               <div class="cb-row"><input type="checkbox" id="cb_p0-7_ver_3" data-track><span class="cb-text">TCP ports open: <code>nc -zv &lt;node&gt; 8032</code>, <code>8088</code> succeed on all three MSB-PMC03 nodes</span></div>
             </div>
-            <p class="muted"><strong>Critical Note:</strong> Hard gate. P1.0 cannot proceed until network connectivity verified and documented.</p>
+            <p class="muted"><strong>Critical Note:</strong> Hard gate. P1.0 cannot proceed until network connectivity verified and documented. <strong>Ansible scope clarification:</strong> Ansible no longer runs from a remote control node on the Airflow VM (decision 2026-05-07) — it runs directly from each Proxmox dev node. P0.7 connectivity remains required for Airflow → YARN, Spark driver logs, etc.</p>
           </div>
         </details>
 
@@ -876,18 +1099,18 @@ spark.hadoop.fs.s3a.secret.key        &lt;from P0.0&gt;</pre>
           <div class="task-body">
             <dl class="task-meta">
               <dt>Status</dt><dd>PENDING P0.7 NETWORK VERIFICATION</dd>
-              <dt>Priority</dt><dd>HIGH — Prerequisite for Airflow orchestration and Ansible automation</dd>
-              <dt>Owner</dt><dd>Ksolves (provisioning) + fqdn (networking, SSO setup)</dd>
-              <dt>Effort</dt><dd>2–3 hours (provisioning + network setup)</dd>
+              <dt>Priority</dt><dd>HIGH — Prerequisite for Airflow orchestration and stable web-UI front-door</dd>
+              <dt>Owner</dt><dd>Ksolves (provisioning + Nginx install) + fqdn (networking, SSO setup)</dd>
+              <dt>Effort</dt><dd>2–3 hours (provisioning + network setup + Nginx package install)</dd>
             </dl>
-            <p><strong>Context:</strong> Remote Airflow host coordinates ETL job submission to Spark cluster. Must run Airflow webserver/scheduler, Okta SSO integration, and Ansible control node. Ksolves specifies minimum 6c / 24GB RAM / 500GB SSD. Hosted on MSB-PMC01 cluster.</p>
+            <p><strong>Context:</strong> Remote Airflow host coordinates ETL job submission to Spark cluster. Spec: 6 vCPU / 24 GB RAM / 500 GB SSD, RHEL 9.4. Target node: <code>msb-pmc01-04</code>. <strong>Topology change (2026-05-07):</strong> Ansible no longer co-located on the Airflow VM (see P1.5) — Ansible runs directly on Proxmox dev nodes. The Airflow VM hosts <strong>Airflow + Nginx</strong> (install in scope; activation TBD by Ksolves).</p>
             <div class="task-block">
               <div class="task-block-title">Ksolves Actions</div>
-              <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_1" data-track><span class="cb-text">After network connectivity verified (P0.7), provision remote server on MSB-PMC01: 6c / 24GB RAM / 500GB SSD, RHEL 9.4</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_1" data-track><span class="cb-text">After network connectivity verified (P0.7), provision remote server on <code>msb-pmc01-04</code>: <code>sockets=1, cores=6</code> / 24 GB RAM / 500 GB SSD (rbd_ssd pool), RHEL 9.4</span></div>
               <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_2" data-track><span class="cb-text">Configure hostname: <code>airflow-prod-01</code> (or fqdn-assigned name)</span></div>
               <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_3" data-track><span class="cb-text">Network setup: routable to all three MSB-PMC03 Spark nodes, to Snowflake, to cloud staging</span></div>
               <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_4" data-track><span class="cb-text">Install Okta SSO integration (requires OIDC client ID/secret from fqdn Okta tenant)</span></div>
-              <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_5" data-track><span class="cb-text">Verify SSH key access from Ansible control node (to be installed on this host)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_nginx" data-track><span class="cb-text"><strong>Install Nginx</strong> on the Airflow VM (RHEL package; not yet activated). Server activation / functional configuration is a Ksolves decision (see Nginx note below)</span></div>
               <div class="cb-row"><input type="checkbox" id="cb_p1-0_act_6" data-track><span class="cb-text">Verify network paths: Airflow → YARN RM (8032), Airflow → Ceph RGW, Airflow → Snowflake</span></div>
             </div>
             <div class="task-block">
@@ -902,8 +1125,9 @@ spark.hadoop.fs.s3a.secret.key        &lt;from P0.0&gt;</pre>
               <div class="cb-row"><input type="checkbox" id="cb_p1-0_pre_2" data-track><span class="cb-text">Okta SSO client provisioned</span></div>
               <div class="cb-row"><input type="checkbox" id="cb_p1-0_pre_3" data-track><span class="cb-text">MSB-PMC01 networking and IP allocation finalized</span></div>
             </div>
-            <p class="muted"><strong>Verification:</strong> SSH to remote host successful; RHEL subscriptions active; network paths confirmed.<br>
-            <strong>Critical Note:</strong> P1.5 (Ansible) and later P2 items depend on this host being live and network-connected.</p>
+            <div class="task-note"><strong>🌐 Nginx scope note (correction 2026-05-07):</strong> Earlier "no HA → no Nginx" reasoning (used during the v1.3/v1.4 cycle) was wrong. The single YARN ResourceManager confirms there is no HA stable-endpoint requirement, but stable-endpoint-for-HA is only one of several potential Nginx roles. <strong>Install</strong> is in scope; <strong>server activation / functional configuration is TBD by Ksolves</strong> — candidate roles include reverse proxy for the YARN ResourceManager UI and other Spark/Airflow web UIs, TLS termination, SSO front-door (Okta), URL rewriting for a consistent UI surface, IP allowlisting, and access logging. Ksolves' design decision will determine which roles get activated post-install.</div>
+            <p class="muted"><strong>Verification:</strong> SSH to remote host successful; RHEL subscriptions active; network paths confirmed; <code>nginx -v</code> reports installed version.<br>
+            <strong>Critical Note:</strong> Later P2 items depend on this host being live and network-connected. Ansible no longer runs from this host (see P1.5).</p>
           </div>
         </details>
 
@@ -973,27 +1197,42 @@ spark.hadoop.fs.s3a.secret.key        &lt;from P0.0&gt;</pre>
         <details class="task-details" id="task_p1-5">
           <summary class="task-summary">
             <span class="task-icon">&#128992;</span><span class="task-code">P1.5</span>
-            <span class="task-title">Deploy Ansible Control Node on Remote Airflow Host</span>
-            <span class="task-status pending">PENDING P1.0</span>
+            <span class="task-title">Ansible Cluster-Internal Automation (REVISED 2026-05-07 — runs from Proxmox dev nodes)</span>
+            <span class="task-status open">IN PROGRESS</span>
           </summary>
           <div class="task-body">
             <dl class="task-meta">
-              <dt>Status</dt><dd>PENDING REMOTE AIRFLOW HOST (P1.0)</dd>
-              <dt>Priority</dt><dd>HIGH — Required for infrastructure automation</dd>
-              <dt>Owner</dt><dd>Ksolves</dd>
-              <dt>Effort</dt><dd>1–2 hours</dd>
+              <dt>Status</dt><dd>IN PROGRESS — Ansible + ansible-core installed on all three Proxmox dev nodes 2026-05-07; vendor playbook hierarchy unzipped; <code>--check</code>-mode testing underway</dd>
+              <dt>Priority</dt><dd>HIGH — Required for infrastructure automation of cluster-internal config (Proxmox + CephFS + supporting OS config)</dd>
+              <dt>Owner</dt><dd>Vendor engineer 1 (Ksolves) — primary; Rohn — joint review and on-cluster validation</dd>
+              <dt>Effort</dt><dd>Multi-session — <code>--check</code>-mode testing in progress; live-run timeline depends on test outcomes</dd>
             </dl>
-            <p><strong>Context:</strong> Ansible control node on remote Airflow host enables programmatic cluster management, configuration updates, and VM lifecycle operations.</p>
+            <p><strong>Context (revised 2026-05-07):</strong> Original plan had Ansible on a separate VM (or co-located on the Airflow VM at P1.0). During the 2026-05-07 Webex collab session, vendor engineer 1 and Rohn agreed Ansible can run <strong>directly on each Proxmox dev node</strong>. Latest Ansible + ansible-core were installed across all three nodes; Ksolves' playbook hierarchy was unzipped on-cluster; <code>--check</code>-mode validation has begun. <strong>This removes a planned VM from the topology</strong> and closes the prior msb-pmc01-04 Ansible-capacity TBD from 2026-05-06.</p>
+
+            <div class="task-note"><strong>Scope clarification:</strong> Playbooks cover <strong>Proxmox config + CephFS install/config + supporting OS configuration</strong> — cluster-internal operations only. If Ansible orchestration of remote services beyond the cluster (e.g., the Airflow VM at P1.0, future remote services on msb-pmc01) becomes needed, revisit this scope.</div>
+
             <div class="task-block">
-              <div class="task-block-title">Ksolves Actions</div>
-              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_1" data-track><span class="cb-text">Provision remote Airflow host if not yet done (P1.0)</span></div>
-              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_2" data-track><span class="cb-text">Install Ansible 2.10+ and Python 3.11+ on remote Airflow host</span></div>
-              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_3" data-track><span class="cb-text">Generate SSH keypair; distribute public key to all cluster nodes for passwordless access</span></div>
-              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_4" data-track><span class="cb-text">Store Proxmox API token securely (recommend pass or dedicated secrets manager)</span></div>
-              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_5" data-track><span class="cb-text">Clone Ansible playbooks from git repository (if exists) or stage initial plays</span></div>
-              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_6" data-track><span class="cb-text">Test connectivity: <code>ansible all -i hosts -m ping</code> reaches all nodes</span></div>
+              <div class="task-block-title">Vendor Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_1" data-track checked><span class="cb-text">Install Ansible + ansible-core (latest) on all three Proxmox dev nodes — done 2026-05-07</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_2" data-track checked><span class="cb-text">Unzip Ksolves' Ansible playbook hierarchy on the dev nodes — done 2026-05-07</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_3" data-track><span class="cb-text">Continue <code>--check</code>-mode testing (vendor engineer 1, ongoing 2026-05-08+) — verify expected play behavior without applying changes</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_4" data-track><span class="cb-text">Transition to live-apply runs as <code>--check</code> confidence builds; capture per-play change diffs in audit trail</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_act_5" data-track><span class="cb-text">Verify SSH/local connectivity model used by playbooks (intra-node sudo + inventory) is consistent with on-cluster execution model</span></div>
             </div>
-            <p class="muted"><strong>Verification:</strong> <code>ansible -i hosts -m command -a "uname -a" all</code> returns kernel info from all nodes; Proxmox API token successfully authenticates.</p>
+
+            <div class="task-block">
+              <div class="task-block-title">fqdn Actions</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_fqdn_1" data-track><span class="cb-text">Review playbook hierarchy structure with vendor engineer 1 (joint Webex sessions ongoing)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_fqdn_2" data-track><span class="cb-text">Confirm any secrets management requirements (Proxmox API tokens, Ceph keys) — if needed, store in cluster-local secrets store (not in playbook tree)</span></div>
+            </div>
+
+            <div class="task-block">
+              <div class="task-block-title">Verification</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_ver_1" data-track checked><span class="cb-text">Ansible reachable from each dev node: <code>ansible --version</code> reports installed version</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_ver_2" data-track><span class="cb-text"><code>--check</code>-mode runs complete without unexpected diffs against current state</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_ver_3" data-track><span class="cb-text">Live runs on a single play (lowest-risk) succeed; rollback verified</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p1-5_ver_4" data-track><span class="cb-text">Full Proxmox + CephFS playbook tree applied; cluster state matches design</span></div>
+            </div>
           </div>
         </details>
 
@@ -1279,6 +1518,94 @@ spark.sql.parquet.compression.codec=zstd</pre>
           </div>
         </details>
 
+        <!-- P2.8 -->
+        <details class="task-details" id="task_p2-8">
+          <summary class="task-summary">
+            <span class="task-icon">&#128993;</span><span class="task-code">P2.8</span>
+            <span class="task-title">Snowflake Load Completion Confirmation Mechanism (NEW 2026-05-07)</span>
+            <span class="task-status open">OPEN — DEV</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>OPEN — added 2026-05-07; design owed by fqdn Development team</dd>
+              <dt>Priority</dt><dd>MEDIUM — required to close the "Operational Gate" step in the Phase 1 dev data-flow diagram</dd>
+              <dt>Owner</dt><dd><strong>fqdn Development team</strong> + Murali / Rama (Snowflake side)</dd>
+              <dt>Source</dt><dd>Vendor lead (Ksolves), email forwarded 2026-05-06; corroborated by Step #10 in <code>phases/phase2/development/reference_images/dev_data_flow_diagram_2026-05-06.png</code></dd>
+              <dt>Effort</dt><dd>Design + spec: 1–2 weeks (cross-team). Implementation depends on chosen option.</dd>
+            </dl>
+            <p><strong>Context:</strong> The current Snowflake side of the pipeline has no mechanism to confirm <code>COPY INTO</code> completion. Without a confirmation signal, the Airflow DAG cannot reliably trigger downstream actions: cleanup of Parquet files from Ceph (Stage 8), archive move of source CSV files, and the "Operational Gate" step that gates batch-cycle progression. Pipeline reliability and SLA accounting depend on this confirmation.</p>
+
+            <div class="task-block">
+              <div class="task-block-title">Proposed Solutions</div>
+              <ol style="padding-left:22px;">
+                <li><strong>Audit / checkpoint table in Snowflake</strong> — <code>COPY INTO</code> writes a row per load with <code>(table, file, rows_loaded, status, timestamp)</code>; Airflow DAG polls the table for the expected row before progressing.</li>
+                <li><strong>Snowflake task / event-bridge</strong> — Snowflake task fires on <code>COPY INTO</code> success; emits webhook / message that Airflow consumes.</li>
+                <li><strong>Snowflake stored procedure wrapper</strong> — Airflow calls a stored procedure that performs <code>COPY INTO</code> and returns load metadata directly to Airflow synchronously.</li>
+              </ol>
+            </div>
+
+            <div class="task-block">
+              <div class="task-block-title">Decision Tracker</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-8_dec_1" data-track><span class="cb-text">Mechanism selected (likely Option 1 unless infra exists for 2 or 3)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-8_dec_2" data-track><span class="cb-text">Auth model decided (Snowflake user / role / network)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-8_dec_3" data-track><span class="cb-text">Polling cadence (Option 1) or webhook endpoint (Option 2) defined</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-8_dec_4" data-track><span class="cb-text">End-to-end test: Airflow triggers <code>COPY INTO</code>; load completes; confirmation received; downstream cleanup + archive move execute</span></div>
+            </div>
+
+            <p class="muted"><strong>Implementation impact:</strong> Affects Airflow DAG design (P2.2), Snowflake objects, and Stage 7→8 transition logic. Does not block infrastructure provisioning (P0–P1).</p>
+          </div>
+        </details>
+
+        <!-- P2.9 -->
+        <details class="task-details" id="task_p2-9">
+          <summary class="task-summary">
+            <span class="task-icon">&#128993;</span><span class="task-code">P2.9</span>
+            <span class="task-title">Centralized Audit Logging + Retention Policy (HIPAA-driven, NEW 2026-05-07)</span>
+            <span class="task-status open">OPEN — DEV/SEC</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>OPEN — added 2026-05-07; placement may shift to <code>CP_HIPAA_Compliance_v1.0.md</code> once that sub-project's section taxonomy stabilizes</dd>
+              <dt>Priority</dt><dd>MEDIUM (HIGH inside HIPAA sub-project) — required for HIPAA audit-trail compliance</dd>
+              <dt>Owner</dt><dd><strong>fqdn Development team</strong> + fqdn Cyber/Security</dd>
+              <dt>Source</dt><dd>Vendor lead (Ksolves), questionnaire Q1–Q3, email forwarded 2026-05-06; aligns with HIPAA § 164.316(b)(2)</dd>
+              <dt>Effort</dt><dd>Design 1 week · Implementation 2–3 weeks · Validation 1 week (parallel with HIPAA encryption pillars)</dd>
+            </dl>
+            <p><strong>Context:</strong> HIPAA § 164.316(b)(2) requires audit logs to be retained for <strong>at least 6 years</strong>. Current cluster build has <strong>no SIEM scoped</strong> and no centralized audit-log destination — Spark, YARN, Ceph, RGW access, and Airflow logs are emitted to local filesystems on each VM/host. Without a central retention path, ePHI access events cannot be reliably reconstructed.</p>
+
+            <div class="task-block">
+              <div class="task-block-title">Required Design Elements</div>
+              <ul style="list-style:disc;padding-left:22px;">
+                <li><strong>Sources to capture:</strong> Spark application logs (driver + executors via History Server), YARN ResourceManager logs, Ceph RGW access logs (S3 calls), Airflow scheduler/webserver logs, Linux <code>auth.log</code> (sudo + SSH), Proxmox auth events, ePHI-touching application logs</li>
+                <li><strong>Transport:</strong> Promtail or Fluent Bit shippers from each source; encryption in transit</li>
+                <li><strong>Central store:</strong> Loki or equivalent — must support 6-year retention with WORM (write-once, read-many) protection on the audit bucket</li>
+                <li><strong>Storage backing:</strong> Likely a dedicated Ceph bucket with versioning + object lock (or external S3 with the same posture)</li>
+                <li><strong>Access controls:</strong> Read/write segregated; only audit administrators can read; no delete privilege within the retention window</li>
+                <li><strong>Integrity:</strong> Periodic integrity checks (hash chain or signing) so log tampering is detectable</li>
+              </ul>
+            </div>
+
+            <div class="task-block">
+              <div class="task-block-title">Decisions Required</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-9_dec_1" data-track><span class="cb-text">SIEM selection — Loki + Grafana (already partially in scope per P1.0 Grafana/Prometheus/Loki VM) vs. Splunk vs. Sentinel vs. other</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-9_dec_2" data-track><span class="cb-text">WORM mechanism (Ceph object lock vs. external WORM-compliant storage)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-9_dec_3" data-track><span class="cb-text">Retention sub-policies (some sources may need &gt; 6 years; some fine with the floor)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-9_dec_4" data-track><span class="cb-text">Audit-administrator role assignment</span></div>
+            </div>
+
+            <div class="task-block">
+              <div class="task-block-title">Verification</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-9_ver_1" data-track><span class="cb-text">Logs from all enumerated sources land in central store</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-9_ver_2" data-track><span class="cb-text">Retention policy verified by attempting a delete (should be denied within retention window)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-9_ver_3" data-track><span class="cb-text">Integrity check passes</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p2-9_ver_4" data-track><span class="cb-text">Audit-administrator role can read all logs; non-admin roles cannot</span></div>
+            </div>
+
+            <p class="muted"><strong>Implementation impact:</strong> Likely co-locates with the existing Grafana/Prometheus/Loki VM mentioned in P1.0's host context. Requires Promtail agents on every cluster node + remote service VM. Does not block infrastructure provisioning (P0–P1) but <strong>must</strong> be in place before any ePHI processing runs.<br>
+            <strong>Cross-reference:</strong> Once <code>CP_HIPAA_Compliance_v1.0.md</code> reaches a section taxonomy that has an "audit / retention" pillar, this task may move there with a back-reference here.</p>
+          </div>
+        </details>
+
         <div class="sub-close"><a onclick="closeSub(this)">&#x25B2; Close subsection</a></div>
       </div>
     </details>
@@ -1300,17 +1627,23 @@ spark.sql.parquet.compression.codec=zstd</pre>
       <li style="padding:4px 0;"><span class="done-badge">&#x2705;</span> <strong>Phase 1 (Planning):</strong> COMPLETE — All discovery &amp; architecture finalized (Apr 24)</li>
       <li style="padding:4px 0;"><strong>Phase 2 (Implementation):</strong> PENDING</li>
     </ul>
-    <div class="cb-row"><input type="checkbox" id="cb_cps_1" data-track><span class="cb-text">BLOCKER.1: Establish Ksolves remote access (user action — Phase 1A pending vendor Windows-host hardware prerequisite, Phase 1B parallel)</span></div>
+    <p style="padding:4px 0;"><strong>Phase 1A active 2026-05-06</strong> — vendor lead drives Proxmox provisioning over Webex screen share (interim access while Phase 1B is gated)</p>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_b4" data-track><span class="cb-text"><strong>BLOCKER.4 (NEW 2026-05-06):</strong> Vendor-access isolation design + Cyber endorsement + CIO sign-off — gates Phase 1B (Horizon VDI). Partial progress 2026-05-07 (Horizon pool stood up, initial firewall posture set)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_1" data-track><span class="cb-text"><strong>BLOCKER.1 Phase 1B closure:</strong> Multi-session VDI access via Ksolves Horizon pool — gated by BLOCKER.4 + pool validation testing + vendor user-list provisioning (Michelle owns)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_3" data-track checked><span class="cb-text">BLOCKER.2: User placed RHEL ISO(s) in Proxmox Directory storage at <code>/rpool/data/templates/iso/</code> on all three dev-cluster nodes (closed 2026-04-30 — decoupled from P0.0)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_b3" data-track><span class="cb-text"><strong>BLOCKER.3:</strong> HIPAA compliance gate — see <code>CP_HIPAA_Compliance_v1.0.md</code> sub-project; must close before any production ePHI processing</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_2" data-track><span class="cb-text"><strong>P0.0:</strong> Ksolves bootstraps Ceph cluster (MON, MGR, 9× OSD, RGW) — first Ksolves work after access granted</span></div>
-    <div class="cb-row"><input type="checkbox" id="cb_cps_4" data-track><span class="cb-text"><em>Parallel user prerequisites:</em> P0.4 (RHEL subscriptions), P0.0a (CSV file info), P0.7 (network MSB-PMC01↔03)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_4" data-track><span class="cb-text"><em>Parallel user prerequisites:</em> P0.4 (RHEL subscriptions), P0.7 (network MSB-PMC01↔03; MTU resolved 2026-05-06)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_4b" data-track><span class="cb-text"><em>In-flight, fqdn-owned, parallel:</em> P0.0b (GZIP mitigation decision), P2.8 (Snowflake load-completion mechanism), P2.9 (centralized audit logging)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_5" data-track><span class="cb-text">P0.1–P0.5: Ksolves provisions all VMs and base software (RHEL ISO already in place from BLOCKER.2)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_p06" data-track><span class="cb-text">P0.6: Ceph RGW server-side tuning (vendor-owned, on cluster sign-over checklist)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_6" data-track><span class="cb-text"><strong>P1.2:</strong> Ksolves deploys single-instance YARN ResourceManager on GKPR-YARN-RM-01 (manual recovery; no HA)</span></div>
-    <div class="cb-row"><input type="checkbox" id="cb_cps_7" data-track><span class="cb-text">P1.0, P1.5: Ksolves provisions Remote Airflow Server and Ansible control</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_7" data-track><span class="cb-text">P1.0: Remote Airflow Server provisioning on <code>msb-pmc01-04</code> (Airflow + Nginx install — Nginx activation TBD by Ksolves)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_p15" data-track checked><span class="cb-text"><strong>P1.5 (revised 2026-05-07):</strong> Ansible installed on all three Proxmox dev nodes; playbook tree on-cluster; <code>--check</code>-mode testing in progress (no separate Ansible VM — topology change)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_8" data-track><span class="cb-text">P1.1: Spark History Server deployed on Node02 (depends on P0.0 RGW + P0.5a Spark)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_9" data-track><span class="cb-text"><strong>P1.8:</strong> Phase 1 integration milestone — run 5 sample jobs, measure shuffle amplification, OSD memory (P1.6), and WAN egress (P1.7)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_10" data-track><span class="cb-text">P2.2–P2.3: Ksolves deploys Airflow and validates end-to-end pipeline (Snowflake side is fqdn responsibility)</span></div>
-    <div class="cb-row"><input type="checkbox" id="cb_cps_11" data-track><span class="cb-text">Phase 2 sign-off: fqdn approves for production if all P0–P2 items pass</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_11" data-track><span class="cb-text">Phase 2 sign-off: fqdn approves for production if all P0–P2 items pass + BLOCKER.3 + BLOCKER.4 closed</span></div>
     <p class="muted" style="margin-top:10px;"><strong>Beyond Phase 2:</strong> Pending Ksolves clarification — see "Actions Outside Present Known Scope" section.</p>
     <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
@@ -1419,14 +1752,27 @@ spark.sql.parquet.compression.codec=zstd</pre>
       <tbody>
         <tr><td>Main Report</td><td><code>phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf</code></td></tr>
         <tr><td>Prerequisites</td><td><code>phases/phase1/development/Incoming/vendor_prerequisites.docx.pdf</code></td></tr>
+        <tr><td>Vendor Configuration Baseline</td><td><code>phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf</code> (2026-05-04)</td></tr>
+        <tr><td>HIPAA Sub-project Critical Path</td><td><code>phases/phase2/development/Document/CP_HIPAA_Compliance_v1.0.md</code></td></tr>
         <tr><td>Hardware Reference</td><td><code>CLAUDE.md § Hardware Reference</code></td></tr>
         <tr><td>Calculator</td><td><code>phases/phase1/development/deliverables/dev_cluster_phase1_model.html</code></td></tr>
         <tr><td>Ksolves Walkthrough</td><td><code>phases/phase1/development/research/ksolves-directory-walkthrough.md</code></td></tr>
         <tr><td>Vendor Questions</td><td><code>phases/phase1/development/vendor_comms/phase1_vendor_questions.txt</code></td></tr>
+        <tr><td>Companion CP — Okta Integration</td><td><code>phases/phase2/development/Document/CP_Okta_v1.1.md</code></td></tr>
+        <tr><td>Companion — Remote Airflow Host Briefing</td><td><code>phases/phase2/development/Document/MSB-PMC01_airflow_host_briefing_v1.1.md</code></td></tr>
         <tr><td>SOW V1.0 (Mar 16, 2026)</td><td><code>phases/phase2/development/Incoming/</code> (gitignored)</td></tr>
         <tr><td>SOW Timeline Status</td><td><code>phases/phase2/development/Document/SOW_timeline_status.md</code></td></tr>
         <tr><td>v1.0 → v1.1 Changelog</td><td><code>phases/phase2/development/Document/Phases_Critical_Path_Development_v1.1_changelog.md</code></td></tr>
+        <tr><td>v1.1 → v1.2 Changelog</td><td><code>phases/phase2/development/Document/Phases_Critical_Path_Development_v1.2_changelog.md</code></td></tr>
+        <tr><td>v1.2 → v1.3 Changelog</td><td><code>phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3_changelog.md</code></td></tr>
+        <tr><td>v1.4 → v1.5 Changelog</td><td><code>phases/phase2/development/Document/Phases_Critical_Path_Development_v1.4_changelog.md</code></td></tr>
         <tr><td>Architecture Diagram</td><td><code>phases/phase2/development/Document/EDS_DataFlow_architecture_diagram_updated.png</code></td></tr>
+        <tr><td>Cluster Sizing Tool</td><td><code>calculators/Document/cluster_sizing_tool.html</code></td></tr>
+        <tr><td>Math Reference</td><td><code>calculators/Document/dev_cluster_math_reference.html</code></td></tr>
+        <tr><td>Storage Reference</td><td><code>calculators/Document/dev-cluster-storage-reference.html</code></td></tr>
+        <tr><td>Vendor-isolation source documents (security; on-site only)</td><td><code>security/Notes/vendor-access-isolation-plan_2026-05-06.md</code> · <code>security/Document/vendor_security_design_overview_v1.0.md</code> · <code>security/Notes/harper_meeting_summary_vdi_security_2026-05-06.md</code></td></tr>
+        <tr><td>Horizon pool alignment email (2026-05-07)</td><td><code>correspondence/Document/email_sean_austin_horizon_pool_alignment_2026-05-07.md</code></td></tr>
+        <tr><td>Vendor security email (2026-05-07)</td><td><code>correspondence/Document/vendor_email_horizon_vdi_security_revision_2026-05-06.md</code></td></tr>
       </tbody>
     </table>
     <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
