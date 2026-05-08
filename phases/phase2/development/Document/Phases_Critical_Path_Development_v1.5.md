@@ -233,9 +233,34 @@ Two-stage access strategy: an interim Webex desktop arrangement followed by a pe
 - **CIO declined still stands** — pool stand-up + initial allow/block posture is one BLOCKER.4 sub-task complete; all other vendor-isolation requirements remain open.
 - **Alignment email circulated** — `correspondence/Document/email_sean_austin_horizon_pool_alignment_2026-05-07.md` to Sean Klette and Austin asking for sync output on pool-↔-cluster-side design layering.
 
-#### Layering hypothesis (working assumption — pending Sean + Austin sync)
+#### 2026-05-08 progress — Austin response received
 
-Austin's pool-level egress policies constrain the **pool itself** (what the pool VMs can talk to). Sean's cluster-side work would constrain **what the pool can reach into msb-pmc03** (what the cluster accepts from the pool's allowed destinations). These layer rather than replace — pool-level controls bound the egress space; cluster-side controls bound the ingress space. Sean + Austin sync output (triggered by Rohn's 2026-05-07 alignment email) will confirm or correct this framing.
+Austin replied to the 2026-05-07 alignment email (`correspondence/Document/email_austin_response_horizon_pool_2026-05-08.md`). Two of the three confirmation questions are now answered:
+
+- **CS's = Horizon Connection Servers** — confirmed.
+- **Policy enforcement layer = network firewall** — confirmed. Not NSX micro-segmentation, not host-level on the pool VMs.
+- **New fact:** the **Horizon pool uses the firewall as its default gateway**, so all egress from pool VMs flows through Austin's firewall by default routing — single chokepoint, easy rule management. Whatever the **Snowflake / Azure egress allowlist mechanics** decide (Rohn's open sub-task), the deployment surface is this one firewall.
+- **Still pending:** Sean Klette's view on cluster-side design layering (the third question).
+
+#### Layering hypothesis — refined after Austin (still pending Sean)
+
+Austin's pool-level egress policies constrain the **pool itself** (what the pool VMs can talk to), enforced at the **network firewall** that is the pool's default gateway — single chokepoint. Sean's cluster-side work would constrain **what the pool can reach into msb-pmc03** (what the cluster accepts from the pool's allowed destinations). These layer rather than replace — pool-level controls bound the egress space; cluster-side controls bound the ingress space. Austin's 2026-05-08 reply is consistent with this framing; Sean's input will confirm or revise the cluster-side half.
+
+```
+[Vendor device] → [UAG] → [Horizon pool VM]
+                              │ (default gateway = firewall)
+                              ▼
+                       [Austin's firewall]   ← single egress chokepoint
+                       allow: DNS, AD, UAG, CS, + Sean's-design destinations
+                       deny: everything else
+                              │
+                              ▼
+                       [allowed destinations]
+                              │
+                              ▼ (entering msb-pmc03)
+                       [Sean's cluster-side controls]   ← TBD
+                       (what msb-pmc03 accepts from allowed sources)
+```
 
 #### Gate status table (full sub-task view, mirrors `security/Notes/vendor-access-isolation-plan_2026-05-06.md`)
 
@@ -244,9 +269,9 @@ Austin's pool-level egress policies constrain the **pool itself** (what the pool
 | BLOCKER.1 Phase 1A — Vendor Windows-host hardware prerequisite | **Resolved 2026-05-06** (Webex active) | (closed) |
 | Ksolves Horizon pool stand-up + initial firewall posture | **Done 2026-05-07** (pending validation) | Jason / Austin |
 | Pool validation testing (`ks_test` group) | Open | Sean + Rohn |
-| Sean + Austin sync on pool ↔ cluster-side layering | Open | Sean + Austin |
+| Sean + Austin sync on pool ↔ cluster-side layering | **Austin in 2026-05-08; Sean pending** | Sean + Austin |
 | Cluster-side isolation design (VLAN approach or alternative) | Open | Sean Klette |
-| Snowflake / Azure egress allowlist mechanics | Open | Rohn (fqdn) |
+| Snowflake / Azure egress allowlist mechanics | Open (output feeds Austin's firewall) | Rohn (fqdn) |
 | AD DC enumeration | **Closed 2026-05-06** (7 DCs documented) | (closed) |
 | OPSWAT install request | **Closed 2026-05-07** (awaiting vendor) | Rohn / Ksolves |
 | Vendor user list for VDI accounts | Open | Michelle (bridge) + Ksolves |
@@ -265,9 +290,10 @@ _Network (Sean Klette):_
 
 _Network (Austin — Horizon pool admin):_
 - [x] Stand up Ksolves Horizon pool — built 2026-05-07; UAG-reachable; `ks_test` AD group attached for pre-vendor validation
-- [x] Set initial pool-egress firewall posture — DNS / AD / UAG / Connection Servers allowed; everything else blocked. Awaiting confirmation of policy enforcement layer (network FW vs NSX micro-seg vs host-level) per Rohn's 2026-05-07 email
-- [ ] Sync with Sean on layering (joint with Sean Klette item above)
-- [ ] Refine pool-egress allowlist as Snowflake/Azure egress mechanics land (Rohn's item below feeds this)
+- [x] Set initial pool-egress firewall posture — DNS / AD / UAG / Connection Servers allowed; everything else blocked
+- [x] Confirm policy enforcement layer — **network firewall** (replied 2026-05-08; pool's default gateway is the firewall, single chokepoint). See `correspondence/Document/email_austin_response_horizon_pool_2026-05-08.md`
+- [ ] Sync with Sean on layering — Austin's piece in 2026-05-08; awaiting Sean's cluster-side view to close the joint item
+- [ ] Refine pool-egress allowlist as Snowflake/Azure egress mechanics land (Rohn's item below feeds this — single deployment surface confirmed: this firewall)
 
 _fqdn (Rohn):_
 - [x] Vendor-isolation email to Ksolves drafted + sent 2026-05-07 (`correspondence/Document/vendor_email_horizon_vdi_security_revision_2026-05-06.md`)
