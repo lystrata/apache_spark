@@ -175,7 +175,7 @@ Applies to **all contexts**. Whenever new operational data is captured — meeti
 | Airflow host briefing (companion) | `phases/phase2/development/Document/MSB-PMC01_airflow_host_briefing_v1.x.md` | Versioned companion doc |
 | SOW timeline tracker | `phases/phase2/development/Document/SOW_timeline_status.md` | In-place operational |
 | Vendor-isolation planning note | `security/Notes/vendor-access-isolation-plan_2026-05-06.md` | On-site planning (not git-tracked) |
-| Production CP fork | `phases/phase2/development/Document/Phases_Critical_Path_Production_v0.x.md` | Versioned distribution doc |
+| Production CP fork | `phases/phase2/production/Document/Phases_Critical_Path_Production_v0.x.md` | Versioned distribution doc |
 | Master TODO | `TODO.md` | In-place operational index |
 
 **For each new piece of operational data:**

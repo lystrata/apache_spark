@@ -1,7 +1,12 @@
 # Critical Path — Okta + Active Directory Integration for Spark Phase 1
 
-_Version 1.1 · Last updated 2026-05-05_  
+_Version 1.1 · Last updated 2026-05-05 · v1.5-sync notes added 2026-05-08_  
 _Companion document to `Phases_Critical_Path_Development_v1.5.md` and `CP_HIPAA_Compliance_v1.0.md` · Audit + critical-path additions for enterprise Okta SSO with AD as authoritative directory_
+
+> **v1.5 Sync (2026-05-08):** No changes to Okta scope or task list. Cross-references bumped to `Phases_Critical_Path_Development_v1.5.md`. Three points worth noting:
+> - **AD DC enumeration closed 2026-05-06** — 7 DCs across 4 sites (Windsor ×2, Garfield ×1, South ×2, MSB RW + RO). Captured in `security/Notes/vendor-access-isolation-plan_2026-05-06.md` § AD domain controllers. Relevant to § O0.4 (network egress requirements) here. **Open follow-up:** confirm with fqdn AD admins whether vendor traffic should be DC-pool-wide or steered to specific DCs (e.g., MSB-RO for query, MSB-RW for writeback).
+> - **BLOCKER.4 (NEW 2026-05-06)** in main CP — Phase 1B vendor-access isolation gate. The vendor-egress allowlist that gates Phase 1B must include the AD DC pool documented above plus Okta endpoints. During Phase 1A (Webex), Okta integration work can begin behind the screen-share without exposing the AD/Okta endpoints to vendor-side network reach.
+> - **Nginx scope correction 2026-05-07** — restored as install-in-scope on the Airflow VM (companion: `MSB-PMC01_airflow_host_briefing_v1.2.md`). One of Nginx's candidate roles is **Okta SSO front-door routing**; if Ksolves activates that role post-install, it intersects with Okta integration tasks here. Coordinate when Ksolves makes the activation decision.
 
 ---
 

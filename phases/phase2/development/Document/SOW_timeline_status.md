@@ -1,10 +1,10 @@
 # SOW Timeline vs. Actual Status
 
-_As of 2026-04-29. Source: March 16, 2026 Ksolves SOW V1.0 § 5 Indicative Timelines (in `phases/phase2/development/Incoming/`)._
+_As of 2026-05-08. Source: March 16, 2026 Ksolves SOW V1.0 § 5 Indicative Timelines (in `phases/phase2/development/Incoming/`)._
 
 **Project start (per user):** 2026-04-14
 **Total SOW duration:** 12 weeks → indicative completion 2026-07-06 (no Halt Period assumed)
-**Elapsed:** ~2.1 weeks · currently early Week 3 (Phase 2 window: Weeks 2–4)
+**Elapsed:** ~3.4 weeks · currently mid Week 4 (last Week of Phase 2 window: Weeks 2–4)
 
 ---
 
@@ -34,14 +34,28 @@ _As of 2026-04-29. Source: March 16, 2026 Ksolves SOW V1.0 § 5 Indicative Timel
 
 ---
 
-## Where We Stand (2026-04-29)
+## Where We Stand (2026-05-08)
+
+- Today is **mid Week 4** — the **last week of the SOW Phase 2 (Proxmox & VM Creation) window** (2026-04-21 → 2026-05-11). Phase 2 work is in flight via Phase 1A interim access; Phase 1B (permanent VDI) gated by BLOCKER.4 below.
+- Phase 1 (Discovery & Setup Planning) finished 2026-04-24, on plan.
+- **BLOCKER.1 Phase 1A — ACTIVE 2026-05-06.** Ksolves vendor lead drives Proxmox provisioning via Webex screen share with fqdn oversight. The original Phase 1A re-opening (Linux/Windows Webex remote-control limitation, vendor Windows-host hardware prerequisite) was **resolved 2026-05-06** — user shifted to hosting Webex from the fqdn-office Windows host, so the NUC remediation in Ksolves' DC is no longer on the critical path. Webex screen-share + fqdn oversight + Webex recording satisfies the audit-trail requirement during the design phase.
+- **NEW BLOCKER.4 (added 2026-05-06): Phase 1B vendor-access isolation gate.** A 2026-05-06 meeting with the CIO declined Phase 1B (Horizon VDI) on the originally-proposed terms. Phase 1B is now gated on a vendor-access isolation design + Cyber endorsement + CIO sign-off. Partial progress 2026-05-07 (Ksolves Horizon pool stood up by Jason; Austin set initial pool-egress firewall posture: DNS/AD/UAG/CS allowed, rest blocked). One BLOCKER.4 sub-task complete pending validation; remaining gates open. Captured in `Phases_Critical_Path_Development_v1.5.md` § BLOCKER.4 + `security/Notes/vendor-access-isolation-plan_2026-05-06.md`.
+- **NEW BLOCKER.3 (added 2026-05-05): HIPAA compliance gate.** Vendor's `Ksolves_Spark_YARN_Config_v1.0.pdf` § 8 introduced HIPAA encryption + Web UI ACL scope. Forked into a sub-project: `CP_HIPAA_Compliance_v1.0.md`. Production-side ePHI processing is gated on this.
+- **3-node cluster finalized (2026-05-05).** Vendor recommended +1 node for 2-concurrent-job operation; user declined on budget. Mitigations (top-12 tables first; placeholder-table size-check gate) accepted.
+- **MTU mismatch resolved 2026-05-06** — fqdn networking team aligned 1400/9000 MTU between MSB-PMC01 and MSB-PMC03; closes a P0.7 follow-up.
+- **Ansible topology decision (2026-05-07)** — no separate Ansible VM. Ansible + ansible-core installed on all three Proxmox dev nodes; vendor playbook tree on-cluster; `--check`-mode testing in progress with vendor engineer 1.
+- **Nginx scope correction (2026-05-07)** — restored as install-in-scope on the Airflow VM; activation TBD by Ksolves. Companion file `MSB-PMC01_airflow_host_briefing_v1.1` → `_v1.2` carries this.
+- **Halt Period (SOW §7.2)** — not invoked. Phase 2 is progressing through Phase 1A; the long-pole gate is BLOCKER.4 (multi-week design + Cyber + CIO chain), but vendor work continues during the gate.
+- **Vendor change pending:** the 2026-04-27 verbal reversal (single YARN RM, no ZooKeeper) is still not captured in a SOW V1.1. SOW V1.1 also needs to capture (a) the 3-node finalization, (b) HIPAA scope addition (BLOCKER.3 sub-project), (c) the rollover to vendor's `Ksolves_Spark_YARN_Config_v1.0.pdf` baseline, (d) Ansible topology change, (e) Nginx scope correction, (f) BLOCKER.4 Phase 1B isolation gate. Tracked under `TODO.md § Waiting for Vendor Reply`.
+
+## Where We Stood (2026-04-29 — historical)
 
 - Today is **early Week 3**. Per SOW we should be ~1/3 through **Phase 2 (Proxmox & VM Creation)** — Ceph bootstrap and VM provisioning underway.
-- Phase 1 (Discovery & Setup Planning) **finished 2026-04-24, ~4 days past the SOW Week-1 boundary** — essentially on plan given the 1-week phase budget.
-- **BLOCKER.1 Phase 1A cleared 2026-04-29** — Ksolves now accessing the dev cluster via Webex desktop sharing. The May-4 Halt Period decision is no longer needed for remote access. Phase 1B (VMware Horizon VDI, permanent replacement) is tracked separately under `TODO.md § Pending Tasks > Correspondence` and is non-blocking.
-- Phase 2 still not started but the gate is open. Remaining Phase 2 budget: **~1.7 weeks** (today through 2026-05-11). BLOCKER.2 (RHEL ISO) is gated by P0.0 Ceph OSD setup and is the next critical-path item.
-- **Halt Period (SOW §7.2)** could still apply if BLOCKER.2 stalls Phase 2 substantively, but with remote access live the immediate trigger has been removed.
-- **Vendor change pending:** the 2026-04-27 verbal reversal (single YARN RM, no ZooKeeper, no nginx) is not yet captured in a SOW V1.1 — the SOW Document History table is still blank past V1.0. Tracked under `TODO.md § Waiting for Vendor Reply`.
+- Phase 1 (Discovery & Setup Planning) finished 2026-04-24, ~4 days past the SOW Week-1 boundary — essentially on plan given the 1-week phase budget.
+- BLOCKER.1 Phase 1A cleared 2026-04-29 — Ksolves now accessing the dev cluster via Webex desktop sharing. _(Note: Phase 1A subsequently re-opened 2026-04-30 due to Linux/Windows Webex remote-control limitation; resolved again 2026-05-06 — see "Where We Stand (2026-05-08)" above.)_
+- Phase 2 still not started but the gate is open. Remaining Phase 2 budget: ~1.7 weeks (then through 2026-05-11). BLOCKER.2 (RHEL ISO) was gated by P0.0 Ceph OSD setup _(BLOCKER.2 subsequently closed 2026-04-30 via node-local Directory storage — see CP v1.5 § BLOCKER.2)._
+- Halt Period (SOW §7.2) could still apply if BLOCKER.2 stalled Phase 2 substantively, but with remote access live the immediate trigger has been removed.
+- Vendor change pending: the 2026-04-27 verbal reversal (single YARN RM, no ZooKeeper, no nginx) is not yet captured in a SOW V1.1. _(Note: Nginx scope subsequently corrected 2026-05-07 — install-yes / activation-TBD-by-Ksolves.)_
 
 ---
 

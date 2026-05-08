@@ -3,10 +3,56 @@
 
 # Phases Critical Path — fqdn Production Cluster
 
-_Version 0.1 · Last updated 2026-04-27_  
-_Forked from `Phases_Critical_Path_Development_v1.2.md` as a starting point — production-specific adjustments pending_  
+_Version 0.1 · Last updated 2026-04-27 · v1.5-sync header refresh 2026-05-08_  
+_Forked from `Phases_Critical_Path_Development_v1.2.md` as a starting point — production-specific adjustments pending. **Development-side has since advanced to `_v1.5.md`** (cut 2026-05-07/08); the body of this document still reflects the v1.2 fork point and needs a production-specific revision pass before promotion._  
 _Report Source: phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf (development scope; production scope to be defined separately)_  
-_Status: DRAFT — production hardware specs (64-core nodes, 768 GB RAM, 9× 3.2 TB NVMe), production traffic profile, NUMA topology (dual-socket), and production-only services (e.g., HA SLOs, backup/DR) not yet reflected. Content below is inherited from the development plan and will be revised._
+_Status: **DRAFT — pending production-specific revision.** Hardware specs (64-core nodes, 768 GB RAM, 9× 3.2 TB NVMe), production traffic profile, NUMA topology (dual-socket), and production-only services (HA SLOs, backup/DR) not yet reflected. Content below is inherited from the development plan and will be revised. **See "v1.5 Sync Status" below for events that occurred after this fork and need to be folded in during the production-specific pass.**_
+
+---
+
+## v1.5 Sync Status (added 2026-05-08 per CLAUDE.md § Critical Path Document Synchronization rule)
+
+This document was forked from `Phases_Critical_Path_Development_v1.2.md` (2026-04-27) and has not been updated since the original draft. The development-side critical path has advanced through v1.3, v1.4, and v1.5 in the interim. The following development-side events have occurred and need to be evaluated for production-side impact during the next revision pass:
+
+**v1.2 → v1.3 (2026-04-30):**
+- BLOCKER.2 closed (RHEL ISO placement via node-local Directory storage at `/rpool/data/templates/iso/`)
+- Phase 1A re-opened 2026-04-30 due to Webex Linux/Windows remote-control limitation
+
+**v1.3 → v1.4 (2026-05-05):**
+- 3-node cluster finalized (vendor recommended +1 node, fqdn declined on budget)
+- HIPAA scope forked into sub-project: `CP_HIPAA_Compliance_v1.0.md` (BLOCKER.3 added)
+- GZIP non-splittability mitigation elevated to P0 decision (P0.0b)
+- P0.0a closed (vendor delivered CSV analysis in `Ksolves_Spark_YARN_Config_v1.0.pdf` § 1.1)
+- P0.3 closed (Azure Blob confirmed)
+- P0.6 added (Ceph RGW server-side tuning, vendor-owned)
+- P0.5a vendor configuration note (Hadoop 3.4.1 vs Spark's bundled 3.3.x classpath fix)
+
+**v1.4 → v1.5 (2026-05-07):**
+- BLOCKER.1 Phase 1A active 2026-05-06 (NUC issue resolved; user shifted to fqdn-office Windows host for Webex)
+- **BLOCKER.4 added 2026-05-06 — Phase 1B vendor-access isolation gate.** CIO declined Phase 1B on the originally-proposed terms. Production-side equivalent: vendor access for production environment installation will require a similar (or stricter) isolation design. **Production-specific decision needed: does production allow vendor access at all post-handover, or does fqdn perform Phase 4 work directly?** This is one of the items in Harper's 2026-05-06 summary (Item #10).
+- Ksolves Horizon pool stood up 2026-05-07 (Jason); pool-egress firewall posture set 2026-05-07 (Austin)
+- Ansible topology revised — no separate Ansible VM; runs from Proxmox dev nodes. Production equivalent TBD: same model on production cluster, or separate Ansible control infrastructure?
+- Nginx scope correction — install-yes / activation-TBD-by-Ksolves on the Airflow VM. Production equivalent: assume same posture unless production-specific role drives different decision.
+- MTU 1400/9000 mismatch resolved 2026-05-06 between MSB-PMC01 and MSB-PMC03 networking paths.
+- P2.8 (NEW) — Snowflake Load Completion Confirmation Mechanism. Production-side: the same mechanism is required (probably more stringent for production audit trail).
+- P2.9 (NEW) — Centralized Audit Logging + Retention Policy (HIPAA-driven, 6-year floor). Production-side: this is **mandatory** for ePHI processing in production; HIPAA audit-trail compliance is the production gate.
+- Calculator cascade RAM 384 GB → 320 GB (dev hardware spec correction; production has 768 GB so does not apply).
+- `cluster_sizing_tool.html` NUMA + AQE toggles landed (production has dual-NUMA so the NUMA-pinning advisory is more material; AQE toggles apply to both).
+
+**Companion documents bumped (cross-references that this document should refresh during the production pass):**
+- `MSB-PMC01_airflow_host_briefing_v1.1.md` → `_v1.2.md` (Nginx correction)
+- `Phases_Critical_Path_Development_v1.4.md` → `_v1.5.md`
+- All cross-references in production fork should be updated v1.2 → v1.5 when the body is revised
+
+**Production-specific items still to land** (forward-looking, not v1.5-sync):
+- Production hardware spec rewrite (64c/768GB/9× 3.2TB NVMe vs dev's 32c/320GB/7× 3.84TB)
+- Dual-NUMA topology implications for VM sizing
+- HA SLO definitions
+- Backup/DR architecture
+- Production-grade audit logging (ties to P2.9)
+- Production Phase 4 sequencing (per SOW)
+
+---
 
 ---
 

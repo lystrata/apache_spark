@@ -1,8 +1,12 @@
 # Critical Path — HIPAA Compliance (Spark / YARN / Ceph)
 
-_Version 1.0 · Last updated 2026-05-05_
+_Version 1.0 · Last updated 2026-05-05 · v1.5-sync notes added 2026-05-08_
 _Source: Ksolves Spark & YARN Configuration Best Practices v1.0 (2026-05-04) § 8 — `phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf`_
 _Status: Active — gates production handling of ePHI data on the Spark cluster_
+
+> **v1.5 Sync (2026-05-08):** No changes to HIPAA scope or sub-tasks. Cross-references bumped to `Phases_Critical_Path_Development_v1.5.md`. Two adjacent gates worth noting:
+> - **BLOCKER.4 (NEW 2026-05-06)** in main CP — Phase 1B vendor-access isolation gate. HIPAA compliance work that requires vendor execution (the encryption pillars in § 8.1, § 8.2) is sequenced behind BLOCKER.4 closure when delivered via permanent VDI. During Phase 1A (Webex screen-share, active 2026-05-06), HIPAA verification can begin on dev only and only for non-ePHI work.
+> - **P2.9 (NEW 2026-05-07)** in main CP — Centralized Audit Logging + Retention Policy (HIPAA-driven, 6-year floor per § 164.316(b)(2)). Currently in main CP; may move into this sub-project during the next HIPAA revision pass once a clear "audit / retention" pillar is added below the existing three.
 
 ---
 
