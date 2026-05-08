@@ -25,6 +25,8 @@ MSB-PMC01 runs Proxmox VE (kernel `6.8.12-20-pve`) in a hyperconverged Ceph conf
 
 This briefing pairs with `Phases_Critical_Path_Development_v1.5.md` § P1.0 — see that section's Nginx scope note for the equivalent text in the main CP.
 
+**Update 2026-05-08 (non-blocking) — msb-pmc04 third-cluster under consideration:** A third Proxmox cluster (msb-pmc04) is under consideration to add to the Spark cluster infrastructure, with the explicit goal of **removing msb-pmc01 from the security equation** (per the Isolation sub-project / BLOCKER.4 design work). If pursued, this would shift orchestration / Airflow / monitoring services from msb-pmc01-04 onto msb-pmc04, leaving msb-pmc01 entirely outside the vendor-allowed surface. The contents of this briefing would migrate to a successor briefing for the new host. **Status: non-blocking — captured for reference; track decision as it crystallizes.** Cross-references: CP v1.5 § BLOCKER.4 (msb-pmc04 third-cluster note) + `security/Notes/vendor-access-isolation-plan_2026-05-06.md`.
+
 ---
 
 ## 2. Cluster Overview — MSB-PMC01

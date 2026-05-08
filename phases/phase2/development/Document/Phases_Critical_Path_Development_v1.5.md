@@ -265,6 +265,16 @@ Austin and Sean both replied to the 2026-05-07 alignment email on 2026-05-08. **
 
 Austin's pool-level egress policies constrain the **pool itself** (what the pool VMs can talk to), enforced at the **network firewall** that is the pool's default gateway — single chokepoint. Sean's cluster-side controls constrain **what msb-pmc03 accepts from those allowed destinations** (ingress + VM isolation, designed independently of pool-level decisions). The two layers operate orthogonally — pool-level work does not reduce or expand cluster-side scope, and vice versa.
 
+#### msb-pmc04 third-cluster note (under consideration; non-blocking)
+
+**Captured 2026-05-08 from review punch-list:** a third Proxmox cluster (msb-pmc04) is under consideration to add to the Spark cluster infrastructure, with the explicit goal of **removing msb-pmc01 from the security equation**. If pursued, this would shift the orchestration / Airflow / monitoring services off msb-pmc01-04 onto msb-pmc04, leaving msb-pmc01 entirely outside the vendor-allowed surface. Material implications:
+
+- **`10.1.37.0/24` cluster-overlap simplification** — Sean's VLAN-isolation approach (sole-tenancy of VLANs 37/38/39 for msb-pmc03) gets easier if msb-pmc01 is no longer in the vendor scope.
+- **Airflow VM (P1.0) replatform** — Airflow + Nginx install would target msb-pmc04 instead of msb-pmc01-04. Companion file `MSB-PMC01_airflow_host_briefing_v1.2.md` would need a successor briefing for the new host.
+- **Sub-task ordering** — does not block the current BLOCKER.4 design; treat as a future architectural simplification path.
+
+Status: **non-blocking — captured for reference**. Track decision in TODO + planning note as it crystallizes.
+
 ```
 [Vendor device] → [UAG] → [Horizon pool VM]
                               │ (default gateway = firewall)
@@ -287,8 +297,9 @@ Austin's pool-level egress policies constrain the **pool itself** (what the pool
 |---|---|---|
 | BLOCKER.1 Phase 1A — Vendor Windows-host hardware prerequisite | **Resolved 2026-05-06** (Webex active) | (closed) |
 | Ksolves Horizon pool stand-up + initial firewall posture | **Done 2026-05-07** (pending validation) | Jason / Austin |
-| Pool validation testing (`ks_test` group) | Open | Sean + Rohn |
+| Pool validation testing (`ks_test` group) | **Closed 2026-05-08** (via 5/8 email exchange) | (closed) |
 | Sean + Austin sync on pool ↔ cluster-side layering | **Closed 2026-05-08** (both replied; layering confirmed orthogonal) | (closed) |
+| Confirm consistent IP blocks for vendor-created VMs | **Closed 2026-05-08** (Sean's 5/8 email) | (closed) |
 | Cluster-side isolation design (VLAN approach or alternative) | Open | Sean Klette |
 | Snowflake / Azure egress allowlist mechanics | Open (output feeds Austin's firewall) | Rohn (fqdn) |
 | AD DC enumeration | **Closed 2026-05-06** (7 DCs documented) | (closed) |
@@ -304,8 +315,8 @@ Austin's pool-level egress policies constrain the **pool itself** (what the pool
 _Network (Sean Klette):_
 - [ ] Develop the VLAN-isolation proposal — confirm tenancy on VLANs 37/38/39 exclusive to msb-pmc03; design VLAN 10 ingress/egress; document routing topology enforcing "only path out is via VLAN 10". **Open implication:** msb-pmc01 and msb-pmc03 share `10.1.37.0/24` (DNS-confirmed 2026-05-06) — sole-tenancy may require renumbering one cluster; see `security/Notes/vendor-access-isolation-plan_2026-05-06.md` § Sean's VLAN Isolation Approach addendum for the four design paths
 - [x] Sync with Austin on Horizon pool ↔ cluster-side design layering — **closed 2026-05-08**: Sean replied "This does not change the cluster side and related VM isolation as planned." Layering confirmed orthogonal (`correspondence/Document/email_sean_response_horizon_pool_2026-05-08.md`)
-- [ ] Confirm consistent IP blocks for vendor-created VMs (allowlist as CIDR vs. enumerated)
-- [ ] Address the 10.1.37.0/24 cluster overlap if VLAN-isolation path is chosen (renumbering vs. one of the alternative paths)
+- [x] Confirm consistent IP blocks for vendor-created VMs — **CLOSED 2026-05-08** (Sean confirmed via 5/8 email exchange; allowlist will use the consistent block per Sean's design)
+- [ ] Address the 10.1.37.0/24 cluster overlap if VLAN-isolation path is chosen (renumbering vs. one of the alternative paths). **Note 2026-05-08:** msb-pmc04 third-cluster idea under consideration may simplify this — see "msb-pmc04 third-cluster note" below.
 
 _Network (Austin — Horizon pool admin):_
 - [x] Stand up Ksolves Horizon pool — built 2026-05-07; UAG-reachable; `ks_test` AD group attached for pre-vendor validation
@@ -319,7 +330,7 @@ _fqdn (Rohn):_
 - [x] Alignment email to Sean + Austin on Horizon pool stand-up sent 2026-05-07 (`correspondence/Document/email_sean_austin_horizon_pool_alignment_2026-05-07.md`)
 - [x] Enumerate AD domain controllers in scope — closed 2026-05-06 (7 DCs across 4 sites: Windsor ×2, Garfield ×1, South ×2, MSB RW + RO; see security note)
 - [x] Request Ksolves install OPSWAT security client — closed 2026-05-07 (requested; awaiting vendor confirmation of install across vendor devices)
-- [ ] Pool validation testing (Sean + Rohn) — confirm session brokering through UAG → Connection Servers, AD authentication via `ks_test` group, intended destinations reachable, blocked destinations actually blocked. **Predates any Ksolves user provisioning** — flips the pool from test-ready to ready-for-vendor-accounts
+- [x] Pool validation testing (Sean + Rohn) — **CLOSED 2026-05-08** via the 5/8 email exchange. Pool confirmed ready for vendor accounts (UAG → Connection Servers → AD auth path validated; allowlist/deny posture confirmed). Vendor account provisioning (Michelle) is the next step to flip the pool from test-ready to live.
 - [ ] Investigate nftables-based outbound filtering as defense-in-depth (Proxmox `nftables` + RHEL VM `firewalld`)
 - [ ] Investigate constrained vendor sudo (carve out `nft` / `iptables` / `firewall-cmd` from vendor sudoers)
 - [ ] Decide cloud egress allowlist mechanics — Snowflake / Azure Blob endpoint IPs rotate (FQDN-based vs. published CSP IP ranges vs. egress proxy). Output feeds Austin's pool-egress allowlist refinement

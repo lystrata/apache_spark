@@ -358,7 +358,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
       <div class="task-block-title">Phase 1B — User Actions (BLOCKER.4-gated; in flight 2026-05-07)</div>
       <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_1" data-track checked><span class="cb-text">Ksolves Horizon pool stood up (Jason / 2026-05-07) — UAG-reachable, <code>ks_test</code> AD group attached</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_2" data-track checked><span class="cb-text">Pool-egress firewall policies set (Austin / 2026-05-07) — DNS, AD, UAG, Connection Servers allowed; everything else blocked</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_3" data-track><span class="cb-text">Pool validation testing (Sean + Rohn) — confirm session brokering, AD auth, allow-list reachability, deny-list blocking</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_3" data-track checked><span class="cb-text">Pool validation testing (Sean + Rohn) — <strong>closed 2026-05-08</strong> via the 5/8 email exchange</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_4" data-track><span class="cb-text">Vendor user list (Michelle owns) — provision Ksolves AD accounts on the pool</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_5" data-track><span class="cb-text">Cluster-side isolation design (Sean Klette lead — see BLOCKER.4)</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_6" data-track><span class="cb-text">Cyber endorsement of design candidate (Paul Barber)</span></div>
@@ -528,6 +528,8 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
       <div class="task-warn"><strong>Open implication (DNS-confirmed 2026-05-06):</strong> msb-pmc01 and msb-pmc03 currently share <code>10.1.37.0/24</code>; making msb-pmc03 sole-tenant of 37/38/39 may require renumbering one cluster — see <code>security/Notes/vendor-access-isolation-plan_2026-05-06.md</code> § Sean's VLAN Isolation Approach addendum for the four design paths.</div>
     </div>
 
+    <div class="task-note"><strong>2026-05-08 — msb-pmc04 third-cluster note (non-blocking):</strong> A third Proxmox cluster (msb-pmc04) is under consideration to add to the Spark cluster infrastructure, with the explicit goal of <strong>removing msb-pmc01 from the security equation</strong>. Material implications if pursued: orchestration / Airflow / monitoring services migrate from msb-pmc01-04 to msb-pmc04; Bastion VM also migrates; <code>10.1.37.0/24</code> cluster-overlap simplifies; vendor allowlist scope shrinks (msb-pmc01 IP block 10.1.37.48–51 drops out). <strong>Status: non-blocking — captured for reference; track decision as it crystallizes.</strong></div>
+
     <div class="task-block">
       <div class="task-block-title">2026-05-07 Progress (one sub-task complete)</div>
       <ul style="list-style:disc;padding-left:22px;">
@@ -542,7 +544,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
       <div class="task-block-title">Sub-Tasks — Network (Sean Klette)</div>
       <div class="cb-row"><input type="checkbox" id="cb_b4_net_1" data-track><span class="cb-text">Develop the VLAN-isolation proposal — confirm tenancy on VLANs 37/38/39 exclusive to msb-pmc03; design VLAN 10 ingress/egress; document routing topology</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b4_net_2" data-track><span class="cb-text">Sync with Austin on Horizon pool ↔ cluster-side design layering (triggered by 2026-05-07 email)</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b4_net_3" data-track><span class="cb-text">Confirm consistent IP blocks for vendor-created VMs (allowlist as CIDR vs. enumerated)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_net_3" data-track checked><span class="cb-text">Confirm consistent IP blocks for vendor-created VMs — <strong>closed 2026-05-08</strong> via Sean's 5/8 email exchange</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b4_net_4" data-track><span class="cb-text">Address the 10.1.37.0/24 cluster overlap if VLAN-isolation path is chosen (renumbering vs. one of the alternative paths)</span></div>
     </div>
 
@@ -552,7 +554,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
       <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_email_pool" data-track checked><span class="cb-text">Alignment email to Sean + Austin on Horizon pool stand-up sent 2026-05-07</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_dc" data-track checked><span class="cb-text">Enumerate AD domain controllers in scope — closed 2026-05-06 (7 DCs across 4 sites)</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_opswat" data-track checked><span class="cb-text">Request Ksolves install OPSWAT security client — closed 2026-05-07 (requested; awaiting vendor confirmation)</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_validate" data-track><span class="cb-text">Pool validation testing (Sean + Rohn) — confirm UAG → Connection Servers → AD auth → expected reachability/blocking</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_validate" data-track checked><span class="cb-text">Pool validation testing (Sean + Rohn) — <strong>closed 2026-05-08</strong> via the 5/8 email exchange (UAG → Connection Servers → AD auth path validated)</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_nft" data-track><span class="cb-text">Investigate nftables-based outbound filtering as defense-in-depth</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_sudo" data-track><span class="cb-text">Investigate constrained vendor sudo (carve out <code>nft</code> / <code>iptables</code> / <code>firewall-cmd</code> from sudoers)</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b4_fqdn_egress" data-track><span class="cb-text">Decide cloud egress allowlist mechanics — Snowflake / Azure Blob endpoints rotate</span></div>

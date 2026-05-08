@@ -52,6 +52,42 @@ This document was forked from `Phases_Critical_Path_Development_v1.2.md` (2026-0
 - Production-grade audit logging (ties to P2.9)
 - Production Phase 4 sequencing (per SOW)
 
+## Update 2026-05-08 — additional items from the review punch-list
+
+The 2026-05-08 review of the v1.5 cycle surfaced material for the production-side revision pass:
+
+**Phase 2 closure status (Dev — applies to production-side as cumulative learning):**
+- BLOCKER.1, P0.0, P0.1a, P0.4 (pre-req), P0.7 closed 2026-05-08 on the dev cluster
+- P0.1b (Worker VM OS install + base config) still open on dev
+- BLOCKER.3 split 2026-05-08 into 3a (hardware compliance — vendor-claimed-closed pending verification) + 3b (software/network compliance — open)
+- Pool validation testing + IP blocks for vendor-created VMs closed 2026-05-08 via Sean's email exchange
+
+**Production-side implications:**
+
+1. **msb-pmc04 third-cluster proposal** (non-blocking) — under consideration to add to the Spark cluster infrastructure, removing msb-pmc01 from the security equation. Affects production architecture: orchestration / Airflow / monitoring services would migrate from msb-pmc01-04 to msb-pmc04. Bastion VM also migrates. Material for the production-side architecture diagram revision. See dev CP v1.5 § BLOCKER.4 msb-pmc04 note + `security/Notes/vendor-access-isolation-plan_2026-05-06.md` § Status (2026-05-08 — msb-pmc04 third-cluster idea captured).
+
+2. **HIPAA scope split (BLOCKER.3 → 3a + 3b)** — production must close both sub-gates plus the dev-side three-pillar work before any production ePHI processing. Production-side adds: drive-encryption posture verification (3a) on production hardware; full Spark RPC + TLS + Web UI ACL build-out (3b) on production cluster.
+
+3. **Production HIPAA-driven items NOT yet captured anywhere** (from the 16-point production architecture questionnaire in `phases/phase2/development/Incoming/Vario\us_Email/Hi Rohn,.md`):
+   - **Q4 — Existing secrets management platform** (Vault/Secrets Mgr/Key Vault/CyberArk) — affects whether production deploys a new Vault or extends existing
+   - **Q5 — PKI / internal CA for TLS** — production requires TLS on all Spark RPC, Ceph RGW, service-to-service
+   - **Q8 — PAM solution** (BeyondTrust/CyberArk) for privileged server access
+   - **Q9 — Existing VPN / ZTNA for admin access** — affects WireGuard / remote service host design
+   - **Q11 — Formal HIPAA Risk Assessment** per § 164.308(a)(1)
+   - **Q12 — BAAs with Snowflake + Azure** — REQUIRED before PHI flows; gates production go-live; not in any CP doc
+   - **Q13 — Incident Response / breach notification runbook** per § 164.308(a)(6)
+   - **Q14 — Vulnerability scanning / patch management process**
+   - **Q15 — On-call / IR capability** — affects monitoring alert design
+   - **Q16 — Application-level backup/DR** (Airflow metadata DB, Vault, Ranger policies) — Ceph HA covers storage but not app state
+
+   These are production-only / production-stricter items not present in the dev CP. Production-side revision pass should add them as a "Production Pre-Flight Gates" section or equivalent.
+
+4. **Phase 2 vendor sign-off claim under review** — vendor declared Phase 2 completed under their framing on 2026-05-08; user is verifying against the SOW's Phase 2 outline before signing off (HIPAA was bundled under their Phase 2 declaration; user questions whether it covers full three-pillar HIPAA or just hardware-level LUKS). This affects the production-side fork's understanding of what "Phase 2" means in the SOW context.
+
+5. **NIC redundancy (Sean) for dev cluster** — listed in the email thread Apr 21 action items + Section 2 summary. Production-side equivalent: NIC redundancy on production nodes; needs explicit task on the production fork's revision pass.
+
+6. **Apache Ranger evaluation** — for Spark-level RBAC + column masking on PHI vs. de-identified data. Mentioned in dev TODO; production implementation gates Q7 (RBAC) of the questionnaire.
+
 ---
 
 ---
