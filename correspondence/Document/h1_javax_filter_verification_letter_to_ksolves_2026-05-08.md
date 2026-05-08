@@ -1,4 +1,4 @@
-**Status:** Draft — review and send when ready
+**Status:** Sent 2026-05-08 — awaiting vendor response
 **From:** Rohn (fqdn)
 **To:** vendor lead (Ksolves)
 **CC:** Murali (per existing vendor-correspondence convention)
