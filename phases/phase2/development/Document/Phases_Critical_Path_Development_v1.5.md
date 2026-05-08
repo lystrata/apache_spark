@@ -7,7 +7,7 @@ _Version 1.5 · Last updated 2026-05-07_
 _Phases 1–2 detailed plan from fqdn Phase 1 Report (Ksolves) — April 2026 · Configuration baseline from Ksolves Spark & YARN Config v1.0 (2026-05-04)_  
 _Report Source: phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf_  
 _Config Source: phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf_  
-_Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING BLOCKER.1 (Ksolves access — Phase 1A active via Webex; Phase 1B gated by BLOCKER.4) + BLOCKER.3 (HIPAA compliance) + BLOCKER.4 (Phase 1B vendor-access isolation, NEW 2026-05-06) · 3-node cluster finalized 2026-05-05 (vendor-recommended +1 node declined — budget) · Ksolves Horizon pool stood up 2026-05-07 (test-ready, awaiting validation) · Out-of-scope items flagged for vendor clarification_
+_Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) IN PROGRESS — BLOCKER.1 closed 2026-05-08 (Phase 1A access satisfies; Phase 1B tracked under BLOCKER.4); P0.0 (Ceph), P0.1 (Worker VMs), P0.4 (RHEL subs), P0.7 (network MSB-PMC01↔03) all closed 2026-05-08 · Remaining gates: BLOCKER.3 (HIPAA compliance) + BLOCKER.4 (Phase 1B vendor-access isolation, NEW 2026-05-06) · 3-node cluster finalized 2026-05-05 (vendor-recommended +1 node declined — budget) · Ksolves Horizon pool stood up 2026-05-07 (test-ready, awaiting validation) · Out-of-scope items flagged for vendor clarification_
 
 ---
 
@@ -75,17 +75,17 @@ Per Ksolves April 24 status report, Phase 1 planning is **COMPLETE**. All discov
 
 <a id="phase-2-implementation-pending-blocker1"></a>
 
-## PHASE 2 — IMPLEMENTATION (PENDING BLOCKER.1)
+## PHASE 2 — IMPLEMENTATION (IN PROGRESS — gated by BLOCKER.3 + BLOCKER.4)
 
-All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once interim Phase 1A access (Webex) is established, Ksolves can execute all P0–P2 items in sequence.
+Phase 2 infrastructure provisioning is in progress. **Phase 1A access is satisfying the access requirement** (BLOCKER.1 closed 2026-05-08). Permanent VDI replacement (Phase 1B) is tracked under BLOCKER.4. Production handling of ePHI data is gated by BLOCKER.3 (HIPAA).
 
 <a id="blocker1-establish-ksolves-remote-access"></a>
 
-### 🔒 BLOCKER.1 — Establish Ksolves Remote Access to Both Proxmox Clusters
+### ✅ BLOCKER.1 — Establish Ksolves Remote Access to Both Proxmox Clusters — **CLOSED 2026-05-08**
 
-- **Status:** PARTIALLY OPEN — Phase 1A **active 2026-05-06** (NUC hardware prerequisite resolved); Phase 1B blocked on **BLOCKER.4** (vendor-access isolation design)
-- **Priority:** BLOCKING for Phase 1B; Phase 1A is unblocking some Ksolves work in the interim
-- **Context:** Ksolves will be granted owner-level access to both Proxmox clusters (Proxmox One for Service Host, Proxmox Two for Spark Development Cluster). No VMs have been created, no NVMes assigned to Ceph OSDs or Spark scratch. Ksolves requires remote access to begin Phase 1 infrastructure provisioning.
+- **Status:** ✅ CLOSED 2026-05-08 — Phase 1A (Webex) access is operational and sufficient for Phase 2 work to proceed. Phase 1B permanent-VDI replacement is tracked separately under **BLOCKER.4**.
+- **Priority:** _Was BLOCKING_ — Phase 2 P0/P1/P2 items now able to proceed under Phase 1A interim access.
+- **Context:** Ksolves were granted owner-level access to both Proxmox clusters (Proxmox One for Service Host, Proxmox Two for Spark Development Cluster) via Phase 1A Webex screen-share with fqdn oversight, active since 2026-05-06.
 
 Two-stage access strategy: an interim Webex desktop arrangement followed by a permanent VMware Horizon VDI deployment.
 
@@ -332,10 +332,10 @@ _Reviewers (downstream):_
 
 <a id="p0-0-ceph-cluster-bootstrap"></a>
 
-### 🔴 P0.0 — Ceph Cluster Bootstrap (MON, MGR, OSD, RGW)
+### ✅ P0.0 — Ceph Cluster Bootstrap (MON, MGR, OSD, RGW) — **CLOSED 2026-05-08**
 
-- **Status:** PENDING BLOCKER.1 (KSOLVES ACCESS)
-- **Priority:** CRITICAL — Foundation for entire Phase 1 storage layer; gates RGW-dependent tasks (P1.1 Spark History Server, P2.3 8-stage data flow) and Spark scratch allocation
+- **Status:** ✅ CLOSED 2026-05-08 — Ceph Reef cluster bootstrapped (MON quorum, MGR active/standby, 9× OSD across 3 nodes, RGW S3 endpoint live, HEALTH_OK).
+- **Priority:** _Was CRITICAL_ — Foundation for entire Phase 1 storage layer; unblocks RGW-dependent tasks (P1.1 Spark History Server, P2.3 8-stage data flow) and Spark scratch allocation
 - **Context:** Ceph Reef 18.2.x cluster must be bootstrapped on all three Proxmox nodes before any VM provisioning or RHEL ISO placement. The cluster spans MON daemons (Paxos quorum), MGR daemons (active/standby), OSD daemons (one per NVMe drive 1–3 per node, 9 OSDs total), and RGW (S3-compatible endpoint). This is Ksolves' **first work item** after gaining Proxmox access.
 - **Prerequisites:**
   - [ ] BLOCKER.1 complete (Ksolves has Proxmox access)
@@ -384,10 +384,10 @@ _Reviewers (downstream):_
 
 <a id="p0-4-validate-rhel-subscriptions"></a>
 
-### 🔴 P0.4 — Verify RHEL 9.4 Subscriptions Active (Pre-requisite)
+### ✅ P0.4 — Verify RHEL 9.4 Subscriptions Active (Pre-requisite) — **CLOSED 2026-05-08**
 
-- **Status:** OPEN (USER VERIFICATION)
-- **Priority:** CRITICAL — Must be confirmed BEFORE VM provisioning begins
+- **Status:** ✅ CLOSED 2026-05-08 — RHEL 9.4 subscriptions verified active for the 4 VMs in scope (3 Worker + 1 YARN RM).
+- **Priority:** _Was CRITICAL_ — Pre-VM-provisioning gate satisfied; P0.1 unblocked.
 - **Context:** RHEL 9.4 subscriptions must be active on all VMs for yum package installation, security patches, and kernel updates. Confirmation required before Ksolves begins P0.1 VM provisioning so they can proceed immediately with package installation after VM creation.
 - **User Actions Required:**
   - [ ] Contact RHEL subscription administrator (or check existing fqdn subscription account)
@@ -450,10 +450,10 @@ _Reviewers (downstream):_
 
 <a id="p0-1-worker-vm-creation"></a>
 
-### 🔴 P0.1 — Worker VM Creation & vCPU Allocation (14 → 18)
+### ✅ P0.1 — Worker VM Creation & vCPU Allocation (14 → 18) — **CLOSED 2026-05-08**
 
-- **Status:** PENDING REMOTE ACCESS
-- **Priority:** CRITICAL — Blocking Phase 1 concurrency baseline
+- **Status:** ✅ CLOSED 2026-05-08 — Three RHEL 9.4 Worker VMs provisioned on the dev cluster (GKPR-SPARK-WK-01/02/03) per spec.
+- **Priority:** _Was CRITICAL_ — Phase 1 concurrency baseline unblocked; downstream P0.4 (post-prov), P0.5, P2.5, P2.6 all gated on this are now path-cleared.
 - **Context:** Phase 1 requires 18 vCPU per Worker VM (8-core executor + 4-core driver + 6-core buffer). Current assumptions show 14 vCPU gap. No VMs exist yet; Ksolves will create and configure all three Worker VMs from scratch on Proxmox.
 - **Ksolves Actions:**
   - [ ] Provision three RHEL 9.4 VMs on Proxmox: GKPR-SPARK-WK-01 (Node01), GKPR-SPARK-WK-02 (Node02), GKPR-SPARK-WK-03 (Node03)
@@ -657,10 +657,10 @@ _Reviewers (downstream):_
 
 <a id="p0-7-network-connectivity-verification"></a>
 
-### 🔴 P0.7 — Verify Network Connectivity: MSB-PMC01 ↔ MSB-PMC03 (Pre-requisite for P1.0)
+### ✅ P0.7 — Verify Network Connectivity: MSB-PMC01 ↔ MSB-PMC03 (Pre-requisite for P1.0) — **CLOSED 2026-05-08**
 
-- **Status:** OPEN (NETWORK TEAM COORDINATION) — MTU 1400/9000 mismatch resolved 2026-05-06; remaining verification steps still required
-- **Priority:** CRITICAL — Gate for Remote Airflow Server provisioning (P1.0)
+- **Status:** ✅ CLOSED 2026-05-08 — Network team confirmed connectivity (routing, firewall rules, port reachability, MTU consistency) between MSB-PMC01 and MSB-PMC03.
+- **Priority:** _Was CRITICAL_ — Gate for Remote Airflow Server provisioning (P1.0) — now unblocked.
 - **Context:** Remote Airflow server will be provisioned on MSB-PMC01 cluster. Ksolves requires verified network connectivity between MSB-PMC01 and MSB-PMC03 (Spark cluster nodes) with sufficient bandwidth for:
   - Airflow DAG submission to YARN ResourceManager (port 8032, low bandwidth)
   - Spark driver logs and monitoring (continuous, low-moderate bandwidth)
@@ -1080,24 +1080,36 @@ The following items are derived from Phase 1 report findings but are not explici
 
 **Critical Path Sequence:**
 - **Phase 1 (Planning):** ✅ COMPLETE — All discovery & architecture finalized (Apr 24)
-- **Phase 2 (Implementation):** PENDING
-  - **Phase 1A active 2026-05-06** — vendor lead drives Proxmox provisioning over Webex screen share (interim access while Phase 1B is gated)
-  - [ ] **BLOCKER.4 (NEW 2026-05-06):** Vendor-access isolation design + Cyber endorsement + CIO sign-off — gates Phase 1B (Horizon VDI). Partial progress 2026-05-07 (Horizon pool stood up, initial firewall posture set).
-  - [ ] **BLOCKER.1 Phase 1B closure:** Multi-session VDI access via Ksolves Horizon pool — gated by BLOCKER.4 + pool validation testing + vendor user-list provisioning (Michelle owns)
-  - [x] BLOCKER.2: User placed RHEL ISO(s) in Proxmox Directory storage at `/rpool/data/templates/iso/` on all three dev-cluster nodes (closed 2026-04-30 — decoupled from P0.0)
+- **Phase 2 (Implementation):** IN PROGRESS
+  - **Phase 1A active 2026-05-06** — vendor lead drives Proxmox provisioning over Webex screen share
+  - [x] **BLOCKER.1 — Establish Ksolves Remote Access — CLOSED 2026-05-08** (Phase 1A satisfies access requirement; Phase 1B permanent VDI tracked under BLOCKER.4)
+  - [x] BLOCKER.2: RHEL ISO(s) in Proxmox Directory storage at `/rpool/data/templates/iso/` on all three dev-cluster nodes (closed 2026-04-30)
   - [ ] **BLOCKER.3:** HIPAA compliance gate — see `CP_HIPAA_Compliance_v1.0.md` sub-project; must close before any production ePHI processing
-  - [ ] **P0.0: Ksolves bootstraps Ceph cluster** (MON, MGR, 9× OSD, RGW) — first Ksolves work after access granted
-  - [ ] *Parallel user prerequisites:* P0.4 (RHEL subscriptions), P0.7 (network MSB-PMC01↔03; MTU resolved 2026-05-06)
+  - [ ] **BLOCKER.4 (NEW 2026-05-06):** Vendor-access isolation design + Cyber endorsement + CIO sign-off — gates Phase 1B (Horizon VDI). Partial progress 2026-05-07 (Horizon pool stood up, initial firewall posture set); layering closed 2026-05-08; cluster-side design + Cyber + CIO ahead.
+  - [x] **P0.0: Ceph cluster bootstrapped — CLOSED 2026-05-08** (MON, MGR, 9× OSD, RGW; HEALTH_OK)
+  - [x] **P0.1: Worker VMs provisioned — CLOSED 2026-05-08** (3× RHEL 9.4 VMs)
+  - [x] **P0.4 (pre-req): RHEL 9.4 subscriptions verified active — CLOSED 2026-05-08**
+  - [x] **P0.7: Network connectivity MSB-PMC01 ↔ MSB-PMC03 — CLOSED 2026-05-08** (MTU resolved 2026-05-06)
+  - [x] P0.0a: CSV file analysis — CLOSED 2026-05-05 (vendor-delivered)
+  - [x] P0.3: Cloud staging target — CLOSED 2026-05-05 (Azure Blob)
   - [ ] *In-flight, fqdn-owned, parallel:* P0.0b (GZIP mitigation decision), P2.8 (Snowflake load-completion mechanism), P2.9 (centralized audit logging)
-  - [ ] P0.1–P0.5: Ksolves provisions all VMs and base software (RHEL ISO already in place from BLOCKER.2)
-  - [ ] P0.6: Ceph RGW server-side tuning (vendor-owned, on cluster sign-over checklist)
-  - [ ] **P1.2: Ksolves deploys single-instance YARN ResourceManager on GKPR-YARN-RM-01** (manual recovery; no HA)
-  - [ ] P1.0: Remote Airflow Server provisioning on `msb-pmc01-04` (Airflow + Nginx install — Nginx activation TBD by Ksolves)
-  - [x] **P1.5 (revised 2026-05-07):** Ansible installed on all three Proxmox dev nodes; playbook tree on-cluster; `--check`-mode testing in progress (no separate Ansible VM — topology change)
-  - [ ] P1.1: Spark History Server deployed on Node02 (depends on P0.0 RGW + P0.5a Spark)
-  - [ ] **P1.8: Phase 1 integration milestone — run 5 sample jobs, measure shuffle amplification, OSD memory (P1.6), and WAN egress (P1.7)**
-  - [ ] P2.2–P2.3: Ksolves deploys Airflow and validates end-to-end pipeline (Snowflake side is fqdn responsibility)
-  - [ ] Phase 2 sign-off: fqdn approves for production if all P0–P2 items pass + BLOCKER.3 + BLOCKER.4 closed
+  - [ ] P0.2: YARN RM VM provisioning (now path-cleared — depends on B.1 ✅) · 🚥 user sign-off checkpoint
+  - [ ] P0.3b: Validate WAN Egress Throughput (network team)
+  - [ ] P0.4 (post-prov): Verify RHEL Subscriptions Post-Provisioning (depends on P0.1 ✅ — now path-cleared)
+  - [ ] P0.5: Install Java 11 + Hadoop 3.4.1 on Worker VMs (depends on P0.1 ✅ — now path-cleared)
+  - [ ] P0.5a: Install Apache Spark 3.5.3 (depends on P0.5)
+  - [ ] P0.6: Ceph RGW server-side tuning (depends on P0.0 ✅ — now path-cleared; vendor-owned, on cluster sign-over checklist)
+  - [ ] **P1.2: Deploy YARN ResourceManager on GKPR-YARN-RM-01** (single-instance, manual recovery) · 🚥 user sign-off checkpoint
+  - [ ] P1.0: Remote Airflow Server provisioning on `msb-pmc01-04` (Airflow + Nginx install — Nginx activation TBD by Ksolves; depends on P0.7 ✅ — now path-cleared)
+  - [x] **P1.5 (revised 2026-05-07):** Ansible installed on all three Proxmox dev nodes; `--check`-mode testing in progress
+  - [ ] P1.1: Spark History Server deployed on Node02 (depends on P0.0 ✅ + P0.1 ✅ + P0.5a — partially path-cleared)
+  - [ ] P1.6: Monitor Ceph OSD Memory Under Peak Ingest (depends on P0.0 ✅ — path-cleared; gates on P1.8)
+  - [ ] P1.7: Validate WAN Egress Throughput (depends on P1.8)
+  - [ ] **P1.8: Phase 1 integration milestone** — run 5 sample jobs, measure shuffle amplification, OSD memory (P1.6), and WAN egress (P1.7) · 🚥 user sign-off checkpoint
+  - [ ] P2.2: Deploy Apache Airflow 2.10.4 on Remote Host (depends on P1.0)
+  - [ ] P2.3: Validate 8-Stage Data Flow Pipeline (Snowflake side is fqdn responsibility) · 🚥 user sign-off checkpoint
+  - [ ] P2.4–P2.7: Compression codec, JBOD, network topology, node-addition timeline evaluation
+  - [ ] Phase 2 sign-off: fqdn approves for production if all remaining P0–P2 items pass + BLOCKER.3 + BLOCKER.4 closed
 - **Beyond Phase 2:** Pending Ksolves clarification — See "Actions Outside Present Known Scope"
 
 ---

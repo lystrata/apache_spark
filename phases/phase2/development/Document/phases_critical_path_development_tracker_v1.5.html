@@ -300,18 +300,18 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
 <!-- ════════════════════════════ BLOCKER.1 ════════════════════════════ -->
 <details class="section-details" id="sec_blocker1">
   <summary class="section-summary">
-    <span class="section-letter crit">B1</span>
-    <span class="section-title">BLOCKER.1 — Establish Ksolves Remote Access</span>
-    <span class="section-sub">· Phase 1A ACTIVE 2026-05-06 (Webex) · Phase 1B GATED BY BLOCKER.4 · Long-pole gate is BLOCKER.4 closure</span>
+    <span class="section-letter ok">B1</span>
+    <span class="section-title">BLOCKER.1 — Establish Ksolves Remote Access — ✅ CLOSED 2026-05-08</span>
+    <span class="section-sub">· CLOSED 2026-05-08 · Phase 1A (Webex) satisfies access requirement · Phase 1B permanent VDI tracked under BLOCKER.4</span>
     <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
   </summary>
   <div class="section-body">
 
     <dl class="task-meta">
-      <dt>Status</dt><dd>PARTIALLY OPEN — Phase 1A <strong>active 2026-05-06</strong> (NUC hardware prerequisite resolved); Phase 1B blocked on <strong>BLOCKER.4</strong> (vendor-access isolation design)</dd>
-      <dt>Priority</dt><dd>BLOCKING for Phase 1B; Phase 1A is unblocking some Ksolves work in the interim</dd>
-      <dt>Owner</dt><dd>fqdn infrastructure team (Phase 1A active) + Network/Cyber/CIO/Ksolves (BLOCKER.4 gate for Phase 1B)</dd>
-      <dt>Effort</dt><dd>Phase 1A: ongoing · Phase 1B: pool validation 1–2 hr; cluster-side design + Cyber/CIO sign-off measured in weeks (see BLOCKER.4)</dd>
+      <dt>Status</dt><dd>✅ CLOSED 2026-05-08 — Phase 1A (Webex) access is operational and sufficient for Phase 2 work to proceed. Phase 1B permanent-VDI replacement is tracked separately under <strong>BLOCKER.4</strong>.</dd>
+      <dt>Priority</dt><dd><em>Was BLOCKING</em> — Phase 2 P0/P1/P2 items now able to proceed under Phase 1A interim access</dd>
+      <dt>Owner</dt><dd>(closed)</dd>
+      <dt>Effort</dt><dd>Closed — Phase 1B permanent VDI tracking continues under BLOCKER.4</dd>
     </dl>
 
     <p><strong>Context:</strong> Ksolves will be granted owner-level access to both Proxmox clusters (Proxmox One for Service Host, Proxmox Two for Spark Development Cluster). No VMs created, no NVMes assigned. Ksolves requires remote access to begin Phase 1 infrastructure provisioning. Two-stage access strategy: Phase 1A (Webex screen share, active interim) followed by Phase 1B (VMware Horizon VDI, permanent).</p>
@@ -579,12 +579,12 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
   <summary class="section-summary">
     <span class="section-letter warn">2</span>
     <span class="section-title">Phase 2 — Implementation</span>
-    <span class="section-sub">· Phase 1A active 2026-05-06 · BLOCKER.3 + BLOCKER.4 open gates · 2A Critical Path · 2B Infrastructure · 2C Configuration &amp; Validation</span>
+    <span class="section-sub">· IN PROGRESS 2026-05-08 · B.1, P0.0, P0.1, P0.4, P0.7 closed · BLOCKER.3 + BLOCKER.4 remaining gates · 2A Critical Path · 2B Infrastructure · 2C Configuration &amp; Validation</span>
     <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
   </summary>
   <div class="section-body">
 
-    <p>Phase 1A (Webex) is <strong>active 2026-05-06</strong> — vendor lead drives Proxmox provisioning over shared screen with fqdn oversight. BLOCKER.4 gates Phase 1B (Horizon VDI) on a vendor-access isolation design + Cyber endorsement + CIO sign-off. BLOCKER.2 (RHEL ISO placement) closed 2026-04-30 via node-local Directory storage at <code>/rpool/data/templates/iso/</code>. BLOCKER.3 (HIPAA compliance, separate sub-project) gates production ePHI processing.</p>
+    <p>Phase 2 in progress. <strong>BLOCKER.1 closed 2026-05-08</strong> — Phase 1A (Webex) access satisfies the requirement; Phase 1B permanent VDI tracked under BLOCKER.4. <strong>P0.0 (Ceph), P0.1 (Worker VMs), P0.4 (RHEL subs), P0.7 (network MSB-PMC01↔03) all closed 2026-05-08.</strong> BLOCKER.4 gates Phase 1B (Horizon VDI) on a vendor-access isolation design + Cyber endorsement + CIO sign-off. BLOCKER.2 (RHEL ISO placement) closed 2026-04-30. BLOCKER.3 (HIPAA compliance, separate sub-project) gates production ePHI processing.</p>
 
     <div class="sub-controls">
       <a onclick="setSubsections('sec_phase2', true)">Expand all subsections &amp; tasks</a>
@@ -602,16 +602,16 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
         <!-- P0.0 -->
         <details class="task-details" id="task_p0-0">
           <summary class="task-summary">
-            <span class="task-icon">&#128308;</span><span class="task-code">P0.0</span>
-            <span class="task-title">Ceph Cluster Bootstrap (MON, MGR, OSD, RGW)</span>
-            <span class="task-status pending">PENDING B.1</span>
+            <span class="task-icon">&#x2705;</span><span class="task-code">P0.0</span>
+            <span class="task-title">Ceph Cluster Bootstrap (MON, MGR, OSD, RGW) — CLOSED 2026-05-08</span>
+            <span class="task-status done">CLOSED 2026-05-08</span>
           </summary>
           <div class="task-body">
             <dl class="task-meta">
-              <dt>Status</dt><dd>PENDING BLOCKER.1 (KSOLVES ACCESS)</dd>
-              <dt>Priority</dt><dd>CRITICAL — Foundation for storage layer; gates RGW-dependent tasks (P1.1 Spark History Server, P2.3 8-stage data flow) and Spark scratch allocation</dd>
-              <dt>Owner</dt><dd>Ksolves</dd>
-              <dt>Effort</dt><dd>4–6 hours (cluster bootstrap + OSD allocation + RGW setup + verification)</dd>
+              <dt>Status</dt><dd>✅ CLOSED 2026-05-08 — Ceph Reef cluster bootstrapped (MON quorum, MGR active/standby, 9× OSD across 3 nodes, RGW S3 endpoint live, HEALTH_OK)</dd>
+              <dt>Priority</dt><dd><em>Was CRITICAL</em> — Foundation for storage layer; unblocks RGW-dependent tasks (P1.1 Spark History Server, P2.3 8-stage data flow) and Spark scratch allocation</dd>
+              <dt>Owner</dt><dd>Ksolves (executed)</dd>
+              <dt>Effort</dt><dd>Closed</dd>
             </dl>
             <p><strong>Context:</strong> Ceph Reef 18.2.x cluster must be bootstrapped on all three Proxmox nodes before any VM provisioning. The cluster spans MON daemons (Paxos quorum), MGR daemons (active/standby), OSD daemons (one per NVMe drive 1–3 per node, 9 OSDs total), and RGW (S3-compatible endpoint). This is Ksolves' <strong>first work item</strong> after gaining Proxmox access. Note: RHEL ISO placement is no longer dependent on P0.0 (BLOCKER.2 closed 2026-04-30 via node-local Directory storage).</p>
 
@@ -653,16 +653,16 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
         <!-- P0.4 (pre-req) -->
         <details class="task-details" id="task_p0-4-pre">
           <summary class="task-summary">
-            <span class="task-icon">&#128308;</span><span class="task-code">P0.4</span>
-            <span class="task-title">Verify RHEL 9.4 Subscriptions Active (Pre-requisite)</span>
-            <span class="task-status open">OPEN — USER</span>
+            <span class="task-icon">&#x2705;</span><span class="task-code">P0.4</span>
+            <span class="task-title">Verify RHEL 9.4 Subscriptions Active (Pre-requisite) — CLOSED 2026-05-08</span>
+            <span class="task-status done">CLOSED 2026-05-08</span>
           </summary>
           <div class="task-body">
             <dl class="task-meta">
-              <dt>Status</dt><dd>OPEN (USER VERIFICATION)</dd>
-              <dt>Priority</dt><dd>CRITICAL — Must be confirmed BEFORE VM provisioning begins</dd>
-              <dt>Owner</dt><dd>fqdn (subscription management team)</dd>
-              <dt>Effort</dt><dd>&lt; 30 minutes (verification call/check)</dd>
+              <dt>Status</dt><dd>✅ CLOSED 2026-05-08 — RHEL 9.4 subscriptions verified active for the 4 VMs in scope (3 Worker + 1 YARN RM)</dd>
+              <dt>Priority</dt><dd><em>Was CRITICAL</em> — Pre-VM-provisioning gate satisfied; P0.1 unblocked</dd>
+              <dt>Owner</dt><dd>fqdn (subscription management team — completed)</dd>
+              <dt>Effort</dt><dd>Closed</dd>
             </dl>
             <p><strong>Context:</strong> RHEL 9.4 subscriptions must be active on all VMs for yum package installation, security patches, and kernel updates. Confirmation required before Ksolves begins P0.1 VM provisioning so they can proceed immediately with package installation after VM creation.</p>
 
@@ -763,16 +763,16 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
         <!-- P0.1 -->
         <details class="task-details" id="task_p0-1">
           <summary class="task-summary">
-            <span class="task-icon">&#128308;</span><span class="task-code">P0.1</span>
-            <span class="task-title">Worker VM Creation &amp; vCPU Allocation (14 → 18)</span>
-            <span class="task-status pending">PENDING REMOTE ACCESS</span>
+            <span class="task-icon">&#x2705;</span><span class="task-code">P0.1</span>
+            <span class="task-title">Worker VM Creation &amp; vCPU Allocation (14 → 18) — CLOSED 2026-05-08</span>
+            <span class="task-status done">CLOSED 2026-05-08</span>
           </summary>
           <div class="task-body">
             <dl class="task-meta">
-              <dt>Status</dt><dd>PENDING REMOTE ACCESS</dd>
-              <dt>Priority</dt><dd>CRITICAL — Blocking Phase 1 concurrency baseline</dd>
-              <dt>Owner</dt><dd>Ksolves</dd>
-              <dt>Effort</dt><dd>2–3 hours</dd>
+              <dt>Status</dt><dd>✅ CLOSED 2026-05-08 — Three RHEL 9.4 Worker VMs provisioned on the dev cluster (GKPR-SPARK-WK-01/02/03) per spec</dd>
+              <dt>Priority</dt><dd><em>Was CRITICAL</em> — Phase 1 concurrency baseline unblocked; downstream P0.4 (post-prov), P0.5, P2.5, P2.6 path-cleared</dd>
+              <dt>Owner</dt><dd>Ksolves (executed)</dd>
+              <dt>Effort</dt><dd>Closed</dd>
             </dl>
             <p><strong>Context:</strong> Phase 1 requires 18 vCPU per Worker VM (8-core executor + 4-core driver + 6-core buffer). Current assumptions show 14 vCPU gap. No VMs exist yet; Ksolves will create and configure all three Worker VMs from scratch on Proxmox.</p>
 
@@ -1044,16 +1044,16 @@ spark.hadoop.fs.s3a.secret.key        &lt;from P0.0&gt;</pre>
         <!-- P0.7 -->
         <details class="task-details" id="task_p0-7">
           <summary class="task-summary">
-            <span class="task-icon">&#128308;</span><span class="task-code">P0.7</span>
-            <span class="task-title">Verify Network Connectivity: MSB-PMC01 ↔ MSB-PMC03</span>
-            <span class="task-status open">OPEN — NETWORK</span>
+            <span class="task-icon">&#x2705;</span><span class="task-code">P0.7</span>
+            <span class="task-title">Verify Network Connectivity: MSB-PMC01 ↔ MSB-PMC03 — CLOSED 2026-05-08</span>
+            <span class="task-status done">CLOSED 2026-05-08</span>
           </summary>
           <div class="task-body">
             <dl class="task-meta">
-              <dt>Status</dt><dd>OPEN (NETWORK TEAM COORDINATION)</dd>
-              <dt>Priority</dt><dd>CRITICAL — Gate for Remote Airflow Server provisioning (P1.0)</dd>
-              <dt>Owner</dt><dd>fqdn Network Team</dd>
-              <dt>Effort</dt><dd>2–4 hours (coordination + testing + documentation)</dd>
+              <dt>Status</dt><dd>✅ CLOSED 2026-05-08 — Network team confirmed connectivity (routing, firewall rules, port reachability, MTU consistency) between MSB-PMC01 and MSB-PMC03. MTU 1400/9000 mismatch resolved 2026-05-06</dd>
+              <dt>Priority</dt><dd><em>Was CRITICAL</em> — Gate for Remote Airflow Server provisioning (P1.0); now unblocked</dd>
+              <dt>Owner</dt><dd>fqdn Network Team (completed)</dd>
+              <dt>Effort</dt><dd>Closed</dd>
             </dl>
             <p><strong>Context:</strong> Remote Airflow server will be provisioned on MSB-PMC01 cluster. Ksolves requires verified connectivity between MSB-PMC01 and MSB-PMC03 (Spark cluster) for: Airflow DAG submission to YARN RM (8032), Spark driver logs/monitoring, and Ansible (now running directly on Proxmox dev nodes per the 2026-05-07 topology decision; SSH key-based — low bandwidth).</p>
             <div class="task-block">
@@ -1629,13 +1629,13 @@ spark.sql.parquet.compression.codec=zstd</pre>
     </ul>
     <p style="padding:4px 0;"><strong>Phase 1A active 2026-05-06</strong> — vendor lead drives Proxmox provisioning over Webex screen share (interim access while Phase 1B is gated)</p>
     <div class="cb-row"><input type="checkbox" id="cb_cps_b4" data-track><span class="cb-text"><strong>BLOCKER.4 (NEW 2026-05-06):</strong> Vendor-access isolation design + Cyber endorsement + CIO sign-off — gates Phase 1B (Horizon VDI). Partial progress 2026-05-07 (Horizon pool stood up, initial firewall posture set)</span></div>
-    <div class="cb-row"><input type="checkbox" id="cb_cps_1" data-track><span class="cb-text"><strong>BLOCKER.1 Phase 1B closure:</strong> Multi-session VDI access via Ksolves Horizon pool — gated by BLOCKER.4 + pool validation testing + vendor user-list provisioning (Michelle owns)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_1" data-track checked><span class="cb-text"><strong>BLOCKER.1 — Establish Ksolves Remote Access — CLOSED 2026-05-08</strong> (Phase 1A satisfies access requirement; Phase 1B permanent VDI tracked under BLOCKER.4)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_3" data-track checked><span class="cb-text">BLOCKER.2: User placed RHEL ISO(s) in Proxmox Directory storage at <code>/rpool/data/templates/iso/</code> on all three dev-cluster nodes (closed 2026-04-30 — decoupled from P0.0)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_b3" data-track><span class="cb-text"><strong>BLOCKER.3:</strong> HIPAA compliance gate — see <code>CP_HIPAA_Compliance_v1.0.md</code> sub-project; must close before any production ePHI processing</span></div>
-    <div class="cb-row"><input type="checkbox" id="cb_cps_2" data-track><span class="cb-text"><strong>P0.0:</strong> Ksolves bootstraps Ceph cluster (MON, MGR, 9× OSD, RGW) — first Ksolves work after access granted</span></div>
-    <div class="cb-row"><input type="checkbox" id="cb_cps_4" data-track><span class="cb-text"><em>Parallel user prerequisites:</em> P0.4 (RHEL subscriptions), P0.7 (network MSB-PMC01↔03; MTU resolved 2026-05-06)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_2" data-track checked><span class="cb-text"><strong>P0.0 — Ceph cluster bootstrapped — CLOSED 2026-05-08</strong> (MON, MGR, 9× OSD, RGW; HEALTH_OK)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_4" data-track checked><span class="cb-text"><em>Parallel user prerequisites — closed 2026-05-08:</em> P0.4 (RHEL subscriptions ✅), P0.7 (network MSB-PMC01↔03 ✅; MTU resolved 2026-05-06)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_4b" data-track><span class="cb-text"><em>In-flight, fqdn-owned, parallel:</em> P0.0b (GZIP mitigation decision), P2.8 (Snowflake load-completion mechanism), P2.9 (centralized audit logging)</span></div>
-    <div class="cb-row"><input type="checkbox" id="cb_cps_5" data-track><span class="cb-text">P0.1–P0.5: Ksolves provisions all VMs and base software (RHEL ISO already in place from BLOCKER.2)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_5" data-track><span class="cb-text">P0.1 ✅ closed 2026-05-08 (Worker VMs provisioned); P0.2–P0.5 path-cleared, in flight under Phase 1A access</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_p06" data-track><span class="cb-text">P0.6: Ceph RGW server-side tuning (vendor-owned, on cluster sign-over checklist)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_6" data-track><span class="cb-text"><strong>P1.2:</strong> Ksolves deploys single-instance YARN ResourceManager on GKPR-YARN-RM-01 (manual recovery; no HA)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_7" data-track><span class="cb-text">P1.0: Remote Airflow Server provisioning on <code>msb-pmc01-04</code> (Airflow + Nginx install — Nginx activation TBD by Ksolves)</span></div>

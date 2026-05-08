@@ -34,11 +34,12 @@ _As of 2026-05-08. Source: March 16, 2026 Ksolves SOW V1.0 § 5 Indicative Timel
 
 ---
 
-## Where We Stand (2026-05-08)
+## Where We Stand (2026-05-08 EOD)
 
-- Today is **mid Week 4** — the **last week of the SOW Phase 2 (Proxmox & VM Creation) window** (2026-04-21 → 2026-05-11). Phase 2 work is in flight via Phase 1A interim access; Phase 1B (permanent VDI) gated by BLOCKER.4 below.
+- Today is **mid Week 4** — the **last week of the SOW Phase 2 (Proxmox & VM Creation) window** (2026-04-21 → 2026-05-11). Phase 2 has made substantial progress today.
 - Phase 1 (Discovery & Setup Planning) finished 2026-04-24, on plan.
-- **BLOCKER.1 Phase 1A — ACTIVE 2026-05-06.** Ksolves vendor lead drives Proxmox provisioning via Webex screen share with fqdn oversight. The original Phase 1A re-opening (Linux/Windows Webex remote-control limitation, vendor Windows-host hardware prerequisite) was **resolved 2026-05-06** — user shifted to hosting Webex from the fqdn-office Windows host, so the NUC remediation in Ksolves' DC is no longer on the critical path. Webex screen-share + fqdn oversight + Webex recording satisfies the audit-trail requirement during the design phase.
+- **🎉 Major progress 2026-05-08 — six closures:** BLOCKER.1 (Ksolves remote access — Phase 1A satisfies; Phase 1B tracked under B.4), P0.0 (Ceph cluster bootstrapped — MON, MGR, 9× OSD, RGW; HEALTH_OK), P0.1 (3× Worker VMs provisioned), P0.4 pre-req (RHEL 9.4 subs verified), P0.7 (MSB-PMC01 ↔ MSB-PMC03 network connectivity confirmed). BLOCKER.2 was already closed 2026-04-30. Phase 2A's foundational layer is essentially in.
+- **BLOCKER.1 Phase 1A — ACTIVE 2026-05-06; BLOCKER.1 itself CLOSED 2026-05-08.** Ksolves vendor lead drives Proxmox provisioning via Webex screen share with fqdn oversight. The original Phase 1A re-opening (Linux/Windows Webex remote-control limitation, vendor Windows-host hardware prerequisite) was **resolved 2026-05-06** — user shifted to hosting Webex from the fqdn-office Windows host. Phase 1B permanent VDI replacement is tracked under BLOCKER.4.
 - **NEW BLOCKER.4 (added 2026-05-06): Phase 1B vendor-access isolation gate.** A 2026-05-06 meeting with the CIO declined Phase 1B (Horizon VDI) on the originally-proposed terms. Phase 1B is now gated on a vendor-access isolation design + Cyber endorsement + CIO sign-off. Partial progress 2026-05-07 (Ksolves Horizon pool stood up by Jason; Austin set initial pool-egress firewall posture: DNS/AD/UAG/CS allowed, rest blocked). One BLOCKER.4 sub-task complete pending validation; remaining gates open. Captured in `Phases_Critical_Path_Development_v1.5.md` § BLOCKER.4 + `security/Notes/vendor-access-isolation-plan_2026-05-06.md`.
 - **NEW BLOCKER.3 (added 2026-05-05): HIPAA compliance gate.** Vendor's `Ksolves_Spark_YARN_Config_v1.0.pdf` § 8 introduced HIPAA encryption + Web UI ACL scope. Forked into a sub-project: `CP_HIPAA_Compliance_v1.0.md`. Production-side ePHI processing is gated on this.
 - **3-node cluster finalized (2026-05-05).** Vendor recommended +1 node for 2-concurrent-job operation; user declined on budget. Mitigations (top-12 tables first; placeholder-table size-check gate) accepted.
