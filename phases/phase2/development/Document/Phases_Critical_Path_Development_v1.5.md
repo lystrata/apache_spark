@@ -3,11 +3,11 @@
 
 # Phases Critical Path — fqdn Development Cluster
 
-_Version 1.4 · Last updated 2026-05-05_  
+_Version 1.5 · Last updated 2026-05-07_  
 _Phases 1–2 detailed plan from fqdn Phase 1 Report (Ksolves) — April 2026 · Configuration baseline from Ksolves Spark & YARN Config v1.0 (2026-05-04)_  
 _Report Source: phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf_  
 _Config Source: phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf_  
-_Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING BLOCKER.1 (Ksolves access) + BLOCKER.3 (HIPAA compliance) · 3-node cluster finalized 2026-05-05 (vendor-recommended +1 node declined — budget) · Out-of-scope items flagged for vendor clarification_
+_Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) PENDING BLOCKER.1 (Ksolves access — Phase 1A active via Webex; Phase 1B gated by BLOCKER.4) + BLOCKER.3 (HIPAA compliance) + BLOCKER.4 (Phase 1B vendor-access isolation, NEW 2026-05-06) · 3-node cluster finalized 2026-05-05 (vendor-recommended +1 node declined — budget) · Ksolves Horizon pool stood up 2026-05-07 (test-ready, awaiting validation) · Out-of-scope items flagged for vendor clarification_
 
 ---
 
@@ -46,6 +46,10 @@ _Companion tracker: `phases/phase2/development/Document/SOW_timeline_status.md` 
 - **SOW V1.1 pending:** the 2026-04-27 verbal vendor reversal (single YARN RM, no ZooKeeper, no nginx — captured in P0.2, P1.2, and the dropped P1.3/P1.4) is **not yet reflected** in a written SOW revision. SOW V1.1 also needs to capture (a) the 3-node finalization (vendor recommended +1 node; declined 2026-05-05 on budget), (b) the new HIPAA scope (BLOCKER.3 below + `CP_HIPAA_Compliance_v1.0.md` sub-project), and (c) the rollover to vendor's `Ksolves_Spark_YARN_Config_v1.0.pdf` (2026-05-04) as the configuration baseline. The SOW Document History table is still blank past V1.0; § 9 requires a written, signed change order for material scope changes. Tracked under `TODO.md § Waiting for Vendor Reply`.
 - **Out-of-scope reminder:** SOW § 2.2 excludes "user load or performance testing" — P1.8 (5 production sample jobs / shuffle amplification measurement) likely needs a Change Order or separate SOW.
 - **3-node cluster decision (2026-05-05):** Vendor's `Ksolves_Spark_YARN_Config_v1.0.pdf` § 1.3 SLA Risk Summary recommends "Phase 1 (+1 node → 2 concurrent jobs) strongly recommended" — fqdn has **declined** the +1 node addition on budget grounds. The 3-node cluster proceeds with **1 concurrent Spark job**; vendor's "feasible-but-zero-buffer" SLA analysis at 3 nodes is the accepted posture. Mitigation strategies: schedule the 12 largest tables first (79.29% of total volume per vendor analysis); add Airflow size-check gate to skip the 184 placeholder tables.
+- **NUC hardware prerequisite resolved (2026-05-06):** Ksolves' Phase 1A Windows-host hardware blocker (NUC reliability issues in their data center) is resolved. User has shifted to hosting Webex from their fqdn-office host. Phase 1A is **active** — vendor lead drives Proxmox provisioning over Webex screen share with fqdn oversight. Ansible `--check`-mode playbook testing has begun (2026-05-07).
+- **CIO declined Phase 1B (2026-05-06):** A 2026-05-06 meeting with the CIO declined Phase 1B (Ksolves VMware Horizon VDI access) on the originally-proposed terms. Phase 1B is now gated on a vendor-access isolation design — captured as BLOCKER.4 below. Phase 1A (Webex screen share) continues as the interim access mechanism while the BLOCKER.4 design is sized.
+- **Ksolves Horizon pool stood up (2026-05-07):** Initial pool built and reachable via UAG; `ks_test` AD group attached for fqdn-side validation; pool-egress firewall policies set (DNS, AD, UAG, Connection Servers allowed; everything else blocked). One BLOCKER.4 sub-task complete pending validation testing. Other vendor-isolation requirements remain open. Email circulated to Network and Cyber stakeholders requesting alignment on pool-↔-cluster-side design layering. Tracked in TODO.md § Vendor Access Isolation.
+- **MTU mismatch resolved (2026-05-06):** fqdn networking team resolved the 1400/9000 MTU mismatch between MSB-PMC01 and MSB-PMC03 cluster paths. Closes a previously implicit P0.7 follow-up.
 
 ---
 
@@ -79,75 +83,74 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 
 ### 🔒 BLOCKER.1 — Establish Ksolves Remote Access to Both Proxmox Clusters
 
-- **Status:** OPEN — re-opened 2026-04-30 due to newly identified Phase 1A hardware prerequisite (see below)
-- **Priority:** BLOCKING — All Ksolves infrastructure work is waiting on this
+- **Status:** PARTIALLY OPEN — Phase 1A **active 2026-05-06** (NUC hardware prerequisite resolved); Phase 1B blocked on **BLOCKER.4** (vendor-access isolation design)
+- **Priority:** BLOCKING for Phase 1B; Phase 1A is unblocking some Ksolves work in the interim
 - **Context:** Ksolves will be granted owner-level access to both Proxmox clusters (Proxmox One for Service Host, Proxmox Two for Spark Development Cluster). No VMs have been created, no NVMes assigned to Ceph OSDs or Spark scratch. Ksolves requires remote access to begin Phase 1 infrastructure provisioning.
 
 Two-stage access strategy: an interim Webex desktop arrangement followed by a permanent VMware Horizon VDI deployment.
 
 <a id="blocker1-phase-1a-interim-webex"></a>
 
-#### Phase 1A — Interim: Shared Webex Desktop with fqdn Team Oversight
+#### Phase 1A — Interim: Shared Webex Desktop with fqdn Team Oversight — **ACTIVE 2026-05-06**
 
 - Ksolves vendor lead connects to fqdn Webex Desktop shared by fqdn infrastructure team member
 - Ksolves executes Proxmox commands / VM provisioning through shared desktop screen
 - fqdn team member retains visual oversight of all Ksolves actions (audit trail)
-- **Timeline:** Pending Ksolves Windows host provisioning (see hardware prerequisite below)
-- **Duration:** Temporary until secure secondary access ready (estimated 2–4 weeks)
+- **Status:** Active 2026-05-06 — vendor's Windows-host hardware prerequisite resolved (see resolution note below)
+- **Throughput:** Limited by single shared desktop; Phase 1B (Horizon VDI) targets parallel sessions for vendor team
 
-> **🪟 Hardware Prerequisite (Vendor Action — added 2026-04-30):** Webex's Linux desktop client does **not support remote control** of a Windows Webex share (or vice-versa). Ksolves is a Linux shop; fqdn is primarily a Windows shop and shares from a Windows host. Cross-platform remote control is not implemented in Webex's Linux client (verified by user — set up Linux Webex and confirmed remote-control unavailable). **Ksolves must provision a Windows host on their side** (in India) to run the Webex Desktop client and accept remote-control of fqdn's shared Windows session. Without this Windows host, Phase 1A cannot proceed and Ksolves cannot drive Proxmox provisioning through the shared session. This is a Ksolves-side responsibility (vendor provisions, vendor maintains).
+> **🪟 Hardware Prerequisite Resolution (2026-05-06):** The original Phase 1A blocker was that Webex's Linux desktop client does not support remote control of a Windows Webex share (or vice-versa). Ksolves is a Linux shop; fqdn shares from a Windows host. Cross-platform remote control is not implemented in Webex's Linux client (verified 2026-04-30). The blocker was specifically **NUC reliability issues** in Ksolves' data center delaying their Windows-host provisioning. **Resolution (2026-05-06):** user shifted to hosting Webex from their fqdn-office host; Phase 1A activated on that path. Ksolves' NUC remediation is no longer on the critical path for Phase 1A.
 
 <a id="blocker1-phase-1b-permanent-horizon"></a>
 
-#### Phase 1B — Permanent: VMware Horizon Desktop Access
+#### Phase 1B — Permanent: VMware Horizon Desktop Access — **GATED BY BLOCKER.4**
 
-- Two dedicated VMware Horizon Desktop sessions provisioned for Ksolves team
-- Ksolves authenticates to Horizon desktops with fqdn-issued credentials
+- Multiple VMware Horizon Desktop sessions provisioned for Ksolves team via the **Ksolves Horizon pool** stood up 2026-05-07
+- Ksolves authenticates to Horizon desktops with fqdn-issued credentials (vendor-account list pending — Michelle owns the bridge)
 - Full owner-level Proxmox access via Horizon desktop environment
-- **Dependency:** fqdn Horizons Teams infrastructure setup (fqdn Cyber Security approval required)
-- **Status:** Blocked pending fqdn Cyber Security Approval of Horizons deployment
-- **Timeline:** Estimated 2–4 weeks after security approval
+- **Dependency:** **BLOCKER.4** (vendor-access isolation design + Cyber endorsement + CIO sign-off) — original Cyber Security approval was declined 2026-05-06 on the originally-proposed terms
+- **Status (2026-05-07):** Pool stood up by vendor (UAG-reachable); pool-egress firewall policies set; `ks_test` AD group attached for fqdn-side validation. **One** BLOCKER.4 sub-task complete pending validation; remaining gates open. Ksolves user provisioning awaits Michelle's user-list completion.
+- **Timeline:** Pool validation testing imminent (Sean + Rohn). Phase 1B go-live still gated on BLOCKER.4 closure.
 
 ---
 
-- **Vendor Actions Required (Hardware Prerequisite — Phase 1A gating, added 2026-04-30):**
-  - [ ] Ksolves provisions a Windows host (in India) capable of running the Webex Desktop client with remote-control support
-  - [ ] Ksolves installs and licenses Webex Desktop on the Windows host
-  - [ ] Ksolves confirms Webex remote-control connectivity from their Windows host into a fqdn-shared Windows Webex session (joint test with fqdn infrastructure team)
-  - [ ] Ksolves notifies fqdn when the Windows host is ready, so fqdn can schedule the Phase 1A kickoff session
+- **Phase 1A — User Actions (Active 2026-05-06):**
+  - [x] Set up shared Webex Desktop session from fqdn Windows host with Ksolves vendor lead — **active 2026-05-06**
+  - [x] Create temporary Proxmox owner credentials for Ksolves to use during Webex session
+  - [x] Document Ksolves actions via Webex recording / shared notes for audit trail
+  - [x] Verify Webex connectivity and remote-control permissions
 
-- **User Actions Required (Immediate — pending vendor hardware prerequisite):**
-  - [ ] Set up shared Webex Desktop session (from fqdn Windows host) with Ksolves vendor lead once vendor's Windows host is ready
-  - [ ] Create temporary Proxmox root or owner credentials for Ksolves to use during Webex session
-  - [ ] Document all Ksolves actions via Webex recording or shared notes for audit trail
-  - [ ] Verify Webex connectivity and remote-control permissions before Phase 1 infrastructure work begins
+- **Phase 1A — Vendor Actions (Resolved 2026-05-06):**
+  - [x] Ksolves Windows-host NUC remediation — no longer on Phase 1A critical path; user shifted to fqdn-office Windows host
 
-- **User Actions Required (Parallel — does not block interim Webex access):**
-  - [ ] Submit fqdn Horizons Teams infrastructure request (if not already submitted)
-  - [ ] Obtain fqdn Cyber Security approval for Horizons desktop deployment
-  - [ ] Upon approval, provision two Horizon desktop sessions for Ksolves team
-  - [ ] Configure Proxmox AAA integration (if desired) or issue owner-level API tokens for Horizon sessions
-  - [ ] Migrate Ksolves access from Webex interim to permanent Horizon desktops
-  - [ ] Retire temporary Webex session once Horizon is live
+- **Phase 1B — User Actions (BLOCKER.4-gated; in flight 2026-05-07):**
+  - [x] Ksolves Horizon pool stood up (Jason / 2026-05-07) — UAG-reachable, `ks_test` AD group attached
+  - [x] Pool-egress firewall policies set (Austin / 2026-05-07) — DNS, AD, UAG, Connection Servers allowed; everything else blocked
+  - [ ] Pool validation testing (Sean + Rohn) — confirm session brokering, AD auth, allow-list reachability, deny-list blocking
+  - [ ] Vendor user list (Michelle owns) — provision Ksolves AD accounts on the pool
+  - [ ] Cluster-side isolation design (Sean Klette lead — see BLOCKER.4)
+  - [ ] Cyber endorsement of design candidate (Paul Barber)
+  - [ ] CIO risk-acceptance sign-off (Rob Ball)
+  - [ ] Phase 1B exit-condition decision (Rohn + Paul)
+  - [ ] Migrate Ksolves access from Webex interim to permanent Horizon
+  - [ ] Retire Phase 1A Webex session once Phase 1B is live
 
-- **Verification (Phase 1A — Interim):** 
-  - [ ] Ksolves' Windows host runs Webex Desktop and connects to a fqdn-hosted Windows Webex session
-  - [ ] Remote control from Ksolves' Windows host into fqdn's shared Windows desktop is functional (verified via test session)
-  - [ ] Webex desktop session successfully displays Proxmox web UI
-  - [ ] Ksolves confirms Proxmox access and can execute administrative commands via remote control
-  - [ ] Webex recording captures all actions (audit trail)
+- **Verification (Phase 1A — Active):** 
+  - [x] Webex desktop session displays Proxmox web UI
+  - [x] Ksolves vendor lead can execute administrative commands via remote control
+  - [x] Webex recording captures actions (audit trail)
 
-- **Verification (Phase 1B — Permanent):**
-  - [ ] Horizon desktop sessions authenticate successfully
+- **Verification (Phase 1B — Pending):**
+  - [ ] Horizon desktop sessions authenticate via fqdn AD
+  - [ ] Pool validation confirms expected reachability/blocking posture
   - [ ] Ksolves confirms owner-level Proxmox access via Horizon
-  - [ ] Webex session retired; all future access via Horizon
+  - [ ] Phase 1A Webex session retired; all future access via Horizon
 
-- **Owner:** Ksolves (Windows host hardware prerequisite) + fqdn infrastructure team (User actions) + fqdn Cyber Security (approval gate for Phase 1B)
+- **Owner:** fqdn infrastructure team (Phase 1A active) + Network/Cyber/CIO/Ksolves (BLOCKER.4 gate for Phase 1B)
 - **Estimated Effort:** 
-  - Vendor Windows host provisioning: Ksolves estimate (added 2026-04-30; previously not in scope)
-  - Phase 1A setup (post-vendor-prereq): 1-2 hours (Webex + temporary credentials)
-  - Phase 1B setup: 2-3 hours (Horizon provisioning, post-security-approval)
-  - **Critical Path Note:** Phase 1A is now gated on vendor's Windows host provisioning. Phase 1B remains non-blocking; both can progress in parallel once Phase 1A is unblocked.
+  - Phase 1A: ongoing (active interim access)
+  - Phase 1B: pool validation 1–2 hours; cluster-side design + Cyber/CIO sign-off measured in weeks (see BLOCKER.4 for breakdown)
+  - **Critical Path Note:** Phase 1A is unblocking some work in the interim; Phase 1B closure is bound by BLOCKER.4 and is the long-pole gate.
 
 ---
 
@@ -201,6 +204,69 @@ Two-stage access strategy: an interim Webex desktop arrangement followed by a pe
   - LUKS encryption on the four NVMe scratch drives across all 3 dev nodes
 
 - **Verification gate (lifts BLOCKER.3):** all items in `CP_HIPAA_Compliance_v1.0.md` closed; verification artifacts captured for HIPAA audit trail.
+
+---
+
+<a id="blocker4-vendor-access-isolation"></a>
+
+### 🔒 BLOCKER.4 — Phase 1B Vendor-Access Isolation Design (NEW 2026-05-06)
+
+- **Status:** OPEN — added 2026-05-06 following CIO declination of Phase 1B on the originally-proposed terms; partial progress 2026-05-07 (Horizon pool stand-up + initial firewall posture)
+- **Priority:** BLOCKING for Phase 1B (VMware Horizon VDI access) — does not block Phase 1A (Webex screen share is the active interim access)
+- **Context:** A 2026-05-06 meeting with the CIO declined Phase 1B on the originally-proposed terms. Phase 1B is now gated on a vendor-access isolation design that constrains the vendor's network exposure to a documented IP allowlist + cluster-side network controls. The design must be sized, endorsed by Cyber, and signed off by the CIO before vendor accounts are created on the Horizon pool.
+- **Source documents (security context — on-site revision control only):**
+  - `security/Notes/vendor-access-isolation-plan_2026-05-06.md` — full meeting capture, CIO position, mitigation brainstorm, ruled-out approaches, open architecture questions
+  - `security/Document/vendor_security_design_overview_v1.0.md` — distribution brief
+  - `security/Notes/harper_meeting_summary_vdi_security_2026-05-06.md` — Harper's meeting summary (12 action items)
+- **Allowed-surface constraints (CIO directive 2026-05-06; list expected to evolve):**
+  - Spark Proxmox cluster (msb-pmc03) — all 3 hosts
+  - VMs created on msb-pmc03
+  - Bastion VM on `msb-pmc01-04` (vendor's only msb-pmc01 surface)
+  - VLANs 37 (mgmt), 38 (cluster), 39 (CephFS) on msb-pmc03
+  - AD domain controllers — all of them (Okta SSO is AD-tied; cannot subset)
+- **Active design candidate (Sean Klette, Network):** make msb-pmc03 the **sole tenant** of VLANs 37/38/39 and add a new **VLAN 10** chokepoint for ingress/egress (Proxmox WebUI + SSH + VM access). If this lands, intra-cluster traffic is permitted by VLAN membership rather than per-IP allowlist, and VLAN 10 is the single chokepoint for the ~30–35 IP allowlist. Substantially simpler than per-host firewalls. **Open implication (DNS-confirmed 2026-05-06):** msb-pmc01 and msb-pmc03 currently share `10.1.37.0/24`; making msb-pmc03 sole-tenant of 37/38/39 may require renumbering one cluster — see `security/Notes/vendor-access-isolation-plan_2026-05-06.md` § Sean's VLAN Isolation Approach addendum for the four design paths.
+
+#### 2026-05-07 progress (one sub-task complete)
+
+- **Ksolves Horizon pool stood up** (Jason) — pool built and reachable via UAG; `ks_test` AD group attached for fqdn-side validation before vendor accounts come in.
+- **Pool-egress firewall policies set** (Austin) — pool can reach DNS, AD, UAG, and Connection Servers; everything else blocked until further notice.
+- **CIO declined still stands** — pool stand-up + initial allow/block posture is one BLOCKER.4 sub-task complete; all other vendor-isolation requirements remain open.
+- **Alignment email circulated** — `correspondence/Document/email_sean_austin_horizon_pool_alignment_2026-05-07.md` to Sean Klette and Austin asking for sync output on pool-↔-cluster-side design layering.
+
+#### Sub-tasks (in dependency order)
+
+_Network (Sean Klette):_
+- [ ] Develop the VLAN-isolation proposal — confirm tenancy on VLANs 37/38/39 exclusive to msb-pmc03; design VLAN 10 ingress/egress; document routing topology enforcing "only path out is via VLAN 10"
+- [ ] Sync with Austin on Horizon pool ↔ cluster-side design layering (triggered by Rohn's 2026-05-07 email)
+- [ ] Confirm consistent IP blocks for vendor-created VMs (allowlist as CIDR vs. enumerated)
+- [ ] Address the 10.1.37.0/24 cluster overlap if VLAN-isolation path is chosen (renumbering vs. one of the alternative paths)
+
+_fqdn (Rohn):_
+- [x] Vendor-isolation email to Ksolves drafted + sent 2026-05-07 (`correspondence/Document/vendor_email_horizon_vdi_security_revision_2026-05-06.md`)
+- [x] Alignment email to Sean + Austin on Horizon pool stand-up sent 2026-05-07
+- [x] Enumerate AD domain controllers in scope — closed 2026-05-06 (7 DCs across 4 sites; see security note)
+- [x] Request Ksolves install OPSWAT security client — closed 2026-05-07 (requested; awaiting vendor confirmation)
+- [ ] Pool validation testing (Sean + Rohn) — confirm UAG → Connection Servers → AD auth → expected reachability/blocking
+- [ ] Investigate nftables-based outbound filtering as defense-in-depth (Proxmox `nftables` + RHEL VM `firewalld`)
+- [ ] Investigate constrained vendor sudo (carve out `nft` / `iptables` / `firewall-cmd` from vendor sudoers)
+- [ ] Decide cloud egress allowlist mechanics — Snowflake / Azure Blob endpoint IPs rotate (FQDN-based vs. published CSP IP ranges vs. egress proxy)
+- [ ] Validate `remote.corp.<fqdn>` test-account logins work on dev cluster RHEL servers (Item #7 from Harper's summary)
+- [ ] Evaluate feasibility / legal implications of fqdn performing portions of the installation (Item #10 from Harper's summary)
+- [ ] Provide Ksolves an updated estimate for when secure access will be available (Item #12)
+
+_Vendor (Ksolves):_
+- [ ] Confirm OPSWAT install across vendor devices (vendor-side device-posture attestation)
+- [ ] Vendor user list for VDI account provisioning (Michelle owns the bridge from fqdn side)
+
+_Reviewers (downstream):_
+- [ ] Cyber review of final design (Paul Barber) — once Rohn + Sean have a candidate
+- [ ] CIO risk-acceptance sign-off (Rob Ball) — once Cyber endorses
+- [ ] Phase 1B exit-condition decision (Rohn + Paul Barber) — when does the design come off, what does cluster network posture revert to
+
+- **Verification gate (lifts BLOCKER.4 → unblocks Phase 1B):** all items above closed; design endorsed by Cyber; CIO risk-acceptance signed; pool validation testing passed.
+- **Owner:** Rohn (coordination) + Sean Klette (Network design) + Paul Barber (Cyber endorsement) + Rob Ball (CIO sign-off) + Ksolves (OPSWAT, user list)
+- **Estimated Effort:** Multi-week. Cluster-side design + Cyber review + CIO sign-off measured in weeks; pool validation 1–2 hours once vendor accounts are provisioned.
+- **Critical Note:** Phase 1A (Webex) is the working interim access while BLOCKER.4 is sized; vendor work continues in the interim. Closing BLOCKER.4 is the gate that flips Ksolves from interim Webex screen-share to permanent multi-session VDI access.
 
 ---
 
@@ -537,12 +603,12 @@ Two-stage access strategy: an interim Webex desktop arrangement followed by a pe
 
 ### 🔴 P0.7 — Verify Network Connectivity: MSB-PMC01 ↔ MSB-PMC03 (Pre-requisite for P1.0)
 
-- **Status:** OPEN (NETWORK TEAM COORDINATION)
+- **Status:** OPEN (NETWORK TEAM COORDINATION) — MTU 1400/9000 mismatch resolved 2026-05-06; remaining verification steps still required
 - **Priority:** CRITICAL — Gate for Remote Airflow Server provisioning (P1.0)
 - **Context:** Remote Airflow server will be provisioned on MSB-PMC01 cluster. Ksolves requires verified network connectivity between MSB-PMC01 and MSB-PMC03 (Spark cluster nodes) with sufficient bandwidth for:
   - Airflow DAG submission to YARN ResourceManager (port 8032, low bandwidth)
   - Spark driver logs and monitoring (continuous, low-moderate bandwidth)
-  - Ansible control node → cluster node SSH (key-based, low bandwidth)
+  - Ansible (running directly on Proxmox dev nodes per the 2026-05-07 topology decision; SSH key-based — low bandwidth)
 - **User Actions Required:**
   - [ ] Coordinate with fqdn Network Team to verify/establish network path: MSB-PMC01 ↔ MSB-PMC03
   - [ ] Confirm routing between clusters (same VLAN, or routable via firewall)
@@ -550,15 +616,17 @@ Two-stage access strategy: an interim Webex desktop arrangement followed by a pe
      - MSB-PMC01 → MSB-PMC03 nodes (TCP 8032, 8088, 22, 9095 for JMX if monitoring)
      - MSB-PMC03 nodes → MSB-PMC01 (return traffic on same ports)
   - [ ] Test connectivity: ping from MSB-PMC01 to each MSB-PMC03 node; TCP port tests (`nc -zv`)
+  - [x] **MTU mismatch resolved 2026-05-06** — fqdn networking team aligned the 1400/9000 MTU between MSB-PMC01 and MSB-PMC03 paths
   - [ ] Document network topology and firewall rules for audit trail
   - [ ] Share verification results with Ksolves before P1.0 provisioning begins
 - **Verification:** 
   - [ ] Network team confirms connectivity in change ticket
   - [ ] Ping response times < 10ms (same datacenter assumed)
+  - [x] MTU consistent end-to-end (resolved 2026-05-06)
   - [ ] TCP ports open: `nc -zv <node> 8032`, `nc -zv <node> 8088` succeed on all three MSB-PMC03 nodes
 - **Owner:** fqdn Network Team
 - **Estimated Effort:** 2-4 hours (coordination + testing + documentation)
-- **Critical Note:** This is a hard gate. P1.0 cannot proceed until network connectivity verified and documented.
+- **Critical Note:** This is a hard gate. P1.0 cannot proceed until network connectivity verified and documented. **Ansible scope clarification:** Ansible no longer runs from a remote control node on the Airflow VM (decision 2026-05-07) — it runs directly from each Proxmox dev node. P0.7 connectivity remains required for Airflow → YARN, Spark driver logs, and other inter-cluster traffic, but the Ansible cross-cluster SSH path is no longer in scope.
 
 ---
 
@@ -571,8 +639,8 @@ Two-stage access strategy: an interim Webex desktop arrangement followed by a pe
 ### 🟠 P1.0 — Provision Remote Airflow Server (Ksolves Open Item #8)
 
 - **Status:** PENDING P0.7 NETWORK VERIFICATION (REMOTE INFRASTRUCTURE)
-- **Priority:** HIGH — Prerequisite for Airflow orchestration and Ansible automation
-- **Context:** Remote Airflow host coordinates ETL job submission to Spark cluster. Must run Airflow webserver/scheduler, Okta SSO integration, and Ansible control node. Spec: **6 vCPU / 24 GB RAM / 500 GB SSD**, RHEL 9.4. **Target node: `msb-pmc01-04`** — Intel Xeon Gold 6136 @ 3.00 GHz, 1 socket × 12 cores × 2 threads (24 logical CPUs), 130 GB RAM, single NUMA node, 6 Ceph OSDs. Cluster is fqdn-managed; Ksolves provisions services into it. See `phases/phase2/development/Document/MSB-PMC01_cluster_host_inventory.md` for full hardware inventory of all four nodes (msb-pmc01-01 through 04).
+- **Priority:** HIGH — Prerequisite for Airflow orchestration and stable web-UI front-door
+- **Context:** Remote Airflow host coordinates ETL job submission to Spark cluster. Spec: **6 vCPU / 24 GB RAM / 500 GB SSD**, RHEL 9.4. **Target node: `msb-pmc01-04`** — Intel Xeon Gold 6136 @ 3.00 GHz, 1 socket × 12 cores × 2 threads (24 logical CPUs), 130 GB RAM, single NUMA node, 6 Ceph OSDs. Cluster is fqdn-managed; Ksolves provisions services into it. See `phases/phase2/development/Document/MSB-PMC01_cluster_host_inventory.md` for full hardware inventory of all four nodes (msb-pmc01-01 through 04). **Topology change (2026-05-07):** Ansible no longer co-located on the Airflow VM (see P1.5 below) — Ansible runs directly on Proxmox dev nodes. The Airflow VM hosts Airflow + Nginx (install in scope; activation TBD by Ksolves).
 - **Recommended Proxmox VM topology:** `sockets=1, cores=6`. Host is single-NUMA — no NUMA pinning required. 24 GB RAM ≈ 18% of host's 130 GB. 500 GB volume drawn from the `rbd_ssd` Ceph pool (visible in OSD tree as the dedicated SSD class).
 - **Dependency:** **P0.7 (Network Connectivity) must be completed and verified first** — MSB-PMC01 and MSB-PMC03 clusters must be on same network with confirmed firewall rules.
 - **Ksolves Actions:**
@@ -580,7 +648,7 @@ Two-stage access strategy: an interim Webex desktop arrangement followed by a pe
   - [ ] Configure hostname: `airflow-prod-01` (or fqdn-assigned name)
   - [ ] Network setup: routable to all three MSB-PMC03 Spark nodes, to Snowflake, to cloud staging (Azure/AWS)
   - [ ] Install Okta SSO integration (requires OIDC client ID/secret from fqdn Okta tenant)
-  - [ ] Verify SSH key access from Ansible control node (to be installed on this host)
+  - [ ] **Install Nginx** on the Airflow VM (RHEL package; not yet activated). Server activation / functional configuration is a Ksolves decision (see Nginx note below).
   - [ ] Verify network paths: Airflow → YARN RM (port 8032), Airflow → Ceph RGW (floating IP), Airflow → Snowflake
 - **User Actions:**
   - [ ] Confirm MSB-PMC01 hosting and IP allocation (coordinate with Network Team)
@@ -590,10 +658,12 @@ Two-stage access strategy: an interim Webex desktop arrangement followed by a pe
   - [ ] **P0.7 network connectivity verified and documented**
   - [ ] Okta SSO client provisioned
   - [ ] MSB-PMC01 networking and IP allocation finalized
-- **Verification:** SSH to remote host successful; RHEL subscriptions active; network paths confirmed (ping tests to all three cluster nodes <10ms, TCP port tests succeed, Snowflake/cloud routing confirmed)
-- **Owner:** Ksolves (provisioning) + fqdn (networking, SSO setup)
-- **Estimated Effort:** 2-3 hours (provisioning + network setup)
-- **Critical Note:** P1.5 (Ansible) and later P2 items depend on this host being live and network-connected
+- **Verification:** SSH to remote host successful; RHEL subscriptions active; network paths confirmed (ping tests to all three cluster nodes <10ms, TCP port tests succeed, Snowflake/cloud routing confirmed); `nginx -v` reports installed version
+- **Owner:** Ksolves (provisioning + Nginx install) + fqdn (networking, SSO setup)
+- **Estimated Effort:** 2-3 hours (provisioning + network setup + Nginx package install)
+- **Critical Note:** Later P2 items depend on this host being live and network-connected. Ansible no longer runs from this host (see P1.5).
+
+> **🌐 Nginx scope note (correction 2026-05-07):** Earlier "no HA → no Nginx" reasoning (used during the v1.3/v1.4 cycle) was wrong. The single YARN ResourceManager confirms there is no HA stable-endpoint requirement, but stable-endpoint-for-HA is only one of several potential Nginx roles. **Install** is in scope; **server activation / functional configuration is TBD by Ksolves** — candidate roles include reverse proxy for the YARN ResourceManager UI and other Spark/Airflow web UIs, TLS termination, SSO front-door (Okta), URL rewriting for a consistent UI surface, IP allowlisting, and access logging. Ksolves' design decision will determine which roles get activated post-install.
 
 ---
 
@@ -635,22 +705,28 @@ Two-stage access strategy: an interim Webex desktop arrangement followed by a pe
 - **Owner:** Ksolves
 - **Estimated Effort:** 1-2 hours
 
-### 🟠 P1.5 — Deploy Ansible Control Node on Remote Airflow Host
+### 🟠 P1.5 — Ansible Cluster-Internal Automation (REVISED 2026-05-07 — runs from Proxmox dev nodes)
 
-- **Status:** PENDING REMOTE AIRFLOW HOST (P1.0)
-- **Priority:** HIGH — Required for infrastructure automation
-- **Context:** Ansible control node on remote Airflow host enables programmatic cluster management, configuration updates, and VM lifecycle operations. Must have SSH key access to all cluster nodes and Proxmox API token for VM operations.
-- **Ksolves Actions:**
-  - [ ] Provision remote Airflow host if not yet done (P1.0)
-  - [ ] Install Ansible 2.10+ and Python 3.11+ on remote Airflow host
-  - [ ] Generate SSH keypair; distribute public key to all cluster nodes (Node01, Node02, Node03) for passwordless access
-  - [ ] Store Proxmox API token securely (recommend pass or dedicated secrets manager)
-  - [ ] Clone Ansible playbooks from git repository (if exists) or stage initial plays
-  - [ ] Test connectivity: `ansible all -i hosts -m ping` should reach all nodes
-- **Prerequisites:** Remote Airflow host provisioned; SSH access to all cluster nodes; Proxmox API token generated
-- **Verification:** `ansible -i hosts -m command -a "uname -a" all` returns kernel info from all nodes; Proxmox API token successfully authenticates
-- **Owner:** Ksolves
-- **Estimated Effort:** 1-2 hours
+- **Status:** IN PROGRESS — Ansible + ansible-core installed on all three Proxmox dev nodes 2026-05-07; vendor playbook hierarchy unzipped; `--check`-mode testing underway
+- **Priority:** HIGH — Required for infrastructure automation of cluster-internal config (Proxmox + CephFS + supporting OS config)
+- **Context (revised 2026-05-07):** Original plan had Ansible on a separate VM (or co-located on the Airflow VM at P1.0). During the 2026-05-07 Webex collab session, vendor engineer 1 (Ksolves) and Rohn agreed Ansible can run **directly on each Proxmox dev node**. Latest Ansible + ansible-core were installed across all three nodes; Ksolves' playbook hierarchy was unzipped on-cluster; `--check`-mode validation has begun. **This removes a planned VM from the topology** and closes the prior msb-pmc01-04 Ansible-capacity TBD from 2026-05-06.
+- **Scope clarification:** Playbooks cover **Proxmox config + CephFS install/config + supporting OS configuration** — cluster-internal operations only. If Ansible orchestration of remote services beyond the cluster (e.g., the Airflow VM at P1.0, future remote services on msb-pmc01) becomes needed, revisit this scope.
+- **Vendor Actions:**
+  - [x] Install Ansible + ansible-core (latest) on all three Proxmox dev nodes (2026-05-07)
+  - [x] Unzip Ksolves' Ansible playbook hierarchy on the dev nodes (2026-05-07)
+  - [ ] Continue `--check`-mode testing (vendor engineer 1, ongoing 2026-05-08+) — verify expected play behavior without applying changes
+  - [ ] Transition to live-apply runs as `--check` confidence builds; capture per-play change diffs in audit trail
+  - [ ] Verify SSH/local connectivity model used by playbooks (intra-node sudo + inventory) is consistent with on-cluster execution model
+- **fqdn Actions:**
+  - [ ] Review playbook hierarchy structure with vendor engineer 1 (joint Webex sessions ongoing)
+  - [ ] Confirm any secrets management requirements (Proxmox API tokens, Ceph keys) — if needed, store in cluster-local secrets store (not in playbook tree)
+- **Verification:**
+  - [x] Ansible reachable from each dev node: `ansible --version` reports installed version
+  - [ ] `--check`-mode runs complete without unexpected diffs against current state
+  - [ ] Live runs on a single play (lowest-risk) succeed; rollback verified
+  - [ ] Full Proxmox + CephFS playbook tree applied; cluster state matches design
+- **Owner:** Vendor engineer 1 (Ksolves) — primary; Rohn — joint review and on-cluster validation
+- **Estimated Effort:** Multi-session — `--check`-mode testing in progress; live-run timeline depends on test outcomes
 
 ### 🟠 P1.6 — Monitor Ceph OSD Memory Under Peak Ingest
 
@@ -844,6 +920,50 @@ Two-stage access strategy: an interim Webex desktop arrangement followed by a pe
 - **Estimated Effort:** 2-4 hours (analysis) + 1-2 weeks (procurement/provisioning if approved)
 - **Impact on Plan:** If 4th node approved, extends Phase 1 completion by 1-2 weeks; Phase 2 scope does not change
 
+<a id="p2-8-snowflake-load-completion"></a>
+
+### 🟡 P2.8 — Snowflake Load Completion Confirmation Mechanism (NEW 2026-05-07 — fqdn-owned)
+
+- **Status:** OPEN — added 2026-05-07; design owed by fqdn Development team
+- **Priority:** MEDIUM — required to close the "Operational Gate" step in the Phase 1 dev data-flow diagram
+- **Owner:** **fqdn Development team** + Murali / Rama (Snowflake side)
+- **Source:** Vendor lead (Ksolves), email forwarded 2026-05-06 (referenced in TODO.md). Corroborated by the "Operational Gate Process → Move CSV files off → Designated Storage Node (Archive)" step (#10) in `phases/phase2/development/reference_images/dev_data_flow_diagram_2026-05-06.png`.
+- **Context:** The current Snowflake side of the pipeline has no mechanism to confirm `COPY INTO` completion. Without a confirmation signal, the Airflow DAG cannot reliably trigger downstream actions: cleanup of Parquet files from Ceph (Stage 8 of the 8-stage pipeline), archive move of source CSV files, and the "Operational Gate" step that gates batch-cycle progression. Pipeline reliability and SLA accounting depend on this confirmation.
+- **Proposed solutions (per vendor email):**
+  1. **Audit / checkpoint table in Snowflake** — `COPY INTO` writes a row per load with `(table, file, rows_loaded, status, timestamp)`; Airflow DAG polls the table for the expected row before progressing.
+  2. **Snowflake task / event-bridge** — Snowflake task fires on `COPY INTO` success; emits webhook / message that Airflow consumes.
+  3. **Snowflake stored procedure wrapper** — Airflow calls a stored procedure that performs `COPY INTO` and returns load metadata directly to Airflow synchronously.
+- **Decision required:** which mechanism (likely Option 1 unless infra exists for 2 or 3); auth model (Snowflake user / role / network); polling cadence (Option 1) or webhook endpoint (Option 2).
+- **Implementation impact:** Affects Airflow DAG design (P2.2), Snowflake objects (out-of-scope per P2.3 Snowflake scope note — but the audit/checkpoint table itself sits on the Snowflake side and requires fqdn DDL), and Stage 7→8 transition logic. Does **not** block infrastructure provisioning (P0–P1).
+- **Verification:** End-to-end test — Airflow triggers `COPY INTO`; load completes; confirmation signal received; downstream cleanup + archive move execute; "Operational Gate" closes correctly.
+- **Estimated Effort:** Design + spec: 1–2 weeks (cross-team — Dev / Murali-Rama / vendor coordination). Implementation depends on chosen option.
+
+<a id="p2-9-centralized-audit-logging"></a>
+
+### 🟡 P2.9 — Centralized Audit Logging + Retention Policy (HIPAA-driven, NEW 2026-05-07)
+
+- **Status:** OPEN — added 2026-05-07; placement may shift to `CP_HIPAA_Compliance_v1.0.md` once that sub-project's section taxonomy stabilizes
+- **Priority:** MEDIUM (treated HIGH inside the HIPAA sub-project) — required for HIPAA audit-trail compliance
+- **Owner:** **fqdn Development team** + fqdn Cyber/Security
+- **Source:** Vendor lead (Ksolves), questionnaire Q1–Q3, email forwarded 2026-05-06 (referenced in TODO.md). Aligns with HIPAA § 164.316(b)(2).
+- **Context:** HIPAA § 164.316(b)(2) requires audit logs to be retained for **at least 6 years**. Current cluster build has **no SIEM scoped** and no centralized audit-log destination — Spark, YARN, Ceph, RGW access, and Airflow logs are emitted to local filesystems on each VM/host. Without a central retention path, ePHI access events cannot be reliably reconstructed, and the Phase 1 → production transition will fail HIPAA audit.
+- **Required design elements:**
+  - **Sources to capture:** Spark application logs (driver + executors via History Server), YARN ResourceManager logs, Ceph RGW access logs (S3 calls), Airflow scheduler/webserver logs, Linux auth.log (sudo + SSH), Proxmox auth events, and any ePHI-touching application logs.
+  - **Transport:** Promtail or Fluent Bit shippers from each source to the central store; encryption in transit.
+  - **Central store:** Loki or equivalent — must support 6-year retention with WORM (write-once, read-many) protection on the audit bucket.
+  - **Storage backing:** Likely a dedicated Ceph bucket with versioning + object lock (or external S3 with the same posture).
+  - **Access controls:** Read/write segregated; only audit administrators can read; no delete privilege within the retention window.
+  - **Integrity:** Periodic integrity checks (hash chain or signing) so log tampering is detectable.
+- **Decisions required:**
+  - SIEM selection (Loki + Grafana stack already partially in scope per the Grafana/Prometheus/Loki VM at P1.0) vs. Splunk vs. Sentinel vs. other.
+  - WORM mechanism (Ceph object lock vs. external WORM-compliant storage).
+  - Retention sub-policies (some sources may need >6 years; some may be fine with the floor).
+  - Audit-administrator role assignment.
+- **Implementation impact:** Likely co-locates with the existing Grafana/Prometheus/Loki VM mentioned in P1.0's host context. Requires Promtail agents on every cluster node + remote service VM. Does **not** block infrastructure provisioning (P0–P1) but **must** be in place before any ePHI processing runs.
+- **Verification:** Logs from all enumerated sources land in central store; retention policy verified by attempting a delete (should be denied within retention window); integrity check passes; audit-administrator role can read all logs; non-admin roles cannot.
+- **Estimated Effort:** Design: 1 week. Implementation: 2–3 weeks. Validation: 1 week. Likely runs in parallel with HIPAA encryption pillars (BLOCKER.3).
+- **Cross-reference:** Once `CP_HIPAA_Compliance_v1.0.md` reaches a section taxonomy that has an "audit / retention" pillar, this task may move there with a back-reference here. For now it lives in the main CP for visibility.
+
 ---
 
 <a id="actions-outside-present-known-scope"></a>
@@ -905,17 +1025,23 @@ The following items are derived from Phase 1 report findings but are not explici
 **Critical Path Sequence:**
 - **Phase 1 (Planning):** ✅ COMPLETE — All discovery & architecture finalized (Apr 24)
 - **Phase 2 (Implementation):** PENDING
-  - [ ] BLOCKER.1: Establish Ksolves remote access (user action — Phase 1A pending vendor Windows-host hardware prerequisite, Phase 1B parallel)
+  - **Phase 1A active 2026-05-06** — vendor lead drives Proxmox provisioning over Webex screen share (interim access while Phase 1B is gated)
+  - [ ] **BLOCKER.4 (NEW 2026-05-06):** Vendor-access isolation design + Cyber endorsement + CIO sign-off — gates Phase 1B (Horizon VDI). Partial progress 2026-05-07 (Horizon pool stood up, initial firewall posture set).
+  - [ ] **BLOCKER.1 Phase 1B closure:** Multi-session VDI access via Ksolves Horizon pool — gated by BLOCKER.4 + pool validation testing + vendor user-list provisioning (Michelle owns)
   - [x] BLOCKER.2: User placed RHEL ISO(s) in Proxmox Directory storage at `/rpool/data/templates/iso/` on all three dev-cluster nodes (closed 2026-04-30 — decoupled from P0.0)
+  - [ ] **BLOCKER.3:** HIPAA compliance gate — see `CP_HIPAA_Compliance_v1.0.md` sub-project; must close before any production ePHI processing
   - [ ] **P0.0: Ksolves bootstraps Ceph cluster** (MON, MGR, 9× OSD, RGW) — first Ksolves work after access granted
-  - [ ] *Parallel user prerequisites:* P0.4 (RHEL subscriptions), P0.0a (CSV file info), P0.7 (network MSB-PMC01↔03)
+  - [ ] *Parallel user prerequisites:* P0.4 (RHEL subscriptions), P0.7 (network MSB-PMC01↔03; MTU resolved 2026-05-06)
+  - [ ] *In-flight, fqdn-owned, parallel:* P0.0b (GZIP mitigation decision), P2.8 (Snowflake load-completion mechanism), P2.9 (centralized audit logging)
   - [ ] P0.1–P0.5: Ksolves provisions all VMs and base software (RHEL ISO already in place from BLOCKER.2)
+  - [ ] P0.6: Ceph RGW server-side tuning (vendor-owned, on cluster sign-over checklist)
   - [ ] **P1.2: Ksolves deploys single-instance YARN ResourceManager on GKPR-YARN-RM-01** (manual recovery; no HA)
-  - [ ] P1.0, P1.5: Ksolves provisions Remote Airflow Server and Ansible control
+  - [ ] P1.0: Remote Airflow Server provisioning on `msb-pmc01-04` (Airflow + Nginx install — Nginx activation TBD by Ksolves)
+  - [x] **P1.5 (revised 2026-05-07):** Ansible installed on all three Proxmox dev nodes; playbook tree on-cluster; `--check`-mode testing in progress (no separate Ansible VM — topology change)
   - [ ] P1.1: Spark History Server deployed on Node02 (depends on P0.0 RGW + P0.5a Spark)
   - [ ] **P1.8: Phase 1 integration milestone — run 5 sample jobs, measure shuffle amplification, OSD memory (P1.6), and WAN egress (P1.7)**
   - [ ] P2.2–P2.3: Ksolves deploys Airflow and validates end-to-end pipeline (Snowflake side is fqdn responsibility)
-  - [ ] Phase 2 sign-off: fqdn approves for production if all P0–P2 items pass
+  - [ ] Phase 2 sign-off: fqdn approves for production if all P0–P2 items pass + BLOCKER.3 + BLOCKER.4 closed
 - **Beyond Phase 2:** Pending Ksolves clarification — See "Actions Outside Present Known Scope"
 
 ---
@@ -926,10 +1052,22 @@ The following items are derived from Phase 1 report findings but are not explici
 
 - **Main Report:** phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf
 - **Prerequisites:** phases/phase1/development/Incoming/vendor_prerequisites.docx.pdf
+- **Vendor Configuration Baseline:** phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf (2026-05-04)
+- **HIPAA Sub-project Critical Path:** phases/phase2/development/Document/CP_HIPAA_Compliance_v1.0.md
 - **Hardware Reference:** CLAUDE.md § Hardware Reference
 - **Calculator:** phases/phase1/development/deliverables/dev_cluster_phase1_model.html
 - **Ksolves Walkthrough:** phases/phase1/development/research/ksolves-directory-walkthrough.md
 - **Vendor Questions:** phases/phase1/development/vendor_comms/phase1_vendor_questions.txt
+- **Companion CP — Okta Integration:** phases/phase2/development/Document/CP_Okta_v1.1.md
+- **Companion — Remote Airflow Host Briefing:** phases/phase2/development/Document/MSB-PMC01_airflow_host_briefing_v1.1.md
+- **Schedule Tracker:** phases/phase2/development/Document/SOW_timeline_status.md
+- **Cluster Sizing Tool:** calculators/Document/cluster_sizing_tool.html
+- **Math Reference:** calculators/Document/dev_cluster_math_reference.html
+- **Storage Reference:** calculators/Document/dev-cluster-storage-reference.html
+- **Visual Tracker (HTML):** phases/phase2/development/Document/phases_critical_path_development_tracker_v1.5.html
+- **Vendor-isolation source documents (security context, on-site only):** security/Notes/vendor-access-isolation-plan_2026-05-06.md · security/Document/vendor_security_design_overview_v1.0.md · security/Notes/harper_meeting_summary_vdi_security_2026-05-06.md
+- **Horizon pool alignment email (2026-05-07):** correspondence/Document/email_sean_austin_horizon_pool_alignment_2026-05-07.md
+- **Vendor security email (2026-05-07):** correspondence/Document/vendor_email_horizon_vdi_security_revision_2026-05-06.md
 
 ---
 
@@ -943,7 +1081,7 @@ The following items are derived from Phase 1 report findings but are not explici
 
 ---
 
-_Updated: 2026-04-30 (Phase 1A re-opened — vendor Windows-host hardware prerequisite for Webex remote control)_  
+_Updated: 2026-05-07 (v1.5: BLOCKER.4 vendor-isolation gate added; BLOCKER.1 Phase 1A activated 2026-05-06; Horizon pool stand-up 2026-05-07; Ansible topology revised; Nginx scope corrected; P2.8 Snowflake load completion + P2.9 centralized audit logging added; MTU resolution noted)_  
 _Phase 1 status reflected per ksolves_april_24_process_report.txt_  
-_Location: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.4.md_  
-_Status: Promoted to Document/ on 2026-04-30_
+_Location: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.5.md_  
+_Status: Promoted to Document/ on 2026-05-07_
