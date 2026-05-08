@@ -709,6 +709,30 @@ Use `/Users/rohn/Serve/tmp/` for any temporary / scratch / helper files (Python 
 
 The `tmp/` directory is gitignored (entry added 2026-05-07). Files in it are local-only; safe to leave between sessions or delete at will.
 
+## Email-Bound Documents — `ready_for_delivery/`
+
+`/Users/rohn/Serve/ready_for_delivery/` is the staging location for documents that are about to be sent (email attachments, cover-letter HTML, signed copies, etc.). Anything in this folder is:
+
+- **Send-ready** — final form, no `[placeholder]` substitutions left to do (or any remaining substitutions are explicitly noted at the top), no internal-tracking appendices, sanitized per the project's FQDN rule
+- **Self-contained** per the HTML rule above (CSS/JS inlined; no external resource refs)
+- **Outlook-safe when the format calls for it** — for HTML email *bodies* (not attachments), use Outlook MSO-compatible HTML: inline styles only, table-based layout, web-safe fonts (Calibri / Segoe UI / Arial / Helvetica fallback chain), no flex/grid, no CSS variables
+- **Tracked in git** — keeps an audit trail of what was actually sent (and when, via the commit timestamp). The rendered HTML is the recipient-visible artifact; the source markdown lives in `correspondence/Document/` for revision history but the `ready_for_delivery/` HTML is what the recipient saw.
+
+**Workflow:**
+
+1. Draft the source markdown in `correspondence/Document/<basename>_<YYYY-MM-DD>.md` (the canonical, revisable form)
+2. Render to HTML in `ready_for_delivery/<basename>_<YYYY-MM-DD>.html` when approved for send
+3. Send the email; attach / paste the rendered HTML as appropriate
+4. Commit the `ready_for_delivery/` artifact to record what was sent
+5. Source markdown stays in `correspondence/Document/` (where revisions / status updates continue to land if a follow-up is needed)
+
+**Naming:** same date-embedded convention as the rest of the project — `<basename>_<YYYY-MM-DD>.<ext>`. The basename should match the source markdown so the pairing is obvious.
+
+**Two HTML profiles to know:**
+
+- **Self-contained-and-rich** (the project default): pandoc `--standalone --embed-resources` rendering with the full `html_review/style.css` palette inlined. Use this for *attachment* HTMLs the recipient opens in a browser — the audit-findings HTML is an example.
+- **Outlook-safe**: hand-built HTML with inline styles only, tables for layout, web-safe fonts. Use this for the *email body* (cover letter HTML the recipient sees in Outlook compose / mail client). Outlook MSO renderer doesn't support modern CSS (no flex, no grid, no variables) so the styling has to stay conservative.
+
 ## Hardware Reference
 
 | | Production | Development |
