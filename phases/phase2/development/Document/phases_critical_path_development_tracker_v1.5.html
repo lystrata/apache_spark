@@ -444,41 +444,47 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
 <details class="section-details" id="sec_blocker3">
   <summary class="section-summary">
     <span class="section-letter crit">B3</span>
-    <span class="section-title">BLOCKER.3 — HIPAA Compliance (Spark / YARN / Ceph encryption + Web UI ACL)</span>
-    <span class="section-sub">· OPEN (added 2026-05-05) · Detail in CP_HIPAA_Compliance_v1.0.md sub-project · BLOCKING for production ePHI</span>
+    <span class="section-title">BLOCKER.3 — HIPAA Compliance — split 2026-05-08 into 3a + 3b</span>
+    <span class="section-sub">· SPLIT 2026-05-08 · 3a (hardware) vendor-claimed-closed pending fqdn verification · 3b (software/network) OPEN · BLOCKING for production ePHI</span>
     <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
   </summary>
   <div class="section-body">
 
     <dl class="task-meta">
-      <dt>Status</dt><dd>OPEN — added 2026-05-05; tracked in companion sub-project</dd>
+      <dt>Status</dt><dd>SPLIT 2026-05-08 — what was a single BLOCKER.3 is now two paired sub-gates: <strong>3a</strong> (hardware compliance) and <strong>3b</strong> (software &amp; network compliance). Both must close before production ePHI processing.</dd>
       <dt>Priority</dt><dd>BLOCKING — production handling of ePHI on the Spark cluster requires HIPAA encryption + access-control posture per 45 CFR § 164.312</dd>
       <dt>Sub-project</dt><dd><strong><code>phases/phase2/development/Document/CP_HIPAA_Compliance_v1.0.md</code></strong> — owns all detailed items, owners, and verification steps</dd>
-      <dt>Source</dt><dd>Ksolves' <code>Ksolves_Spark_YARN_Config_v1.0.pdf</code> § 8 (HIPAA Compliance Architecture &amp; Guidelines)</dd>
+      <dt>Source</dt><dd>Ksolves' <code>Ksolves_Spark_YARN_Config_v1.0.pdf</code> § 8 (HIPAA Compliance Architecture &amp; Guidelines) — three pillars: transmission security (§ 8.1), data at rest (§ 8.2), Web UI ACL (§ 8.3)</dd>
     </dl>
 
-    <p><strong>Why it's a separate sub-project:</strong> the scope spans three encryption pillars (transmission, at rest, web UI) plus a custom javax servlet filter that fqdn must develop; mixing it into the main critical path obscures the cross-team coordination needed (Cybersecurity / Dev / Vendor / Ops). The sub-project tracks each item with explicit ownership and a critical-path sequence of its own.</p>
+    <p><strong>Why split:</strong> the vendor declared HIPAA closed under Phase 2 on 2026-05-08; that claim almost certainly refers to <strong>hardware-level</strong> compliance (LUKS configured on the existing hardware-encrypted NVMe drives) and not the full three-pillar scope. Splitting BLOCKER.3 into hardware vs. software/network sub-gates lets us track vendor's hardware claim separately from the still-open software/network/Web-UI work. Item flagged for verification — see Phase 2 closing letter (forthcoming).</p>
+
+    <div class="task-warn"><strong>🔒 BLOCKER.3a — HIPAA Hardware Compliance (Drive Encryption / LUKS posture)</strong><br>
+    <strong>Status:</strong> Vendor claimed closed 2026-05-08 — pending fqdn verification.<br>
+    <strong>Scope:</strong> Hardware-level encryption posture on NVMe scratch drives 4–7; LUKS configuration check (was software LUKS layered on top of already-hardware-encrypted drives?); stability + CPU performance implications of double-encryption.<br>
+    <strong>Verification (fqdn-side, lifts 3a):</strong>
+    <div class="cb-row"><input type="checkbox" id="cb_b3a_ver_1" data-track><span class="cb-text">Confirm whether software LUKS was applied on top of hardware-encrypted drives</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_b3a_ver_2" data-track><span class="cb-text">If double-encrypted: assess stability + CPU performance overhead; decide whether to leave or remove software LUKS</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_b3a_ver_3" data-track><span class="cb-text">Document the final encryption posture for HIPAA audit trail</span></div>
+    </div>
 
     <div class="task-block">
-      <div class="task-block-title">Quick summary (full detail in sub-project)</div>
-      <p><strong>Vendor-owned</strong> (configured during Spark install — § 8.1, § 8.2):</p>
+      <div class="task-block-title">🔒 BLOCKER.3b — HIPAA Software &amp; Network Compliance (Spark RPC, TLS, SSL, Web UI ACL, custom javax filter)</div>
+      <p><strong>Status:</strong> OPEN — sub-tasks tracked in <code>CP_HIPAA_Compliance_v1.0.md</code></p>
+      <p><strong>Vendor-owned</strong> (configured during Spark install — § 8.1):</p>
       <ul style="list-style:disc;padding-left:22px;">
-        <li>TLS to Ceph S3A · authenticated + encrypted Spark RPC (AES-GCM) · SSL on Web UIs · local Spark I/O encryption · server-side encryption on Ceph buckets</li>
+        <li>TLS to Ceph S3A · authenticated + encrypted Spark RPC (AES-GCM) · SSL on Web UIs · local Spark I/O encryption · server-side encryption on Ceph buckets (overlap with 3a)</li>
       </ul>
-      <p style="margin-top:8px;"><strong>fqdn-owned</strong> (parallel work):</p>
+      <p style="margin-top:8px;"><strong>fqdn-owned</strong> (parallel work — § 8.3 + decisions):</p>
       <ul style="list-style:disc;padding-left:22px;">
-        <li>Custom javax servlet filter for Spark Web UI / History Server ACL (Spark provides no built-in)</li>
+        <li><strong>Custom javax servlet filter</strong> for Spark Web UI / History Server ACL (#H1; flagged HIGH PRIORITY 2026-05-08; vendor verification of fqdn-side ownership pending — separate query letter)</li>
         <li>Decide auth integration target for the filter (Okta / LDAP / Kerberos)</li>
         <li>Kerberos realm + <code>spark-etl@&lt;REALM&gt;</code> keytab for Spark service auth</li>
-        <li>Notify Ksolves: NVMe scratch drives are <strong>already LUKS-encrypted</strong> — vendor must not reformat</li>
-      </ul>
-      <p style="margin-top:8px;"><strong>Already done</strong> (fqdn side):</p>
-      <ul style="list-style:disc;padding-left:22px;">
-        <li>LUKS encryption on the four NVMe scratch drives across all 3 dev nodes</li>
+        <li>Notify Ksolves: NVMe scratch drives are already LUKS-encrypted (overlaps 3a; verbal already given; follow-up email pending)</li>
       </ul>
     </div>
 
-    <div class="task-warn"><strong>Verification gate (lifts BLOCKER.3):</strong> all items in <code>CP_HIPAA_Compliance_v1.0.md</code> closed; verification artifacts captured for HIPAA audit trail.</div>
+    <div class="task-warn"><strong>Verification gate (lifts the parent BLOCKER.3 entirely):</strong> Both 3a and 3b closed; verification artifacts captured for HIPAA audit trail; vendor's Phase 2 HIPAA closure claim verified or revised in writing.</div>
 
     <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
   </div>
@@ -761,31 +767,58 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
         </details>
 
         <!-- P0.1 -->
-        <details class="task-details" id="task_p0-1">
+        <details class="task-details" id="task_p0-1a">
           <summary class="task-summary">
-            <span class="task-icon">&#x2705;</span><span class="task-code">P0.1</span>
-            <span class="task-title">Worker VM Creation &amp; vCPU Allocation (14 → 18) — CLOSED 2026-05-08</span>
+            <span class="task-icon">&#x2705;</span><span class="task-code">P0.1a</span>
+            <span class="task-title">Worker VM Hardware Creation (vCPU + RAM + NVMe attached) — CLOSED 2026-05-08</span>
             <span class="task-status done">CLOSED 2026-05-08</span>
           </summary>
           <div class="task-body">
             <dl class="task-meta">
-              <dt>Status</dt><dd>✅ CLOSED 2026-05-08 — Three RHEL 9.4 Worker VMs provisioned on the dev cluster (GKPR-SPARK-WK-01/02/03) per spec</dd>
-              <dt>Priority</dt><dd><em>Was CRITICAL</em> — Phase 1 concurrency baseline unblocked; downstream P0.4 (post-prov), P0.5, P2.5, P2.6 path-cleared</dd>
+              <dt>Status</dt><dd>✅ CLOSED 2026-05-08 — Three Worker VM containers created on the dev cluster (GKPR-SPARK-WK-01/02/03) with vCPU + RAM + NVMe attached. <strong>OS install has not yet occurred</strong> — see P0.1b.</dd>
+              <dt>Priority</dt><dd><em>Was CRITICAL</em> — VM hardware foundation in place</dd>
               <dt>Owner</dt><dd>Ksolves (executed)</dd>
               <dt>Effort</dt><dd>Closed</dd>
             </dl>
-            <p><strong>Context:</strong> Phase 1 requires 18 vCPU per Worker VM (8-core executor + 4-core driver + 6-core buffer). Current assumptions show 14 vCPU gap. No VMs exist yet; Ksolves will create and configure all three Worker VMs from scratch on Proxmox.</p>
+            <p><strong>Context:</strong> Original P0.1 split 2026-05-08 into P0.1a (hardware creation, closed) + P0.1b (OS install + base config, open) to reflect that VMs exist but RHEL not yet installed.</p>
+
+            <div class="task-block">
+              <div class="task-block-title">Ksolves Actions (closed)</div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1a_act_1" data-track checked><span class="cb-text">Create three VM containers on Proxmox: GKPR-SPARK-WK-01 (Node01), GKPR-SPARK-WK-02 (Node02), GKPR-SPARK-WK-03 (Node03)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1a_act_2" data-track checked><span class="cb-text">Allocate 18 vCPU per VM (single NUMA domain × 32 cores per node)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1a_act_3" data-track checked><span class="cb-text">Allocate RAM per VM (per v1.5 RAM cascade — dev cluster physical max 320 GB; verify VM allocation matches the v1.5 model)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1a_act_4" data-track checked><span class="cb-text">Attach NVMe drives 4–7 to scratch mount (15.36 TB per node for Spark shuffle)</span></div>
+            </div>
+            <p class="muted"><strong>Verification:</strong> Proxmox shows all three VM containers; <code>lscpu</code> (post-OS-install) will confirm 18 vCPU per VM.</p>
+          </div>
+        </details>
+
+        <details class="task-details" id="task_p0-1b">
+          <summary class="task-summary">
+            <span class="task-icon">&#128308;</span><span class="task-code">P0.1b</span>
+            <span class="task-title">Worker VM OS Install + Base Configuration (RHEL 9.4 + network/SSH/sudo)</span>
+            <span class="task-status open">OPEN — KSOLVES</span>
+          </summary>
+          <div class="task-body">
+            <dl class="task-meta">
+              <dt>Status</dt><dd>OPEN — split from original P0.1 on 2026-05-08; VMs exist (P0.1a) but RHEL not yet installed</dd>
+              <dt>Priority</dt><dd>CRITICAL — Gate for P0.4 (post-prov), P0.5 (Java + Hadoop install), P2.5 + P2.6 (storage and network validation)</dd>
+              <dt>Owner</dt><dd>Ksolves</dd>
+              <dt>Effort</dt><dd>1–2 hours per VM (3–6 hours total)</dd>
+            </dl>
+            <p><strong>Context:</strong> With VM containers created (P0.1a closed), the next step is to boot from the RHEL 9.4 ISO (in place per BLOCKER.2 closure) and complete the OS install + base configuration on each Worker VM.</p>
 
             <div class="task-block">
               <div class="task-block-title">Ksolves Actions</div>
-              <div class="cb-row"><input type="checkbox" id="cb_p0-1_act_1" data-track><span class="cb-text">Provision three RHEL 9.4 VMs on Proxmox: GKPR-SPARK-WK-01 (Node01), GKPR-SPARK-WK-02 (Node02), GKPR-SPARK-WK-03 (Node03)</span></div>
-              <div class="cb-row"><input type="checkbox" id="cb_p0-1_act_2" data-track><span class="cb-text">Allocate 18 vCPU per VM (single NUMA domain × 32 cores per node; 18 vCPU fits within one domain — NUMA pinning enabled, no boundary crossing)</span></div>
-              <div class="cb-row"><input type="checkbox" id="cb_p0-1_act_3" data-track><span class="cb-text">Allocate 384 GB RAM per VM (from infrastructure reservation: 12c/33GB per node leaves 20c/351 GB available)</span></div>
-              <div class="cb-row"><input type="checkbox" id="cb_p0-1_act_4" data-track><span class="cb-text">Attach NVMe drives 4–7 to scratch mount (15.36 TB per node for Spark shuffle)</span></div>
-              <div class="cb-row"><input type="checkbox" id="cb_p0-1_act_5" data-track><span class="cb-text">Configure RHEL network, SSH, and passwordless sudo access</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1b_act_1" data-track><span class="cb-text">Boot each Worker VM from the RHEL 9.4 ISO at <code>/rpool/data/templates/iso/</code></span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1b_act_2" data-track><span class="cb-text">Complete RHEL 9.4 installation (filesystem, base packages, hostname, root password)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1b_act_3" data-track><span class="cb-text">Register subscription on the VM via <code>subscription-manager register</code> (this is where the verified P0.4 pre-req subscriptions actually attach to running VMs)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1b_act_4" data-track><span class="cb-text">Configure RHEL network (static IPs / DNS / VLAN config per cluster topology)</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1b_act_5" data-track><span class="cb-text">Configure SSH and passwordless sudo access for the Spark service account</span></div>
+              <div class="cb-row"><input type="checkbox" id="cb_p0-1b_act_6" data-track><span class="cb-text">Verify boot, SSH, and <code>lscpu</code> reports the expected 18 vCPU / VM</span></div>
             </div>
-            <p class="muted"><strong>Verification:</strong> All three Worker VMs boot successfully; <code>lscpu</code> confirms 18 vCPU per VM; <code>mount | grep /var/spark/scratch</code> confirms NVMe attachment.<br>
-            <strong>User Sign-Off:</strong> Confirm Ksolves has provisioned all Worker VMs before proceeding to P0.2.</p>
+            <p class="muted"><strong>Verification:</strong> All three Worker VMs accessible via SSH; <code>subscription-manager status</code> reports subscribed; <code>lscpu</code> matches spec; <code>mount | grep /var/spark/scratch</code> confirms NVMe attachment.<br>
+            <strong>User Sign-Off:</strong> Confirm OS-installed Worker VMs before proceeding to P0.4 (post-prov) and P0.5.</p>
           </div>
         </details>
 
@@ -1631,11 +1664,11 @@ spark.sql.parquet.compression.codec=zstd</pre>
     <div class="cb-row"><input type="checkbox" id="cb_cps_b4" data-track><span class="cb-text"><strong>BLOCKER.4 (NEW 2026-05-06):</strong> Vendor-access isolation design + Cyber endorsement + CIO sign-off — gates Phase 1B (Horizon VDI). Partial progress 2026-05-07 (Horizon pool stood up, initial firewall posture set)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_1" data-track checked><span class="cb-text"><strong>BLOCKER.1 — Establish Ksolves Remote Access — CLOSED 2026-05-08</strong> (Phase 1A satisfies access requirement; Phase 1B permanent VDI tracked under BLOCKER.4)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_3" data-track checked><span class="cb-text">BLOCKER.2: User placed RHEL ISO(s) in Proxmox Directory storage at <code>/rpool/data/templates/iso/</code> on all three dev-cluster nodes (closed 2026-04-30 — decoupled from P0.0)</span></div>
-    <div class="cb-row"><input type="checkbox" id="cb_cps_b3" data-track><span class="cb-text"><strong>BLOCKER.3:</strong> HIPAA compliance gate — see <code>CP_HIPAA_Compliance_v1.0.md</code> sub-project; must close before any production ePHI processing</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_b3" data-track><span class="cb-text"><strong>BLOCKER.3 (split 2026-05-08):</strong> 3a (hardware compliance) — vendor-claimed-closed pending fqdn verification (LUKS-on-encrypted-drives; tracked in Phase 2 closing letter); 3b (software/network) — OPEN, see <code>CP_HIPAA_Compliance_v1.0.md</code></span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_2" data-track checked><span class="cb-text"><strong>P0.0 — Ceph cluster bootstrapped — CLOSED 2026-05-08</strong> (MON, MGR, 9× OSD, RGW; HEALTH_OK)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_4" data-track checked><span class="cb-text"><em>Parallel user prerequisites — closed 2026-05-08:</em> P0.4 (RHEL subscriptions ✅), P0.7 (network MSB-PMC01↔03 ✅; MTU resolved 2026-05-06)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_4b" data-track><span class="cb-text"><em>In-flight, fqdn-owned, parallel:</em> P0.0b (GZIP mitigation decision), P2.8 (Snowflake load-completion mechanism), P2.9 (centralized audit logging)</span></div>
-    <div class="cb-row"><input type="checkbox" id="cb_cps_5" data-track><span class="cb-text">P0.1 ✅ closed 2026-05-08 (Worker VMs provisioned); P0.2–P0.5 path-cleared, in flight under Phase 1A access</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_5a" data-track checked><span class="cb-text">P0.1a ✅ closed 2026-05-08 (Worker VM hardware created); P0.1b OPEN (RHEL OS install + base config); P0.2–P0.5 path-cleared, in flight under Phase 1A access</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_p06" data-track><span class="cb-text">P0.6: Ceph RGW server-side tuning (vendor-owned, on cluster sign-over checklist)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_6" data-track><span class="cb-text"><strong>P1.2:</strong> Ksolves deploys single-instance YARN ResourceManager on GKPR-YARN-RM-01 (manual recovery; no HA)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_7" data-track><span class="cb-text">P1.0: Remote Airflow Server provisioning on <code>msb-pmc01-04</code> (Airflow + Nginx install — Nginx activation TBD by Ksolves)</span></div>

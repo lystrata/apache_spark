@@ -7,6 +7,8 @@ _Status: Active — gates production handling of ePHI data on the Spark cluster_
 > **v1.5 Sync (2026-05-08):** No changes to HIPAA scope or sub-tasks. Cross-references bumped to `Phases_Critical_Path_Development_v1.5.md`. Two adjacent gates worth noting:
 > - **BLOCKER.4 (NEW 2026-05-06)** in main CP — Phase 1B vendor-access isolation gate. HIPAA compliance work that requires vendor execution (the encryption pillars in § 8.1, § 8.2) is sequenced behind BLOCKER.4 closure when delivered via permanent VDI. During Phase 1A (Webex screen-share, active 2026-05-06), HIPAA verification can begin on dev only and only for non-ePHI work.
 > - **P2.9 (NEW 2026-05-07)** in main CP — Centralized Audit Logging + Retention Policy (HIPAA-driven, 6-year floor per § 164.316(b)(2)). Currently in main CP; may move into this sub-project during the next HIPAA revision pass once a clear "audit / retention" pillar is added below the existing three.
+>
+> **Update 2026-05-08 — BLOCKER.3 split:** main CP § BLOCKER.3 was split 2026-05-08 into **BLOCKER.3a** (hardware compliance — drive encryption / LUKS posture; vendor claimed closed under their Phase 2 declaration; pending fqdn verification) and **BLOCKER.3b** (software & network compliance — Spark RPC / TLS / SSL / Web UI ACL / custom javax filter). The vendor's three-pillar framing in § 8 maps to this split: § 8.2 (data at rest, drive-level) → 3a; § 8.1 (transmission) + § 8.3 (Web UI ACL) → 3b. This sub-project's body still lists the unified scope; future revision pass may reorganize into 3a / 3b sections to mirror the split.
 
 ---
 
