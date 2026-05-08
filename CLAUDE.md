@@ -302,6 +302,20 @@ This applies to: new HTML documents, calculator updates, reference document upda
 
 This project uses git for version control. **Commit before making significant edits** so any state can be restored.
 
+### Push Workflow — One-Word Trigger
+
+When the user types `push` (or any clear instruction to push — `git push`, `push it`, `push commits`, etc.), run the following sequence:
+
+1. `git log --oneline origin/main..HEAD` — show the user what's about to be pushed (one line per commit)
+2. `git push origin main` — push to the canonical remote
+3. Report the ref-update line from the push output (e.g., `0683052..1eb6d78  main -> main`)
+
+If nothing is ahead of `origin/main`, skip the push and report "in sync (0 commits ahead)" rather than running a no-op.
+
+The `Bash(git push:*)` deny was lifted 2026-05-08; absent that deny, the one-word trigger is the simplest workflow. If the deny rule is restored later, this convention still describes the intended behavior — the user types `push`, and (under the current permissions) the push happens; under restored deny, the user types `! git push origin main` themselves and the same result lands. Either way, the trigger word is `push`.
+
+**Scope:** the rule defaults to `git push origin main`. For non-default cases (push to a different remote, force-push, push tags, push a different branch) the user should be explicit; do not assume.
+
 ### Corporate Identifier Sanitization
 
 Before committing any file, replace corporate identifiers with the literal placeholder `fqdn`. The exact patterns to match are stored in `~/.config/spark-hooks/patterns` (never committed).
