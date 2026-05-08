@@ -1,4 +1,4 @@
-**Status:** Draft — written follow-up to the verbal already-given; review and send when ready
+**Status:** Approved 2026-05-08 — ready to send (written follow-up to the verbal already-given)
 **From:** Rohn (fqdn)
 **To:** vendor lead (Ksolves)
 **CC:** Murali (per existing vendor-correspondence convention)
