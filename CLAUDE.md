@@ -30,10 +30,12 @@ The project is organized into four context hierarchies: `calculators/`, `remote_
 | `security/Incoming/` | Source PDFs and reference material for security context — on-site revision control only |
 | `security/Images/` | Screenshots for security documentation |
 | `security/Scripts/` | Context-specific scripts for security |
-| `correspondence/Document/` | Working documents for project correspondence — no revision control |
+| `correspondence/Document/` | Working drafts of correspondence (in-progress letters, doc preparation) |
 | `correspondence/Notes/` | Planning and notes for correspondence context |
 | `correspondence/Ready_For_Review/` | Staging for correspondence documents |
-| `correspondence/Incoming/` | Source material and reference PDFs for correspondence context |
+| `correspondence/Incoming/` | Raw source material (PDFs, attachments, files received via other channels) |
+| `correspondence/Received/` | Inbound emails / letters from external parties (replies, vendor responses) |
+| `correspondence/Sent/` | Outbound emails / letters that have been delivered |
 | `correspondence/Images/` | Screenshots for correspondence documentation |
 | `Scripts/` | Shared utility scripts (e.g. `export_chat.py`) |
 | `Shared_References/` | Reference materials shared across all contexts |
@@ -708,6 +710,21 @@ All scripts live in `Scripts/`.
 Use `/Users/rohn/Serve/tmp/` for any temporary / scratch / helper files (Python helper scripts, intermediate outputs, sanity-check artifacts). Do **not** write to system `/tmp/` — that's outside the project directory and explicitly excluded from the project's permission posture.
 
 The `tmp/` directory is gitignored (entry added 2026-05-07). Files in it are local-only; safe to leave between sessions or delete at will.
+
+## Correspondence Lifecycle — `correspondence/Document/`, `correspondence/Sent/`, `correspondence/Received/`
+
+The four `correspondence/<sub>/` directories track different lifecycle stages of inbound and outbound correspondence:
+
+- **`correspondence/Document/`** — working drafts (in-progress letters, multi-revision documents, anything still being written or refined). Status header at the top of each file tracks state: `Draft`, `Approved YYYY-MM-DD`, `Sent YYYY-MM-DD`, etc.
+- **`correspondence/Sent/`** — outbound emails / letters that have been delivered to a recipient. Move (or copy) the canonical source from `Document/` to `Sent/` once the message is actually transmitted. The Status header should read `Sent YYYY-MM-DD — awaiting recipient response` (or similar).
+- **`correspondence/Received/`** — inbound emails / letters from external parties (vendor replies, partner responses, signed documents coming back). File these here when they land, separate from raw source material like PDFs or attachments.
+- **`correspondence/Incoming/`** — raw source material received via other channels (full PDFs, attachments, dump files, transcripts). Different from `Received/`: `Incoming/` is where the unstructured stuff lands; `Received/` is where the typed-out / transcribed inbound emails live.
+
+**Naming:** all files in `Sent/` and `Received/` follow the project file naming rule with the date embedded (`<basename>_<YYYY-MM-DD>.<ext>`). The basename should match the original source in `Document/` so the pairing between draft and sent / received state is obvious.
+
+**Migration of existing files (optional, on direction):** as of 2026-05-08 the existing inbound/outbound emails in `correspondence/Document/` (Sean / Austin replies; alignment emails; vendor letters; the audit thread) have not been moved into `Received/` and `Sent/`. They can stay in `Document/` with their `Status: Sent` / `Status: Received` headers, or be moved later — directional call. New correspondence going forward should land in the appropriate lifecycle directory.
+
+**Audit trail:** every `Sent/` artifact pairs with a corresponding `ready_for_delivery/<basename>_<YYYY-MM-DD>.<ext>` git commit (the rendered version that was actually sent — see below). Together they give a "what we drafted" + "what we sent" record.
 
 ## Email-Bound Documents — `ready_for_delivery/`
 
