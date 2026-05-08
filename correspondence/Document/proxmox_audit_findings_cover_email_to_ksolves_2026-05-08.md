@@ -1,4 +1,4 @@
-**Status:** Draft — cover email for the attached HTML report. Send when ready.
+**Status:** Sent 2026-05-08 — cover email for the audit-findings HTML attachment + raw output reference
 **From:** Rohn (fqdn)
 **To:** Ksolves lead
 **CC:** Murali (per existing Ksolves-correspondence convention)

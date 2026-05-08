@@ -1,4 +1,4 @@
-**Status:** Approved 2026-05-08 — ready to send (written follow-up to the verbal already-given)
+**Status:** Sent 2026-05-08 — written follow-up to the verbal already-given; awaiting vendor confirmation
 **From:** Rohn (fqdn)
 **To:** vendor lead (Ksolves)
 **CC:** Murali (per existing vendor-correspondence convention)

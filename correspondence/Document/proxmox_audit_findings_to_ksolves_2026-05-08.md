@@ -1,4 +1,4 @@
-**Status:** Draft — review and send when ready
+**Status:** Sent 2026-05-08 — awaiting vendor response on § 13 verification items
 **From:** Rohn (fqdn)
 **To:** Ksolves lead
 **CC:** Murali (per existing Ksolves-correspondence convention)
