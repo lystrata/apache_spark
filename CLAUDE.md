@@ -430,6 +430,22 @@ See `Shared_References/markdown-standards.md` for detailed examples, troubleshoo
 
 These patterns are established and must be used consistently across all HTML files in this project.
 
+### Self-Contained HTML — Mandatory
+
+**Rule (project-wide, all HTML output):** every HTML file produced or maintained in this project must be **self-contained** — CSS, JavaScript, and any in-document images must be inlined or data-URI embedded, not loaded via external `<link>`/`<script src="...">`/`<img src="external/...">` references.
+
+The native working HTML files (calculators, tracker, references, calculator guide, phase model deliverables, compliance frameworks reference) already follow this — they're single-file HTML/CSS/JS with no external dependencies (per the existing Calculator Architecture rule: "Both calculators are single-file HTML/CSS/JS with no external dependencies and no build step").
+
+**Why mandatory:** any HTML in this project is a candidate for emailing as an attachment, opening from a thumb drive, viewing offline, or being archived for HIPAA / SOC 2 audit. External resource references break in any of those scenarios — the recipient sees an unstyled mess. Self-contained HTML keeps each file shippable as a single artifact.
+
+**For pandoc-rendered Markdown → HTML:** always pass `--embed-resources` (modern pandoc; older releases used `--self-contained`). Combined with `--standalone` and a `--css=<path>` argument, pandoc will inline the CSS contents into a `<style>` block rather than emit a `<link rel="stylesheet">` tag. Verify with `grep -c 'rel="stylesheet"' <output.html>` — should be `0`.
+
+**For hand-built HTML:** include the CSS in a `<style>` block in the document `<head>`; do not link to an external CSS file. The same applies to JS — `<script>` blocks inline only.
+
+**Exception (none):** there is no exception. If a file is too large for inlining (e.g., a 1 MB JS library), reconsider whether it belongs in this project's HTML at all; HIPAA-scope artifacts should not depend on external CDNs in any case.
+
+**Verification:** after rendering or editing any HTML, check there are zero `<link rel="stylesheet"` and zero `<script src="..."` references that point to a path outside the document. Inline references (anchor `#fragment` links to in-document IDs) are fine and expected.
+
 ### Section Collapsible Pattern
 
 All content sections use `<details class="section-details">` with `<summary class="section-summary">`. Every section must have:
