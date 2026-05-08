@@ -225,6 +225,13 @@
           <div class="ctrl-val" id="cores_node_val">32</div>
         </div>
         <div class="control-row">
+          <div class="ctrl-label"><strong>NUMA pinning</strong><br><span style="font-size:10px">pin worker VMs to NUMA boundaries · prevents cross-socket memory latency on multi-socket nodes</span></div>
+          <select class="ctrl-select" id="numa_pin" onchange="recalc()">
+            <option value="on" selected>On — pin VMs to NUMA boundaries</option>
+            <option value="off">Off — no NUMA constraint (cross-socket allowed)</option>
+          </select>
+        </div>
+        <div class="control-row">
           <div class="ctrl-label"><strong>RAM / node (GB)</strong><br><span style="font-size:10px">physical RAM per node</span></div>
           <input type="range" id="ram_node" min="64" max="1024" step="32" value="320" oninput="recalc()">
           <div class="ctrl-val" id="ram_node_val">320 GB</div>
@@ -568,6 +575,30 @@
           <div class="ctrl-val" id="n_parquet_val">2</div>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-title">Adaptive Query Execution (AQE) &amp; Shuffle Partitions</div>
+        <div class="control-row">
+          <div class="ctrl-label"><strong>AQE</strong><br><span style="font-size:10px">spark.sql.adaptive.enabled · runtime partition coalesce + skew handling + auto-broadcast</span></div>
+          <select class="ctrl-select" id="aqe" onchange="recalc()">
+            <option value="on" selected>On — runtime adaptive optimization (recommended; vendor default)</option>
+            <option value="off">Off — static plan; partitions fixed at submission</option>
+          </select>
+        </div>
+        <div class="control-row">
+          <div class="ctrl-label"><strong>Shuffle partitions</strong><br><span style="font-size:10px">spark.sql.shuffle.partitions · vendor recommends 4096 with AQE on (coalesces at runtime)</span></div>
+          <input type="range" id="shuf_partitions" min="200" max="8192" step="200" value="4096" oninput="recalc()">
+          <div class="ctrl-val" id="shuf_partitions_val">4096</div>
+        </div>
+        <div class="control-row">
+          <div class="ctrl-label"><strong>AQE skew-join handling</strong><br><span style="font-size:10px">spark.sql.adaptive.skewJoin.enabled · split skewed partitions into smaller ones · only effective with AQE on</span></div>
+          <select class="ctrl-select" id="aqe_skew" onchange="recalc()">
+            <option value="on" selected>On — split skewed partitions automatically</option>
+            <option value="off">Off — accept skew (or handle in app code)</option>
+          </select>
+        </div>
+      </div>
+
       <div class="section-close"><a onclick="closeSub(this)">&#x25B2; Close section</a></div>
     </div>
   </details>
@@ -680,7 +711,7 @@
     <div class="section-body">
       <div class="rev-section">
         <div class="rev-date">2026-05-05 — Vendor config baseline alignment (Ksolves Spark/YARN v1.0)</div>
-        <p style="font-size:13px;color:var(--muted);line-height:1.7;">Updated defaults to match the vendor's authoritative configuration (<code>Ksolves_Spark_YARN_Config_v1.0.pdf</code>, 2026-05-04) and the 3-node hardware finalization on 2026-05-05: <strong style="color:var(--text)">RAM/node default 384 → 320 GB</strong> (10× 32 GB DIMMs per node); <strong style="color:var(--text)">Daily ingest default 5 → 1.5 TB</strong> (vendor's measured DEV volume, not the previously-assumed full-prod 4 TB). Vendor reference values worth knowing when configuring this tool: <code>spark.executor.cores = 8</code>, <code>spark.executor.memory = 28g</code>, <code>spark.sql.shuffle.partitions = 4096</code>, repartition formula for any compressed table &gt; 1 GB: <code>target_partitions = max(24, ceil(compressed_csv_mb / 50))</code> — the Airflow DAG injects <code>compressed_mb</code> per table at runtime. <strong style="color:var(--text)">Deferred to a follow-up:</strong> NUMA-pinning toggle (currently advisory via the &gt;32-cores warning) and AQE on/off toggle (currently the model assumes AQE-on with the vendor's 4096 partitions as a soft default). When those land they belong in Section A and Section C respectively.</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;">Updated defaults to match the vendor's authoritative configuration (<code>Ksolves_Spark_YARN_Config_v1.0.pdf</code>, 2026-05-04) and the 3-node hardware finalization on 2026-05-05: <strong style="color:var(--text)">RAM/node default 384 → 320 GB</strong> (10× 32 GB DIMMs per node); <strong style="color:var(--text)">Daily ingest default 5 → 1.5 TB</strong> (vendor's measured DEV volume, not the previously-assumed full-prod 4 TB). Vendor reference values worth knowing when configuring this tool: <code>spark.executor.cores = 8</code>, <code>spark.executor.memory = 28g</code>, <code>spark.sql.shuffle.partitions = 4096</code>, repartition formula for any compressed table &gt; 1 GB: <code>target_partitions = max(24, ceil(compressed_csv_mb / 50))</code> — the Airflow DAG injects <code>compressed_mb</code> per table at runtime. <strong style="color:var(--text)">Landed in v1.5 (2026-05-07):</strong> NUMA-pinning toggle (Section A) and AQE on/off + skew-join + shuffle-partitions toggles (Section C). NUMA pinning defaults to <em>on</em>; AQE defaults to <em>on</em> with shuffle partitions = 4096 (vendor recommendation). Toggles drive new advisory warnings in the Diagnostics panel without altering core sizing math — they make explicit choices the model previously assumed silently.</p>
       </div>
       <div class="rev-section">
         <div class="rev-date">2026-05-04 — Section B: Infrastructure Reservations</div>
@@ -751,6 +782,7 @@ function recalc() {
   el('nvme_tb_val').textContent = NVME_TB.toFixed(2) + ' TB';
   const OSD_NODE   = setVal('osd_node',   'osd_node_val',   '');
   const RAID_TYPE  = el('raid_type').value;
+  const NUMA_PIN   = el('numa_pin').value;  // 'on' | 'off'
 
   // Read workload inputs
   const DAILY_TB  = setVal('daily_tb',  'daily_tb_val',  ' TB');
@@ -759,6 +791,9 @@ function recalc() {
   const PARQ_COMP = +el('parq_comp').value;
   el('parq_comp_val').textContent = PARQ_COMP + '×';
   const N_PARQUET = setVal('n_parquet', 'n_parquet_val', '');
+  const AQE       = el('aqe').value;        // 'on' | 'off'
+  const AQE_SKEW  = el('aqe_skew').value;   // 'on' | 'off'
+  const SHUF_PARTITIONS = setVal('shuf_partitions', 'shuf_partitions_val', '');
 
   // Read executor inputs
   const VMS_NODE  = setVal('vms_node',   'vms_node_val',   '');
@@ -1030,8 +1065,18 @@ function recalc() {
     w += warn('warning', '⚠', 'OOM margin below 2 GB', `Only ${fmt(OOM_MARGIN,2)} GB between executor memory footprint and slot boundary. Task-level spikes may trigger OOM kills.`);
   if (EXEC_PER_VM === 0)
     w += warn('error', '✕', 'Zero executors per VM', `Cannot fit any executors: (${VCPU_VM} vCPUs − 2) ÷ ${EXEC_CORES} executor cores = 0. Increase vCPUs or reduce executor cores.`);
-  if (CORES_NODE > 32)
-    w += warn('info', 'ℹ', 'Dual-socket / multi-NUMA configuration', `${CORES_NODE} cores/node implies multiple NUMA domains (1 per 32 cores). Pin VMs to NUMA boundaries to avoid cross-socket memory latency.`);
+  if (CORES_NODE > 32 && NUMA_PIN === 'off')
+    w += warn('warning', '⚠', 'Multi-NUMA node with NUMA pinning OFF', `${CORES_NODE} cores/node implies multiple NUMA domains (1 per 32 cores). NUMA pinning is currently off — VMs may straddle sockets, causing cross-socket memory latency. Enable NUMA pinning in Section A unless deliberate.`);
+  else if (CORES_NODE > 32 && NUMA_PIN === 'on')
+    w += warn('info', 'ℹ', 'Multi-NUMA node — pinning enabled', `${CORES_NODE} cores/node implies multiple NUMA domains. NUMA pinning is on; size VMs to fit within a single NUMA domain (32 vCPU max per VM) to avoid cross-socket latency.`);
+  if (NUMA_PIN === 'on' && VCPU_VM > 32)
+    w += warn('warning', '⚠', 'VM exceeds NUMA domain size', `VCPU/VM = ${VCPU_VM} but a NUMA domain holds 32 cores. The VM will straddle a NUMA boundary even with pinning enabled — Proxmox cannot pin a VM that exceeds a single domain. Drop VCPU/VM to ≤ 32, or set NUMA pinning off (and accept cross-socket latency).`);
+
+  // AQE / partition advisories
+  if (AQE === 'off')
+    w += warn('warning', '⚠', 'AQE is off — partitions are static', `spark.sql.adaptive.enabled = false means runtime coalesce, skew handling, and auto-broadcast are disabled. The current ${SHUF_PARTITIONS} partitions are fixed at submission. Consider enabling AQE (vendor default) or hand-tune <code>spark.sql.shuffle.partitions</code> for the largest expected dataset.`);
+  if (AQE === 'on' && AQE_SKEW === 'off')
+    w += warn('info', 'ℹ', 'AQE on but skew handling off', `AQE is on but skew-join handling is disabled. If your workload has skewed joins (one key dominating), enable <code>spark.sql.adaptive.skewJoin.enabled</code> for automatic mitigation.`);
 
   if (!w) w = warn('ok', '✓', 'No issues detected', 'All sizing checks passed for the current configuration.');
   el('warnings').innerHTML = w;
