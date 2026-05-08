@@ -52,8 +52,8 @@ Ksolves delivered an authoritative configuration document on 2026-05-04 (`phases
 
 **Cross-references:**
 - `phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` — the vendor doc itself
-- `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.4.md` — main CP (forthcoming)
-- `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.0.md` — HIPAA sub-project (forthcoming)
+- `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.5.md` — main CP (cut 2026-05-07)
+- `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.0.md` — HIPAA sub-project
 
 ### Production Architecture Prep — Ksolves Email + Apr 27–May 01 Status (forwarded 2026-05-06)
 
@@ -77,7 +77,7 @@ vendor lead (Ksolves) forwarded a multi-section email on 2026-05-06 that bundles
 
 **Pending Critical Path additions (queued for Phases_Critical_Path_Development v1.5 bump):**
 
-- [ ] [Phase1] **🚨 OVERDUE: Massive Critical Path document update (v1.4 → v1.5)** — multiple substantive items have accumulated since the v1.4 cut on 2026-05-05 and need consolidation. Comprehensive list of what v1.5 should pick up:
+- [ ] [Phase1] **CP v1.5 cut 2026-05-07** — autonomous bump cycle landed in commits `dccfdfb` (markdown), `d85d565` (tracker HTML), `21db11a` (RAM 384→320 cascade across math reference + phase1+2 models + calculator guide), `adb7ada` (cluster_sizing_tool NUMA + AQE toggles). Companion file `MSB-PMC01_airflow_host_briefing_v1.1` → `_v1.2` (Nginx correction). Cross-references in CP_HIPAA / CP_Okta / phase1 README / phase1 ksolves-april24-status-review / phase1 vendor questions / SOW_timeline_status all bumped. Changelog `Phases_Critical_Path_Development_v1.4_changelog.md` and v1.5 PDF regen pending. **Comprehensive list of what v1.5 picked up (left for verification):**
   - **Tracker HTML overhaul** — `phases_critical_path_development_tracker_v1.4.html` still has the deferred-content banner from the v1.3→v1.4 bump. Needs new section cards for BLOCKER.3 (HIPAA), P0.0a closure status, P0.0b (GZIP mitigation), P0.3 closure status, P0.6 (Ceph RGW tuning). ~200–250 lines of new/updated HTML.
   - **BLOCKER.1 refinement** — clarify the cause as NUC-reliability in Ksolves' DC, plus the interim Webex hosting arrangement (note: NUC issue resolved 2026-05-06).
   - **NEW: Vendor-isolation Phase 1B security gate** — capture as a parallel gate to BLOCKER.1, pointing to `security/Notes/vendor-access-isolation-plan_2026-05-06.md` and the distribution brief at `security/Document/vendor_security_design_overview_v1.0.md`. Both new gates ({vendor-isolation design + Cyber endorsement, CIO sign-off}) must close before Phase 1B VDI access goes live.

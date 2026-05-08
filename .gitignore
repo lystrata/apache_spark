@@ -14,3 +14,6 @@ Incoming/
 phases/phase2/development/Incoming/Archive/
 
 .claudecheckpoints/
+
+# Project-local scratch space (replaces use of system /tmp by Claude Code)
+tmp/

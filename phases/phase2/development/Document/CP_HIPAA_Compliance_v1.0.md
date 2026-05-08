@@ -8,10 +8,10 @@ _Status: Active — gates production handling of ePHI data on the Spark cluster_
 
 ## Document Overview
 
-Sub-project critical path for the **HIPAA encryption and access-control posture** required for the Spark / YARN / Ceph stack to handle ePHI (electronic protected health information) data. Forked out of the main Phase 2 critical path (`Phases_Critical_Path_Development_v1.4.md`) on 2026-05-05 because the scope is large, cross-team, and partly vendor-owned, so it merits its own tracker.
+Sub-project critical path for the **HIPAA encryption and access-control posture** required for the Spark / YARN / Ceph stack to handle ePHI (electronic protected health information) data. Forked out of the main Phase 2 critical path (`Phases_Critical_Path_Development_v1.5.md`) on 2026-05-05 because the scope is large, cross-team, and partly vendor-owned, so it merits its own tracker.
 
 **Companion to — does not duplicate:**
-- `Phases_Critical_Path_Development_v1.4.md` — main Phase 2 CP. Carries a BLOCKER pointing here.
+- `Phases_Critical_Path_Development_v1.5.md` — main Phase 2 CP. Carries a BLOCKER pointing here.
 - `Ksolves_Spark_YARN_Config_v1.0.pdf` — vendor's authoritative configuration baseline (the source spec for everything below).
 
 ### Scope
@@ -201,7 +201,7 @@ Production data acceptance gate — all six pillars live
 
 ## Notes
 
-- **Reference to main Phase 2 CP:** `Phases_Critical_Path_Development_v1.4.md` carries a BLOCKER pointing here. Resolve all items above before lifting that BLOCKER.
+- **Reference to main Phase 2 CP:** `Phases_Critical_Path_Development_v1.5.md` carries a BLOCKER pointing here. Resolve all items above before lifting that BLOCKER.
 - **Reference to Okta CP:** `CP_Okta_v1.0.md` covers Okta integration for Airflow + Spark History Server **end-user** access. The Kerberos work in #H4 is a **separate** layer for service-to-service auth (Spark RPC, YARN). Both are needed; they don't replace each other.
 - **Cybersecurity coordination:** Paul Barber (Cybersecurity) is the natural reviewer for #H2 + #H4 + #H1's auth integration. Loop him in early.
 - **Audit posture:** every item closure should be accompanied by a captured-at-closure verification artifact (config grep, packet capture excerpt, etc.) for the eventual HIPAA audit trail.
@@ -216,4 +216,4 @@ Production data acceptance gate — all six pillars live
 
 ³ HIPAA references: 45 CFR § 164.312(e)(1) for transmission security; 45 CFR § 164.312(a)(2)(iv) for data at rest encryption.
 
-⁴ Parent CP doc: `Phases_Critical_Path_Development_v1.4.md` (forthcoming) — carries the BLOCKER pointing to this sub-project.
+⁴ Parent CP doc: `Phases_Critical_Path_Development_v1.5.md` (forthcoming) — carries the BLOCKER pointing to this sub-project.

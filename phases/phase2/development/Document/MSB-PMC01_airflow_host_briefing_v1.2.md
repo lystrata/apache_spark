@@ -2,8 +2,8 @@
 
 _For: Ksolves implementation team_
 _Prepared by: fqdn infrastructure (cluster owner)_
-_Version 1.1 · 2026-05-05_
-_Subject: Hardware and infrastructure context for P1.0 (Remote Airflow Server provisioning), plus DAG behavior expectations carried over from the Ksolves Spark/YARN Config v1.0 baseline_
+_Version 1.2 · 2026-05-07_
+_Subject: Hardware and infrastructure context for P1.0 (Remote Airflow Server provisioning), plus DAG behavior expectations carried over from the Ksolves Spark/YARN Config v1.0 baseline · v1.2 corrects the Nginx scope dropped in the v1.1 cycle_
 
 ---
 
@@ -13,7 +13,17 @@ This briefing provides Ksolves with the hardware, storage, and network context r
 
 MSB-PMC01 runs Proxmox VE (kernel `6.8.12-20-pve`) in a hyperconverged Ceph configuration. Ksolves' provisioning activities will land VMs into this cluster but will not modify cluster, Ceph, or networking infrastructure — those remain fqdn-managed.
 
-**v1.1 update (2026-05-05):** Section 6 finalized in light of decisions captured in `Phases_Critical_Path_Development_v1.4.md` (3-node cluster posture, 1 concurrent Spark job, Azure Blob staging confirmed). Added § 5.1 — Airflow DAG behavior expectations carried over from `Ksolves_Spark_YARN_Config_v1.0.pdf` (table ordering, runtime repartition parameter injection, retry handling, placeholder-table size-check gate).
+**v1.1 update (2026-05-05):** Section 6 finalized in light of decisions captured in `Phases_Critical_Path_Development_v1.5.md` (3-node cluster posture, 1 concurrent Spark job, Azure Blob staging confirmed). Added § 5.1 — Airflow DAG behavior expectations carried over from `Ksolves_Spark_YARN_Config_v1.0.pdf` (table ordering, runtime repartition parameter injection, retry handling, placeholder-table size-check gate).
+
+**v1.2 update (2026-05-07):** Restores **Nginx as an in-scope install task** on the Airflow VM. Earlier "no HA → no Nginx" reasoning (used during the v1.3/v1.4 main-CP cycle) was incorrect — the single YARN ResourceManager confirms there is no HA stable-endpoint requirement, but stable-endpoint-for-HA is only one of several potential Nginx roles. Nginx **install** is in scope; **server activation / functional configuration is TBD by Ksolves** post-install. Candidate roles (any subset, Ksolves' decision):
+- Reverse proxy for the YARN ResourceManager UI and other Spark/Airflow web UIs (consistent UI surface)
+- TLS termination
+- SSO front-door (Okta) routing
+- URL rewriting
+- IP allowlisting (defense-in-depth ingress filter)
+- Access logging (audit + ePHI logging surface for the HIPAA audit-logging gate, P2.9 in main CP)
+
+This briefing pairs with `Phases_Critical_Path_Development_v1.5.md` § P1.0 — see that section's Nginx scope note for the equivalent text in the main CP.
 
 ---
 
@@ -136,7 +146,7 @@ Before the Airflow VM can be provisioned and tested, the fqdn network team must 
 
 **Verification artifacts:** `nc -zv <node> 8032` and `nc -zv <node> 8088` succeed against all three MSB-PMC03 worker nodes. Network team confirms in change ticket.
 
-This gate must close before Ksolves begins VM provisioning. Status tracking is in `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.4.md` § P0.7.
+This gate must close before Ksolves begins VM provisioning. Status tracking is in `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.5.md` § P0.7.
 
 ---
 
@@ -192,7 +202,7 @@ This briefing draws from the following authoritative artifacts in the fqdn proje
 - **Ceph OSD tree (`ceph osd df tree` output):**
   `phases/phase2/development/Incoming/PMC01_OSD_Tree/PMC01_OSD_Tree.md`
 - **Phase 2 critical path with P1.0 specification:**
-  `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.4.md` § P1.0, P0.7
+  `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.5.md` § P1.0, P0.7
 - **Vendor Spark/YARN configuration baseline (delivered 2026-05-04):**
   `phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` § 1.1 (table inventory), § 1.3 (SLA risk summary), § 4 (Spark defaults), § 7.2 (repartition formula)
 - **HIPAA compliance sub-project critical path:**
