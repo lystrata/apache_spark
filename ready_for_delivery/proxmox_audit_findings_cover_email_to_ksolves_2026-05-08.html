@@ -41,6 +41,8 @@
               <li style="margin:2px 0;">A redacted authentication-keys section confirming the structure of the auth posture without exposing secrets</li>
             </ul>
 
+            <p style="margin:0 0 14px 0;">For reference, I&rsquo;ve also attached the raw output of the audit script (<span style="font-family: Consolas, 'Courier New', monospace; background:#f3f3f3; padding:1px 5px; border-radius:3px;">proxmox_audit_raw_output_2026-05-08.txt</span>) so you can see the underlying <span style="font-family: Consolas, 'Courier New', monospace; background:#f3f3f3; padding:1px 5px; border-radius:3px;">ceph</span> CLI output the report was built from. Authentication-key values are redacted in transit (<span style="font-family: Consolas, 'Courier New', monospace; background:#f3f3f3; padding:1px 5px; border-radius:3px;">[REDACTED]</span>); entity names and capabilities are preserved so the auth-posture structure is visible.</p>
+
             <p style="margin:0 0 14px 0;">The audit script ran cluster-wide Ceph commands from one node, so it doesn&rsquo;t include per-node OS / Proxmox / drive-encryption state. I&rsquo;ll run a per-node script on each of <span style="font-family: Consolas, 'Courier New', monospace; background:#f3f3f3; padding:1px 5px; border-radius:3px;">msb-pmc03-01 / -02 / -03</span> separately to capture that. <strong>If you have a recommended audit script you&rsquo;ve used on prior installations, please share it</strong> so we can align our verification with your install patterns.</p>
 
             <p style="margin:0 0 14px 0;">A handful of items I&rsquo;d like to clarify before signing off on Phase 2. They&rsquo;re spelled out with full context in &sect; 13 of the attachment. The summary table below is for the quick look.</p>

@@ -23,6 +23,8 @@ I've attached the full audit report as HTML (`proxmox_audit_findings_to_ksolves_
 - Ceph config diff (non-default values)
 - A redacted authentication-keys section confirming the structure of the auth posture without exposing secrets
 
+For reference, I've also attached the raw output of the audit script (`proxmox_audit_raw_output_2026-05-08.txt`) so you can see the underlying `ceph` CLI output the report was built from. Authentication-key values are redacted in transit (`[REDACTED]`); entity names and capabilities are preserved so the auth-posture structure is visible.
+
 The audit script ran cluster-wide Ceph commands from one node, so it doesn't include per-node OS / Proxmox / drive-encryption state. I'll run a per-node script on each of `msb-pmc03-01 / -02 / -03` separately to capture that. **If you have a recommended audit script you've used on prior installations, please share it** so we can align our verification with your install patterns.
 
 A handful of items I'd like to clarify before signing off on Phase 2. They're spelled out with full context in § 13 of the attachment. The summary table below is for the quick look.
