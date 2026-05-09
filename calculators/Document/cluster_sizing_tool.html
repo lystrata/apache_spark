@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -22,6 +22,35 @@
     --sans:    'DM Sans', sans-serif;
     --mono:    'IBM Plex Mono', monospace;
   }
+  /* Light mode — warm amber palette, per CLAUDE.md HTML Document Conventions */
+  [data-theme="light"] {
+    --bg:      #e6dfd0;
+    --bg2:     #f7f2e8;
+    --bg3:     #ede7da;
+    --bg4:     #ddd6c8;
+    --border:  #c8bfad;
+    --border2: #d4ccbd;
+    --text:    #2a2318;
+    --muted:   #8a7d6a;
+    --accent:  #2d5a8e;
+    --accent2: #3b6aa0;
+    --green:   #1a5430;
+    --yellow:  #7a4a00;
+    --red:     #981818;
+  }
+
+  /* Theme toggle button — placed in header */
+  .btn-theme {
+    font-family: var(--mono); font-size: 10px; font-weight: 500;
+    padding: 6px 12px; border-radius: 5px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--bg3);
+    color: var(--muted); letter-spacing: 0.06em;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-theme:hover { background: var(--border); color: var(--text); }
+  .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .header-row .header { flex: 1; margin-bottom: 0; }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; }
 
@@ -177,10 +206,13 @@
 <body>
 <div class="page-wrap" id="top">
 
-  <div class="header">
-    <div class="header-tag">General Purpose</div>
-    <div class="header-title">Spark Cluster Sizing Tool</div>
-    <div class="header-sub">All hardware parameters are inputs — model any cluster configuration. For tuning a specific fixed cluster use the dev or production calculator.</div>
+  <div class="header-row">
+    <div class="header">
+      <div class="header-tag">General Purpose</div>
+      <div class="header-title">Spark Cluster Sizing Tool</div>
+      <div class="header-sub">All hardware parameters are inputs — model any cluster configuration. For tuning a specific fixed cluster use the dev or production calculator.</div>
+    </div>
+    <button class="btn-theme" id="btn_theme" onclick="toggleTheme()">&#9728; Light</button>
   </div>
 
   <!-- Warnings — sticky persistent card -->
@@ -725,6 +757,19 @@
 </div><!-- /.page-wrap -->
 
 <script>
+// ─── Theme toggle ───────────────────────────────────────────────────────────
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('spark_theme_sizing_tool', theme);
+  var btn = document.getElementById('btn_theme');
+  if (btn) btn.textContent = theme === 'dark' ? '☀ Light' : '☾ Dark';
+}
+function toggleTheme() {
+  var current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+applyTheme(localStorage.getItem('spark_theme_sizing_tool') || 'dark');
+
 // ─── Section state ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() {
