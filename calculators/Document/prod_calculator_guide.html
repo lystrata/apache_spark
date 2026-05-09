@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -59,9 +59,53 @@ tr:nth-child(even) td { background:var(--bg2); }
 .toc-list li { margin-bottom:4px; }
 .toc-list a { color:var(--accent); text-decoration:none; font-size:13px; }
 .toc-list a:hover { color:var(--accent2); text-decoration:underline; }
+
+/* ── Light theme overrides (warm amber palette) ──────────────────────── */
+[data-theme="light"] {
+  --bg:      #fdf6e3;
+  --bg2:     #f5ebd0;
+  --bg3:     #ede0bb;
+  --bg4:     #e3d3a4;
+  --border:  #c9b685;
+  --border2: #b09866;
+  --text:    #3a2f1c;
+  --label:   #5a4a30;
+  --label2:  #7a6440;
+  --muted:   #8a7350;
+  --accent:  #b8860b;
+  --accent2: #cc9a1f;
+  --good:    #6b8e23;
+  --warn:    #c97a1a;
+  --bad:     #b03020;
+  --yellow:  #b8860b;
+}
+/* ── Theme toggle button (position-fixed top-right) ──────────────────── */
+.btn-theme {
+  position: fixed; top: 14px; right: 14px; z-index: 9999;
+  font-size: 11px; font-weight: 500; padding: 6px 14px; border-radius: 6px;
+  cursor: pointer; border: 1px solid var(--border); background: var(--bg3);
+  color: var(--text); font-family: inherit;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.btn-theme:hover { background: var(--border); color: var(--text); }
+
 </style>
+<script>
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('spark_theme_prod_guide', theme);
+  var btn = document.getElementById('btn_theme');
+  if (btn) btn.innerHTML = theme === 'dark' ? '&#9728; Light' : '&#9790; Dark';
+}
+function toggleTheme() {
+  var current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+applyTheme(localStorage.getItem('spark_theme_prod_guide') || 'dark');
+</script>
 </head>
 <body>
+<button class="btn-theme" id="btn_theme" onclick="toggleTheme()">&#9728; Light</button>
 
 <h1>Production Spark Calculator &mdash; User Guide</h1>
 <p style="color:var(--muted);font-size:14px;font-weight:300;margin-top:6px;margin-bottom:40px;">HPE DL385 Gen11 &middot; 3-node Proxmox cluster &middot; 64c / 768 GB / 9&times; 3.2 TB NVMe per node &middot; Dual NUMA</p>
