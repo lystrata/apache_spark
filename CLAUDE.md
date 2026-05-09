@@ -476,7 +476,19 @@ Required JS functions (`expandAllSections`, `collapseAllSections`, `expandSubs(e
 
 ### Theme Toggle
 
-**All new calculator and reference HTML files must include a light/dark theme toggle.** This is a project-wide requirement.
+**Scope — applies to interactive / reference / tracker HTML, not email-bound HTML.**
+
+In scope (must include the toggle):
+- All HTML in `calculators/Document/` — calculators, guides, references, models, research summaries, glossaries, flow diagrams, the index
+- All HTML in `phases/<phase>/<env>/Document/` — Critical Path trackers, sub-project trackers, profile pages, deliverable models
+- Any new interactive tool, reference, model, or tracker added in a fork's `Document/` directory
+
+Out of scope (no toggle):
+- HTML email bodies and attachments under `ready_for_delivery/` — they target Outlook MSO renderer; theme toggling is a recipient-runtime concern that does not apply (see *Email HTML Styling — Outlook-Safe Profile* below)
+- One-off recipient-specific drafts (e.g., `vendor-letter-draft.html`) where the document is going to be rendered once and shipped, not re-opened by the user
+- Operational source files in `Notes/` or `Incoming/`
+
+**Implementation:**
 
 - Set `data-theme="dark"` on the `<html>` element as the default.
 - Place the toggle button in the page header alongside the title (use `page-header-inner` flex layout with `.header-text` and `.btn-theme`).
@@ -672,7 +684,87 @@ The four `correspondence/<sub>/` directories track different lifecycle stages of
 **Two HTML profiles to know:**
 
 - **Self-contained-and-rich** (the project default): pandoc `--standalone --embed-resources` rendering with the full `html_review/style.css` palette inlined. Use this for *attachment* HTMLs the recipient opens in a browser — the audit-findings HTML is an example.
-- **Outlook-safe**: hand-built HTML with inline styles only, tables for layout, web-safe fonts. Use this for the *email body* (cover letter HTML the recipient sees in Outlook compose / mail client). Outlook MSO renderer doesn't support modern CSS (no flex, no grid, no variables) so the styling has to stay conservative.
+- **Outlook-safe**: hand-built HTML with inline styles only, tables for layout, web-safe fonts. Use this for the *email body* (cover letter HTML the recipient sees in Outlook compose / mail client). Outlook MSO renderer doesn't support modern CSS (no flex, no grid, no variables) so the styling has to stay conservative. See *Email HTML Styling — Outlook-Safe Profile* below for the full ruleset.
+
+---
+
+## Email HTML Styling — Outlook-Safe Profile
+
+Applies to **all HTML email bodies** authored in this project — vendor-bound, internal-bound, partner-bound, single-recipient or distribution. The Outlook MSO (Microsoft Office HTML) renderer is the lowest-common-denominator across business mail clients; styling that survives MSO will also render correctly in Apple Mail, Gmail web, Outlook web, and most mobile clients.
+
+**This rule is generic and recipient-agnostic** — do not hand-roll variants per recipient. One profile, applied uniformly.
+
+### What "email body" means here
+
+The HTML that the recipient **pastes into the compose window** or that their mail client renders inline. This includes:
+
+- Cover-letter HTML for a vendor or internal sync
+- Inline emails composed from a markdown source in `correspondence/Document/`
+- Any HTML in `ready_for_delivery/` whose intended use is the email *body*, not an attachment
+
+It does **not** include:
+
+- HTML *attachments* the recipient opens in a browser (those use the self-contained-rich profile)
+- Internal HTML (calculators, references, trackers) which use the project's CSS-variable palette and theme toggle
+
+### MSO-safe ruleset (mandatory for email bodies)
+
+1. **Inline styles only.** No `<style>` blocks, no external CSS, no class-based selectors. Every styling directive lives in a `style="..."` attribute on the element it styles. (MSO ignores `<style>` rules in many configurations; class selectors are stripped intermittently.)
+
+2. **Table-based layout.** Use `<table>` / `<tr>` / `<td>` for any multi-column or boxed layout. No `<div>`-based flex or grid. Set `cellpadding="0" cellspacing="0" border="0"` on layout tables and use inline `padding`/`margin` on cells.
+
+3. **Web-safe font fallback chain.** Use `font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif;` on every text-bearing element. Do not specify Google Fonts, Cascadia Code, Fira Mono, or any font not present on stock Windows + macOS. (Spark project's native HTMLs use Cascadia Code with stack fallback — that's fine for native HTML, **not** fine for email.)
+
+4. **No CSS variables.** MSO does not resolve `var(--name)`. Hard-code every color, every dimension. (This is the cost of recipient-agnostic styling — the source-of-truth color values from `html-css-style-guide.html` get copy-pasted as hex literals into each email body.)
+
+5. **No flex / no grid / no modern positioning.** No `display: flex`, no `display: grid`, no `position: absolute`. Layout is tables-and-floats only. (Some clients support modern layout, but a non-zero share don't, and email *must not* degrade based on client.)
+
+6. **Hex colors, not named or HSL.** `#1a1a1a` not `dimgray` or `hsl(0,0%,10%)`. (Named colors are fine, but consistency is the rule and hex is the universal lingua franca.)
+
+7. **Inline images.** Either embed as `data:image/...;base64,...` URIs (MSO renders these inline) or skip them. Do not link to remote `<img src="https://...">` — many clients block remote-image fetch by default and the recipient sees a "show images" prompt or a broken-image icon.
+
+8. **No JavaScript.** Mail clients strip `<script>` unconditionally. Anything interactive is impossible; all logic must be expressed as static HTML.
+
+9. **Conservative max-width.** Constrain the body table to ~600–680 px max width using `style="max-width:680px"` or a fixed `width="680"`. Outlook + many mobile clients render the body inside a narrow column; wide tables break or scroll horizontally.
+
+10. **No theme toggle, no dark mode CSS.** The recipient's mail client decides light/dark. Author one styling — the high-contrast neutral version (dark text on light background) — and let the client invert if it wants. Do not include `data-theme` attributes or a `[data-theme="light"]` block.
+
+### Skeleton template
+
+```html
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Subject Line</title></head>
+<body style="margin:0; padding:20px; font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; color:#1a1a1a; background:#ffffff;">
+  <table cellpadding="0" cellspacing="0" border="0" style="max-width:680px; width:100%;">
+    <tr><td style="padding:0 0 12px 0; font-size:14px; line-height:1.5;">
+      <p style="margin:0 0 12px 0;">Hi <Name>,</p>
+      <p style="margin:0 0 12px 0;">Body paragraph 1.</p>
+      <p style="margin:0 0 12px 0;">Body paragraph 2.</p>
+    </td></tr>
+    <tr><td style="padding:8px 0; font-size:13px; line-height:1.4; color:#444444; border-top:1px solid #cccccc;">
+      <p style="margin:0;">Regards,<br>Rohn</p>
+    </td></tr>
+  </table>
+</body>
+</html>
+```
+
+### Verification
+
+After authoring an email-body HTML, verify:
+
+- Zero `<style>` blocks: `grep -c '<style' <file>` → `0`
+- Zero `<script>` blocks: `grep -c '<script' <file>` → `0`
+- Zero `var(--...)` references: `grep -c 'var(--' <file>` → `0`
+- Zero `display: flex` / `display: grid`: `grep -cE 'display: ?(flex|grid)' <file>` → `0`
+- Web-safe font chain present: `grep -c "Calibri.*Segoe UI.*Arial" <file>` → `1+`
+
+### Reference
+
+`Shared_References/html-css-style-guide.html` Section B carries the project's color palette in CSS-variable form for native HTML. When adapting for email bodies, copy the relevant hex values out of that section and inline them — do not link to or import the style guide.
+
+---
 
 ## Hardware Reference
 
