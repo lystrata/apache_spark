@@ -338,48 +338,15 @@ A pre-commit hook at `.git/hooks/pre-commit` scans staged content for corporate 
 
 ```bash
 mkdir -p ~/.config/spark-hooks
-# Add corporate identifier strings to this file, one per line
-nano ~/.config/spark-hooks/patterns
+nano ~/.config/spark-hooks/patterns   # one pattern per line
 chmod 600 ~/.config/spark-hooks/patterns
 ```
 
 #### Step 2 — Install the hook
 
+The hook is not tracked by git. On a fresh clone, copy `.git/hooks/pre-commit` from an existing installation and make it executable:
+
 ```bash
-# From the repo root
-cp .git/hooks/pre-commit.sample .git/hooks/pre-commit 2>/dev/null || true
-curl -fsSL https://raw.githubusercontent.com/lystrata/apache_spark/main/.git/hooks/pre-commit 2>/dev/null || \
-cat > .git/hooks/pre-commit << 'EOF'
-#!/usr/bin/env bash
-PATTERN_FILE="$HOME/.config/spark-hooks/patterns"
-if [ ! -f "$PATTERN_FILE" ]; then
-  echo "  pre-commit: pattern file not found at $PATTERN_FILE — skipping identifier scan"
-  exit 0
-fi
-PATTERNS=$(paste -sd'|' "$PATTERN_FILE")
-MATCHES=$(git diff --cached -U0 | grep -iE "^\+" | grep -iE "$PATTERNS")
-if [ -z "$MATCHES" ]; then exit 0; fi
-echo ""
-echo "┌─────────────────────────────────────────────────────────────┐"
-echo "│  pre-commit: corporate identifier(s) found in staged files  │"
-echo "└─────────────────────────────────────────────────────────────┘"
-echo ""
-echo "$MATCHES" | sed 's/^+/  /'
-echo ""
-echo "  Options:"
-echo "    s  sanitize — abort commit and review manually"
-echo "    f  force    — commit anyway (intentional)"
-echo "    q  quit     — abort commit, no action"
-echo ""
-exec < /dev/tty
-read -rp "  Choice [s/f/q]: " CHOICE
-echo ""
-case "$CHOICE" in
-  f|F) echo "  Proceeding with commit."; exit 0 ;;
-  s|S) echo "  Commit aborted. Sanitize flagged lines before committing."; exit 1 ;;
-  *)   echo "  Commit aborted."; exit 1 ;;
-esac
-EOF
 chmod +x .git/hooks/pre-commit
 ```
 
@@ -505,50 +472,7 @@ Every HTML page that uses the section + sub-section pattern must include both:
 
 **Section-level (scoped) controls** — within each main section that contains sub-sections, a two-link strip at the top of the `section-body`, above the first sub-section: `▾ Open all sub-sections · ▴ Close all`. Each strip operates only on `details.sub-details` within its parent main section — it never cascades to sibling sections. Sections that contain only cards (no `sub-details`) — like a pure Overview section — omit the scoped strip.
 
-Required JS (one copy per file):
-
-```js
-function expandAllSections()   { document.querySelectorAll('details.section-details').forEach(function(d) { d.open = true;  }); }
-function collapseAllSections() { document.querySelectorAll('details.section-details').forEach(function(d) { d.open = false; }); }
-function expandSubs(el) {
-  var s = el.closest('details.section-details');
-  if (s) s.querySelectorAll('details.sub-details').forEach(function(d) { d.open = true; });
-}
-function collapseSubs(el) {
-  var s = el.closest('details.section-details');
-  if (s) s.querySelectorAll('details.sub-details').forEach(function(d) { d.open = false; });
-}
-```
-
-Page-header HTML (replace the single theme-button with a wrapper):
-
-```html
-<div class="page-header-buttons">
-  <button class="btn-theme" id="btn_theme" onclick="toggleTheme()">&#9728; Light</button>
-  <button class="btn-theme" onclick="expandAllSections()">&#9662; Expand all</button>
-  <button class="btn-theme" onclick="collapseAllSections()">&#9652; Collapse all</button>
-</div>
-```
-
-Scoped strip HTML (immediately inside each main section's `section-body`, above the first `<details class="sub-details">`):
-
-```html
-<div class="sub-controls">
-  <a onclick="expandSubs(this)">&#9662; Open all sub-sections</a>
-  <span class="dot">&middot;</span>
-  <a onclick="collapseSubs(this)">&#9652; Close all</a>
-</div>
-```
-
-Required CSS:
-
-```css
-.page-header-buttons { display: flex; flex-direction: column; gap: 6px; align-items: stretch; flex-shrink: 0; }
-.sub-controls { font-size: 0.74rem; color: var(--muted); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border2); }
-.sub-controls a { color: var(--muted); cursor: pointer; }
-.sub-controls a:hover { color: var(--accent); text-decoration: underline; }
-.sub-controls .dot { margin: 0 8px; color: var(--label2); }
-```
+Required JS functions (`expandAllSections`, `collapseAllSections`, `expandSubs(el)`, `collapseSubs(el)`) and the corresponding HTML/CSS (`div.page-header-buttons`, `div.sub-controls`) are in `Shared_References/html-css-style-guide.html` Section B — copy from there, not from other calculators.
 
 ### Theme Toggle
 
@@ -559,23 +483,9 @@ Required CSS:
 - Use the warm amber palette for light mode — defined in `Shared_References/html-css-style-guide.html` Section B.
 - Use a unique `localStorage` key per file using the pattern `spark_theme_<context>` to avoid cross-page conflicts.
 - Existing keys in use: `spark_theme` (dev calc), `spark_theme_prod` (prod calc), `spark_theme_phase1` (phase1 model), `spark_theme_styleguide` (style guide).
+- `applyTheme()` must be called immediately on script load (not inside DOMContentLoaded) to prevent a flash of the wrong theme.
 
-```js
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('spark_theme_<context>', theme);
-  document.getElementById('btn_theme').textContent = theme === 'dark' ? '\u2600 Light' : '\u263e Dark';
-}
-function toggleTheme() {
-  var current = document.documentElement.getAttribute('data-theme') || 'dark';
-  applyTheme(current === 'dark' ? 'light' : 'dark');
-}
-applyTheme(localStorage.getItem('spark_theme_<context>') || 'dark');
-```
-
-The `applyTheme()` call must run immediately (not inside DOMContentLoaded) to prevent a flash of the wrong theme on load.
-
-**Style guide:** `Shared_References/html-css-style-guide.html` — global reference containing the complete CSS variable palette, component patterns, light/dark overrides, and JS patterns. Consult it instead of grepping existing calculators when building new files.
+Full JS implementation (`applyTheme`, `toggleTheme`) is in `Shared_References/html-css-style-guide.html` Section B — the canonical reference for the CSS variable palette, component patterns, and light/dark overrides. Consult it instead of grepping existing calculators when building new files.
 
 ### Sub-Section Pattern (within a section)
 
