@@ -20,7 +20,7 @@ This document was forked from `Phases_Critical_Path_Development_v1.2.md` (2026-0
 
 **v1.3 → v1.4 (2026-05-05):**
 - 3-node cluster finalized (vendor recommended +1 node, fqdn declined on budget)
-- HIPAA scope forked into sub-project: `CP_HIPAA_Compliance_v1.0.md` (BLOCKER.3 added)
+- HIPAA scope forked into sub-project: `CP_HIPAA_Compliance_v1.1.md` (BLOCKER.3 added)
 - GZIP non-splittability mitigation elevated to P0 decision (P0.0b)
 - P0.0a closed (vendor delivered CSV analysis in `Ksolves_Spark_YARN_Config_v1.0.pdf` § 1.1)
 - P0.3 closed (Azure Blob confirmed)
@@ -119,9 +119,26 @@ The Vendor Access Isolation Framework was finalized as **v0.2** (`security/Docum
 **Companion documents bumped 2026-05-11:**
 
 - `MSB-PMC01_airflow_host_briefing_v1.2.md` → `_v1.3.md` (msb-pmc01 retirement / msb-pmc04 commitment)
-- `Phases_Critical_Path_Development_v1.5.md` updated in place with 2026-05-11 progress (framework v0.2 circulated)
+- `CP_HIPAA_Compliance_v1.0.md` → `_v1.1.md` (HIPAA scope split: 3a closes Phase 2, 3b reassigned to Phase 3; see below)
+- `Phases_Critical_Path_Development_v1.5.md` updated in place with 2026-05-11 progress (framework v0.2 circulated; BLOCKER.3a closed; BLOCKER.3b → Phase 3; VLAN 37 recognition issue)
 - `phases_critical_path_development_tracker_v1.5.html` updated in place to mirror the v1.5 status changes
 - This document (production fork) updated 2026-05-11 with v0.2 production-side implications
+
+---
+
+## Update 2026-05-11 (EOD) — Phase 2 audit closures + HIPAA scope split + VLAN 37 recognition issue
+
+**Production-side implications:**
+
+1. **HIPAA scope split — Phase 2 hardware compliance (BLOCKER.3a) vs Phase 3 software/network compliance (BLOCKER.3b).** Per joint fqdn–Ksolves decision 2026-05-11, the HIPAA scope splits across phase boundaries. **Production-side reading:**
+   - **Phase 2 hardware compliance** for production = drive-encryption posture on production hardware (768 GB RAM, 64-core nodes, 9× 3.2 TB NVMe — note hardware differs from dev). When production cluster is provisioned, the same LUKS double-encryption issue should be checked at install time. **Mitigation:** apply the dev-cluster lesson — direct vendor to use existing hardware encryption only (no software LUKS layer on hardware-encrypted drives).
+   - **Phase 3 software/network compliance** = transmission security, Web UI ACL, SSE on Ceph buckets, local Spark I/O encryption, Kerberos service auth. **Production-side reading:** production cluster must satisfy the full Phase 3 HIPAA posture before ePHI processing. Canonical scope tracked in `CP_HIPAA_Compliance_v1.1.md` (which now scopes Phase 3 work for both dev and production).
+
+2. **Phase 2 audit § 13 items all closed (dev cluster).** Production-side equivalent: same audit script should run on the production cluster post-install. Action items the script flags (mclock IOPS calibration, RGW server-side tuning, OSD device class, LUKS posture, pool naming intent, CephFS MDS state, Ceph version) need to be verified on production hardware before production sign-off.
+
+3. **VLAN 37 Proxmox recognition issue (NEW 2026-05-11).** Surfaced on the dev cluster during <vendor-engineer>'s Phase 3 VM-config work. **Production-side implication:** if the issue traces to a Proxmox configuration or VLAN-handling pattern (vs. a dev-cluster-specific cabling/switch issue), the production cluster will need the same fix applied during install. Sean is debugging; remediation steps planned for the evening of 2026-05-11. Cross-reference: main CP v1.5 § BLOCKER.4 § Network sub-tasks.
+
+4. **Phase 3 work begun (<vendor-engineer>).** VM-config tasks initiated on dev cluster 2026-05-11. Production-side: production Phase 3 work is sequenced after dev Phase 3 completes (per the SOW phase ordering). The production CP body revision pass should mirror dev Phase 3 task taxonomy when it stabilizes.
 
 ---
 

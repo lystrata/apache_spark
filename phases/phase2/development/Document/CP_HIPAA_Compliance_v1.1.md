@@ -1,14 +1,22 @@
 # Critical Path — HIPAA Compliance (Spark / YARN / Ceph)
 
-_Version 1.0 · Last updated 2026-05-05 · v1.5-sync notes added 2026-05-08_
+_Version 1.1 · Last updated 2026-05-11_
 _Source: Ksolves Spark & YARN Configuration Best Practices v1.0 (2026-05-04) § 8 — `phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf`_
-_Status: Active — gates production handling of ePHI data on the Spark cluster_
+_Status: Active — Phase 3 scope for software/network HIPAA compliance (BLOCKER.3b); Phase 2 hardware compliance (BLOCKER.3a) closed 2026-05-11_
 
-> **v1.5 Sync (2026-05-08):** No changes to HIPAA scope or sub-tasks. Cross-references bumped to `Phases_Critical_Path_Development_v1.5.md`. Two adjacent gates worth noting:
-> - **BLOCKER.4 (NEW 2026-05-06)** in main CP — Phase 1B vendor-access isolation gate. HIPAA compliance work that requires vendor execution (the encryption pillars in § 8.1, § 8.2) is sequenced behind BLOCKER.4 closure when delivered via permanent VDI. During Phase 1A (Webex screen-share, active 2026-05-06), HIPAA verification can begin on dev only and only for non-ePHI work.
-> - **P2.9 (NEW 2026-05-07)** in main CP — Centralized Audit Logging + Retention Policy (HIPAA-driven, 6-year floor per § 164.316(b)(2)). Currently in main CP; may move into this sub-project during the next HIPAA revision pass once a clear "audit / retention" pillar is added below the existing three.
+> **v1.1 Update (2026-05-11) — HIPAA scope split between Phase 2 and Phase 3:** Per joint fqdn–Ksolves decision 2026-05-11, the HIPAA encryption + access-control posture splits across phase boundaries:
 >
-> **Update 2026-05-08 — BLOCKER.3 split:** main CP § BLOCKER.3 was split 2026-05-08 into **BLOCKER.3a** (hardware compliance — drive encryption / LUKS posture; vendor claimed closed under their Phase 2 declaration; pending fqdn verification) and **BLOCKER.3b** (software & network compliance — Spark RPC / TLS / SSL / Web UI ACL / custom javax filter). The vendor's three-pillar framing in § 8 maps to this split: § 8.2 (data at rest, drive-level) → 3a; § 8.1 (transmission) + § 8.3 (Web UI ACL) → 3b. This sub-project's body still lists the unified scope; future revision pass may reorganize into 3a / 3b sections to mirror the split.
+> - **Phase 2 — HIPAA Hardware Compliance (BLOCKER.3a) — CLOSED 2026-05-11.** Drive encryption / LUKS posture on NVMe scratch drives sde–sdh. <vendor-engineer> ran ansible reformat across all 3 dev cluster nodes today, removing the software LUKS layer that had been double-layered on top of the existing hardware encryption. Final posture: hardware-only encryption on scratch drives; OSD drives (sda/sdc/sdd) remain dm-crypt as expected. Confirmed via the 2026-05-11 18:42 audit log at `phases/phase2/development/Incoming/ceph_audit_msb-pmc03-01.corp.fqdn_2026-05-11_1842.log` showing sde–sdh bare-mounted at `/data/spark-scratch/drive[0-3]` with no dm-crypt mapping.
+> - **Phase 3 — HIPAA Software & Network Compliance (BLOCKER.3b) — Active, scope of this document.** Transmission security (§ 8.1), Web UI ACL (§ 8.3), SSE on Ceph buckets (§ 8.2 object-storage portion), local Spark I/O encryption, Kerberos service auth. All Active Items (#H1, #H2, #H4, #H5) plus Vendor-Owned Verification Items (V1–V6) are Phase 3 scope. This document is the canonical tracker for BLOCKER.3b going forward; main CP v1.5 carries a one-line pointer here.
+>
+> The vendor's three-pillar § 8 framing maps to this split:
+> - § 8.1 transmission security → Phase 3
+> - § 8.2 data at rest → **Phase 2 (LUKS) closed**; Phase 3 portion (SSE on Ceph buckets, local Spark I/O encryption) remains active
+> - § 8.3 Web UI ACL → Phase 3
+>
+> **v1.5 Sync notes (preserved from v1.0, 2026-05-08):** Two adjacent gates in main CP worth noting:
+> - **BLOCKER.4 (NEW 2026-05-06)** — Phase 1B vendor-access isolation gate. HIPAA compliance work that requires vendor execution is sequenced behind BLOCKER.4 closure when delivered via permanent VDI. Vendor Isolation Framework v0.2 circulated 2026-05-11; awaiting Network / Cyber / CIO / AD-admin responses.
+> - **P2.9 (NEW 2026-05-07)** — Centralized Audit Logging + Retention Policy (HIPAA-driven, 6-year floor per § 164.316(b)(2)). Currently in main CP; may move into this sub-project during the next HIPAA revision pass once a clear "audit / retention" pillar is added below the existing three.
 
 ---
 
@@ -90,21 +98,13 @@ Pre-decision before #H1 development can begin: does the Spark Web UI auth filter
 
 <a id="hipaa-3"></a>
 
-### #H3 — Notify Ksolves: NVMe disks already LUKS-encrypted
+### #H3 — Notify Ksolves: NVMe disks already LUKS-encrypted — **CLOSED 2026-05-11**
 
-- **Status:** TO DO (small / one-off)
-- **Priority:** HIGH (avoid vendor reformatting our existing encryption)
-- **Owner:** **Wood, Rohn**
-- **Depends on:** None
-- **Triggers / informs:** Vendor's Spark-install workflow
-- **Source:** Vendor doc § 8.2 + fqdn-side existing infrastructure
-
-The vendor's § 8.2 recommends `LUKS` (Linux Unified Key Setup) on the four NVMe scratch drives (`/dev/nvme3n1` … `/dev/nvme6n1`) as a HIPAA control. **fqdn already has LUKS in place** on these drives. The vendor does **not** know this. If they follow their own runbook blindly, they may reformat / re-encrypt — destructive.
-
-**fqdn actions:**
-- [ ] Send Ksolves a short note: "NVMe drives 4–7 are already LUKS-encrypted; do not reformat. Mount with the existing keyfile/script provided by fqdn ops."
-- [ ] Provide whatever mount-time keyfile or unlock procedure fqdn has set up
-- [ ] Verify after install that vendor mounted the existing LUKS volumes (not new ones)
+- **Status:** **CLOSED 2026-05-11** — closed via the joint resolution of the LUKS double-encryption issue (see Closed Items below). The notification was sent (verbal 2026-05-06; written follow-up `correspondence/Document/nvme_luks_already_encrypted_followup_to_ksolves_2026-05-08.md` sent 2026-05-08), but the vendor's install applied software LUKS anyway on top of the existing hardware encryption. Final state was resolved 2026-05-11 by <vendor-engineer>'s ansible reformat removing the software LUKS layer; scratch drives now hardware-only encryption.
+- **Priority:** (historic) HIGH (avoid vendor reformatting our existing encryption)
+- **Owner:** Wood, Rohn (notify) + <vendor-engineer> / Ksolves (reformat)
+- **Final action:** ansible reformat across all 3 dev nodes 2026-05-11; bare-mounted scratch drives at `/data/spark-scratch/drive[0-3]`. Verified via 2026-05-11 18:42 audit log.
+- **Source:** Vendor doc § 8.2 + fqdn-side existing infrastructure + 2026-05-11 working-session resolution
 
 ---
 
@@ -168,9 +168,11 @@ These are configured by the vendor during Spark install. fqdn's responsibility i
 
 ---
 
-## Closed Items (Already Done on fqdn Side)
+## Closed Items
 
-- [x] **LUKS encryption on NVMe scratch drives** — `/dev/nvme3n1` … `/dev/nvme6n1` are already LUKS-encrypted on all 3 dev nodes prior to Ksolves' arrival. This satisfies the vendor's § 8.2 LUKS recommendation. **Action item #H3 above** ensures the vendor doesn't reformat.
+- [x] **BLOCKER.3a HIPAA Hardware Compliance — LUKS posture on NVMe scratch drives — CLOSED 2026-05-11.** Drive-level encryption verified post-resolution: hardware-only encryption on scratch drives sde–sdh (bare-mounted at `/data/spark-scratch/drive[0-3]`); OSD drives sda/sdc/sdd remain LUKS-encrypted via dm-crypt as expected. Audit log: `phases/phase2/development/Incoming/ceph_audit_msb-pmc03-01.corp.fqdn_2026-05-11_1842.log`. This satisfies the vendor's § 8.2 LUKS recommendation under the Phase 2 hardware-compliance scope and **closes the Phase 2 portion of HIPAA scope.** Phase 3 software/network HIPAA compliance (Active Items #H1, #H2, #H4, #H5 + Vendor-Owned V1–V6) remains active scope.
+- [x] **#H3 — Notify Ksolves: NVMe disks already LUKS-encrypted — CLOSED 2026-05-11** (see #H3 detail above)
+- [x] **(historic)** LUKS encryption on NVMe scratch drives was already in place prior to Ksolves' arrival; the vendor's install applied software LUKS on top of the existing hardware encryption (double-encryption); resolved 2026-05-11 by removing the software layer.
 
 ---
 

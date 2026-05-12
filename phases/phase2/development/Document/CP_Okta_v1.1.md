@@ -1,7 +1,7 @@
 # Critical Path — Okta + Active Directory Integration for Spark Phase 1
 
 _Version 1.1 · Last updated 2026-05-05 · v1.5-sync notes added 2026-05-08_  
-_Companion document to `Phases_Critical_Path_Development_v1.5.md` and `CP_HIPAA_Compliance_v1.0.md` · Audit + critical-path additions for enterprise Okta SSO with AD as authoritative directory_
+_Companion document to `Phases_Critical_Path_Development_v1.5.md` and `CP_HIPAA_Compliance_v1.1.md` · Audit + critical-path additions for enterprise Okta SSO with AD as authoritative directory_
 
 > **v1.5 Sync (2026-05-08):** No changes to Okta scope or task list. Cross-references bumped to `Phases_Critical_Path_Development_v1.5.md`. Three points worth noting:
 > - **AD DC enumeration closed 2026-05-06** — 7 DCs across 4 sites (Windsor ×2, Garfield ×1, South ×2, MSB RW + RO). Captured in `security/Notes/vendor-access-isolation-plan_2026-05-06.md` § AD domain controllers. Relevant to § O0.4 (network egress requirements) here. **Open follow-up:** confirm with fqdn AD admins whether vendor traffic should be DC-pool-wide or steered to specific DCs (e.g., MSB-RO for query, MSB-RW for writeback).
@@ -85,7 +85,7 @@ Each task includes status, owner, dependencies, action steps as GFM checkboxes, 
 
 - Snowflake-internal RBAC, warehouse provisioning, COPY INTO authorship — fqdn responsibility per Phase 1 plan.
 - Spark application-level data authorization (Ranger / row-level filtering / column masking) — deferred to a future phase.
-- Replacing Spark's native Kerberos/delegation-token machinery for inter-daemon traffic — Phase 1 retains Hadoop's standard delegation token model for executor-to-NM-to-RM communication.¹ Okta sits at the **user-facing** edge only. **Cross-reference:** the HIPAA-driven inter-daemon work — Kerberos realm + keytab provisioning, RPC AES-GCM encryption, SSL/TLS on shuffle and IO encryption, Web UI ACL via custom javax servlet filter, and SSE on Ceph buckets — is tracked in `CP_HIPAA_Compliance_v1.0.md`. That sub-project owns the on-cluster identity protocol; this Okta document owns user-facing SSO only. Where the two intersect (Web UI ACL, SSH/ASA), the connection is called out explicitly in the relevant `O1.x` task.
+- Replacing Spark's native Kerberos/delegation-token machinery for inter-daemon traffic — Phase 1 retains Hadoop's standard delegation token model for executor-to-NM-to-RM communication.¹ Okta sits at the **user-facing** edge only. **Cross-reference:** the HIPAA-driven inter-daemon work — Kerberos realm + keytab provisioning, RPC AES-GCM encryption, SSL/TLS on shuffle and IO encryption, Web UI ACL via custom javax servlet filter, and SSE on Ceph buckets — is tracked in `CP_HIPAA_Compliance_v1.1.md`. That sub-project owns the on-cluster identity protocol; this Okta document owns user-facing SSO only. Where the two intersect (Web UI ACL, SSH/ASA), the connection is called out explicitly in the relevant `O1.x` task.
 
 ---
 
@@ -616,7 +616,7 @@ The following items in `Phases_Critical_Path_Development_v1.5.md` need updates o
 ## Reference Documents
 
 - `Phases_Critical_Path_Development_v1.5.md` — Phase 1 critical path that this document augments
-- `CP_HIPAA_Compliance_v1.0.md` — HIPAA encryption + Web UI ACL sub-project (companion to this document; owns inter-daemon Kerberos + RPC encryption, while this document owns user-facing Okta SSO)
+- `CP_HIPAA_Compliance_v1.1.md` — HIPAA encryption + Web UI ACL sub-project (companion to this document; owns inter-daemon Kerberos + RPC encryption, while this document owns user-facing Okta SSO)
 - `Ksolves_Spark_YARN_Config_v1.0.pdf` — vendor configuration baseline; § 8 is the source for the HIPAA workstream that the cross-reference above points to
 - `security/Notes/okta-migration-plan.md` — earlier scaffold from which this document expands
 - `security/Notes/keycloak-implementation-plan.md` — superseded by Okta decision (kept for historical reference)

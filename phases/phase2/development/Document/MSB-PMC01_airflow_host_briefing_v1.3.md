@@ -215,7 +215,7 @@ This briefing draws from the following authoritative artifacts in the fqdn proje
 - **Vendor Spark/YARN configuration baseline (delivered 2026-05-04):**
   `phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` § 1.1 (table inventory), § 1.3 (SLA risk summary), § 4 (Spark defaults), § 7.2 (repartition formula)
 - **HIPAA compliance sub-project critical path:**
-  `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.0.md`
+  `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.1.md`
 - **Phase 1 report (delivered 2026-04-24):**
   `phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf`
 
