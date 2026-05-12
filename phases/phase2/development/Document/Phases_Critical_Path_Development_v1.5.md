@@ -3,11 +3,11 @@
 
 # Phases Critical Path — fqdn Development Cluster
 
-_Version 1.5 · Last updated 2026-05-07_  
+_Version 1.5 · Last updated 2026-05-11_  
 _Phases 1–2 detailed plan from fqdn Phase 1 Report (Ksolves) — April 2026 · Configuration baseline from Ksolves Spark & YARN Config v1.0 (2026-05-04)_  
 _Report Source: phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf_  
 _Config Source: phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf_  
-_Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) IN PROGRESS — BLOCKER.1 closed 2026-05-08 (Phase 1A access satisfies; Phase 1B tracked under BLOCKER.4); P0.0 (Ceph), P0.1a (Worker VM hardware), P0.4 pre-req (RHEL subs in account portal), P0.7 (network MSB-PMC01↔03) all closed 2026-05-08 · P0.1b (Worker VM OS install) + P0.4 post-prov still open · Remaining gates: BLOCKER.3 (HIPAA — split 2026-05-08 into 3a hardware [vendor-claimed closed; pending verification] + 3b software/network [open]) + BLOCKER.4 (Phase 1B vendor-access isolation, NEW 2026-05-06) · 3-node cluster finalized 2026-05-05 (vendor-recommended +1 node declined — budget) · Ksolves Horizon pool stood up 2026-05-07; pool validation + IP blocks closed 2026-05-08 · Out-of-scope items flagged for vendor clarification_
+_Status: Phase 1 (Planning) COMPLETED Apr 24 · Phase 2 (Implementation) IN PROGRESS — BLOCKER.1 closed 2026-05-08 (Phase 1A access satisfies; Phase 1B tracked under BLOCKER.4); P0.0 (Ceph), P0.1a (Worker VM hardware), P0.4 pre-req (RHEL subs in account portal), P0.7 (network MSB-PMC01↔03) all closed 2026-05-08 · P0.1b (Worker VM OS install) + P0.4 post-prov still open · Remaining gates: BLOCKER.3 (HIPAA — split 2026-05-08 into 3a hardware [vendor-claimed closed; pending verification] + 3b software/network [open]) + BLOCKER.4 (Phase 1B vendor-access isolation, NEW 2026-05-06) · 3-node cluster finalized 2026-05-05 (vendor-recommended +1 node declined — budget) · Ksolves Horizon pool stood up 2026-05-07; pool validation + IP blocks closed 2026-05-08 · **Vendor isolation framework v0.2 circulated 2026-05-11** (msb-pmc04 committed as 3rd Spark cluster; msb-pmc01 retiring; VLAN 37 unified across pmc02/03/04; vendor accounts/groups provisioned; awaiting Network / Cyber / CIO / AD-admin responses) · Out-of-scope items flagged for vendor clarification_
 
 ---
 
@@ -265,15 +265,38 @@ Austin and Sean both replied to the 2026-05-07 alignment email on 2026-05-08. **
 
 Austin's pool-level egress policies constrain the **pool itself** (what the pool VMs can talk to), enforced at the **network firewall** that is the pool's default gateway — single chokepoint. Sean's cluster-side controls constrain **what msb-pmc03 accepts from those allowed destinations** (ingress + VM isolation, designed independently of pool-level decisions). The two layers operate orthogonally — pool-level work does not reduce or expand cluster-side scope, and vice versa.
 
-#### msb-pmc04 third-cluster note (under consideration; non-blocking)
+#### msb-pmc04 third-cluster — committed 2026-05-11
 
-**Captured 2026-05-08 from review punch-list:** a third Proxmox cluster (msb-pmc04) is under consideration to add to the Spark cluster infrastructure, with the explicit goal of **removing msb-pmc01 from the security equation**. If pursued, this would shift the orchestration / Airflow / monitoring services off msb-pmc01-04 onto msb-pmc04, leaving msb-pmc01 entirely outside the vendor-allowed surface. Material implications:
+**Captured 2026-05-08; committed 2026-05-11 via framework v0.2:** msb-pmc04 is now committed as the third Spark cluster, with the explicit goal of **removing msb-pmc01 from the security equation**. msb-pmc04 hosts: Airflow + ancillary services (Grafana / Prometheus / Loki, Bastion, Ansible source) + additive Ceph + CephFS / RGW frontend gateways. The msb-pmc01 orchestration cluster is being retired; once services migrate, it is out of the Spark fabric entirely.
 
-- **`10.1.37.0/24` cluster-overlap simplification** — Sean's VLAN-isolation approach (sole-tenancy of VLANs 37/38/39 for msb-pmc03) gets easier if msb-pmc01 is no longer in the vendor scope.
-- **Airflow VM (P1.0) replatform** — Airflow + Nginx install would target msb-pmc04 instead of msb-pmc01-04. Companion file `MSB-PMC01_airflow_host_briefing_v1.2.md` would need a successor briefing for the new host.
-- **Sub-task ordering** — does not block the current BLOCKER.4 design; treat as a future architectural simplification path.
+Material implications now baked into the framework:
 
-Status: **non-blocking — captured for reference**. Track decision in TODO + planning note as it crystallizes.
+- **`10.1.37.0/24` cluster-overlap resolved** — with msb-pmc01 leaving the Spark fabric, the cluster-overlap problem dissolves. VLAN 37 becomes structurally sole-tenanted by the three Spark clusters as the retirement completes.
+- **Airflow VM (P1.0) replatform** — Airflow + Nginx install targets msb-pmc04, not msb-pmc01-04. Companion file `MSB-PMC01_airflow_host_briefing_v1.3.md` carries the 2026-05-11 supersession notice; a successor briefing under a new basename (e.g. `MSB-PMC04_airflow_host_briefing_v1.0.md`) is forthcoming once msb-pmc04 specs and inventory land.
+- **VLAN 37 unified across all three Spark clusters** — single Spark Cluster Network spanning msb-pmc02 / 03 / 04 and the VMs running on them. Supersedes the earlier "msb-pmc03 sole tenant of 37/38/39 + new VLAN 10 chokepoint" candidate.
+
+Status: **committed in framework v0.2 (2026-05-11)**. See `security/Document/Vendor_Access_Isolation_Framework_v0.2.md` for the formalized framework.
+
+#### 2026-05-11 progress — framework v0.2 circulated
+
+Vendor Access Isolation Framework finalized as **v0.2** (`security/Document/Vendor_Access_Isolation_Framework_v0.2.md`, on-site only) and circulated to Network (Sean Klette, Austin), Cyber (Paul Barber), CIO (Rob Ball), AD admins, and Michelle. Email body sent 2026-05-11 afternoon; sanitized Outlook-safe HTML rendering committed to git for audit trail at `ready_for_delivery/vendor_access_framework_email_body_2026-05-11.html` (commit `be1e4ae`). Longer-form v0.1 draft archived to `security/Notes/archive/Vendor_Access_Isolation_Framework_v0.1.md`.
+
+**Key changes formalized by v0.2:**
+
+- **msb-pmc04 committed** (see preceding subsection)
+- **msb-pmc01 retired** from the Spark fabric (services migrate to msb-pmc04)
+- **VLAN 37 unified** across msb-pmc02 / 03 / 04 — single Spark Cluster Network
+- **Dev/prod isolation explicitly deferred** — not in scope at this design stage; tighter posture is a separate later cycle
+- **Vendor accounts/groups closure** — Michelle's bridge sub-task closed; accounts and groups in place 2026-05-11
+- **Primary/secondary control framing made explicit** — Austin's network firewall (single chokepoint at pool's default gateway) is primary; host-level `nftables`/`firewalld` + vendor sudo carve-out is defense-in-depth secondary
+
+**Three scope expansions vs. the 2026-05-06 CIO directive (now awaiting risk-accept from Rob Ball):**
+
+1. msb-pmc02 (production) in vendor scope
+2. Dev ↔ Prod cluster isolation deferred (not in scope at this design stage)
+3. msb-pmc04 (new orchestration cluster) in vendor scope
+
+**Awaiting team responses** — see gate-status table above for per-row state. Returns owed from Network (VLAN 37 spanning + allowlist content), Cyber (endorsement + sudo carve-out sign-off), CIO (3 scope expansions risk-accept), AD admins (DC-pool-wide vs steered), Ksolves (OPSWAT install confirmation).
 
 ```
 [Vendor device] → [UAG] → [Horizon pool VM]
@@ -300,13 +323,13 @@ Status: **non-blocking — captured for reference**. Track decision in TODO + pl
 | Pool validation testing (`ks_test` group) | **Closed 2026-05-08** (via 5/8 email exchange) | (closed) |
 | Sean + Austin sync on pool ↔ cluster-side layering | **Closed 2026-05-08** (both replied; layering confirmed orthogonal) | (closed) |
 | Confirm consistent IP blocks for vendor-created VMs | **Closed 2026-05-08** (Sean's 5/8 email) | (closed) |
-| Cluster-side isolation design (VLAN approach or alternative) | Open | Sean Klette |
-| Snowflake / Azure egress allowlist mechanics | Open (output feeds Austin's firewall) | Rohn (fqdn) |
+| Cluster-side isolation design — framework v0.2 circulated (VLAN 37 unified across pmc02/03/04) | **Circulated 2026-05-11**, awaiting Network confirmation of spanning + allowlist content | Sean Klette + Austin |
 | AD DC enumeration | **Closed 2026-05-06** (7 DCs documented) | (closed) |
 | OPSWAT install request | **Closed 2026-05-07** (awaiting vendor) | Rohn / Ksolves |
-| Vendor user list for VDI accounts | Open | Michelle (bridge) + Ksolves |
-| Cyber review of final design | Open (downstream) | Paul Barber |
-| CIO risk-acceptance sign-off | Open (downstream) | Rob Ball |
+| Vendor user list for VDI accounts | **Closed 2026-05-11** (accounts and groups provisioned in pool) | (closed) |
+| AD admin guidance: DC-pool-wide vs steered | **Awaiting reply 2026-05-11** (asked in framework v0.2) | fqdn AD admins |
+| Cyber endorsement of framework v0.2 + sudo carve-out sign-off | **Awaiting reply 2026-05-11** (asked in framework v0.2) | Paul Barber |
+| CIO risk-acceptance — 3 scope expansions vs 2026-05-06 directive | **Awaiting reply 2026-05-11** (asked in framework v0.2) | Rob Ball |
 | Phase 1B exit-condition decision | Open | Rohn + Paul Barber |
 | Phase 1B — Horizon VDI go-live | Open, **gated on rows above** | fqdn Cyber |
 
@@ -339,11 +362,11 @@ _fqdn (Rohn):_
 - [ ] Provide Ksolves an updated estimate for when secure access will be available (Item #12)
 
 _fqdn (Michelle — vendor user provisioning bridge):_
-- [ ] Vendor user list for Horizon pool — provision Ksolves AD accounts on the pool. Predicated on pool validation testing (above) passing first
+- [x] Vendor accounts and groups provisioned in the Horizon pool — **closed 2026-05-11**. No further provisioning action needed; framework sign-off (v0.2) is for the surrounding controls, not the accounts.
 
 _Vendor (Ksolves):_
 - [ ] Confirm OPSWAT install across vendor devices (vendor-side device-posture attestation)
-- [ ] Vendor user list bridge — Ksolves supplies the names; Michelle provisions
+- [x] Vendor user list bridge — Ksolves supplied the names; Michelle provisioned in the pool. **Closed 2026-05-11**.
 
 _Reviewers (downstream):_
 - [ ] Cyber review of final design (Paul Barber) — once Rohn + Sean have a candidate

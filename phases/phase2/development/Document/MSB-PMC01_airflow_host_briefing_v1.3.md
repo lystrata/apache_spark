@@ -2,8 +2,15 @@
 
 _For: Ksolves implementation team_
 _Prepared by: fqdn infrastructure (cluster owner)_
-_Version 1.2 · 2026-05-07_
-_Subject: Hardware and infrastructure context for P1.0 (Remote Airflow Server provisioning), plus DAG behavior expectations carried over from the Ksolves Spark/YARN Config v1.0 baseline · v1.2 corrects the Nginx scope dropped in the v1.1 cycle_
+_Version 1.3 · 2026-05-11_
+_Subject: Hardware and infrastructure context for P1.0 (Remote Airflow Server provisioning), plus DAG behavior expectations carried over from the Ksolves Spark/YARN Config v1.0 baseline · v1.3 captures the 2026-05-11 msb-pmc01 retirement decision and the msb-pmc04 commitment as Airflow's successor host_
+
+> **SUPERSESSION NOTICE (v1.3, 2026-05-11):** This briefing is being phased out. Per the Vendor Access Isolation Framework v0.2 (`security/Document/Vendor_Access_Isolation_Framework_v0.2.md`, circulated 2026-05-11), **msb-pmc01 is being retired from the Spark fabric, and msb-pmc04 is committed as the successor host** for Airflow + ancillary services (Grafana / Prometheus / Loki, Bastion, Ansible source) + additive Ceph + CephFS / RGW frontend gateways. Until migration completes, the hardware / network / storage context below remains operationally accurate for the interim msb-pmc01-04 deployment. Once msb-pmc04 specs and inventory land, a **successor briefing** (new basename, e.g. `MSB-PMC04_airflow_host_briefing_v1.0.md`) will replace this document. Treat new provisioning decisions as targeting msb-pmc04, not msb-pmc01-04.
+>
+> See:
+> - `security/Document/Vendor_Access_Isolation_Framework_v0.2.md` — the formalized retirement / commitment decision
+> - `Phases_Critical_Path_Development_v1.5.md` § BLOCKER.4 § msb-pmc04 third-cluster — committed 2026-05-11
+> - `security/Notes/vendor-access-isolation-plan_2026-05-06.md` § Status (2026-05-11 — framework v0.2 circulated)
 
 ---
 

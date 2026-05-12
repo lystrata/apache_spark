@@ -203,7 +203,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
     <div class="header-text">
       <h1>Phases Critical Path — Development Cluster</h1>
       <h2>Interactive Tracker · Source: <code>Phases_Critical_Path_Development_v1.5.md</code></h2>
-      <p>Version 1.5 · Last updated 2026-05-07 · Click checkboxes to mark steps complete; state auto-saves to this browser only.</p>
+      <p>Version 1.5 · Last updated 2026-05-11 · Click checkboxes to mark steps complete; state auto-saves to this browser only.</p>
     </div>
     <button class="btn-theme" id="btn_theme" onclick="toggleTheme()">&#9728; Light</button>
   </div>
@@ -336,7 +336,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
         <li>Ksolves authenticates to Horizon desktops with fqdn-issued credentials (vendor-account list pending — Michelle owns the bridge)</li>
         <li>Full owner-level Proxmox access via Horizon desktop environment</li>
         <li><strong>Dependency:</strong> <strong><a onclick="jumpTo('sec_blocker4','sec_blocker4')">BLOCKER.4</a></strong> (vendor-access isolation design + Cyber endorsement + CIO sign-off) — original Cyber Security approval was declined 2026-05-06 on the originally-proposed terms</li>
-        <li><strong>Status (2026-05-07):</strong> Pool stood up by vendor (UAG-reachable); pool-egress firewall policies set; <code>ks_test</code> AD group attached for fqdn-side validation. One BLOCKER.4 sub-task complete pending validation; remaining gates open. Ksolves user provisioning awaits Michelle's user-list completion.</li>
+        <li><strong>Status (2026-05-11):</strong> Pool operational; pool-egress firewall policies set (2026-05-07); pool validation testing closed (2026-05-08); <strong>vendor accounts and groups provisioned (2026-05-11, Michelle bridge — closed)</strong>. Framework v0.2 circulated 2026-05-11 to Network / Cyber / CIO / AD admins awaiting responses; remaining gates are Cyber endorsement, CIO risk-accept on 3 scope expansions, AD-admin DC-pool guidance, and Ksolves OPSWAT confirmation.</li>
         <li><strong>Timeline:</strong> Pool validation testing imminent (Sean + Rohn). Phase 1B go-live still gated on BLOCKER.4 closure.</li>
       </ul>
     </div>
@@ -359,7 +359,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
       <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_1" data-track checked><span class="cb-text">Ksolves Horizon pool stood up (Jason / 2026-05-07) — UAG-reachable, <code>ks_test</code> AD group attached</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_2" data-track checked><span class="cb-text">Pool-egress firewall policies set (Austin / 2026-05-07) — DNS, AD, UAG, Connection Servers allowed; everything else blocked</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_3" data-track checked><span class="cb-text">Pool validation testing (Sean + Rohn) — <strong>closed 2026-05-08</strong> via the 5/8 email exchange</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_4" data-track><span class="cb-text">Vendor user list (Michelle owns) — provision Ksolves AD accounts on the pool</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_4" data-track checked><span class="cb-text">Vendor user list (Michelle owns) — provision Ksolves AD accounts on the pool — <strong>closed 2026-05-11</strong> (accounts and groups in place)</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_5" data-track><span class="cb-text">Cluster-side isolation design (Sean Klette lead — see BLOCKER.4)</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_6" data-track><span class="cb-text">Cyber endorsement of design candidate (Paul Barber)</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b1_par_pool_7" data-track><span class="cb-text">CIO risk-acceptance sign-off (Rob Ball)</span></div>
@@ -528,7 +528,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
       <div class="task-warn"><strong>Open implication (DNS-confirmed 2026-05-06):</strong> msb-pmc01 and msb-pmc03 currently share <code>10.1.37.0/24</code>; making msb-pmc03 sole-tenant of 37/38/39 may require renumbering one cluster — see <code>security/Notes/vendor-access-isolation-plan_2026-05-06.md</code> § Sean's VLAN Isolation Approach addendum for the four design paths.</div>
     </div>
 
-    <div class="task-note"><strong>2026-05-08 — msb-pmc04 third-cluster note (non-blocking):</strong> A third Proxmox cluster (msb-pmc04) is under consideration to add to the Spark cluster infrastructure, with the explicit goal of <strong>removing msb-pmc01 from the security equation</strong>. Material implications if pursued: orchestration / Airflow / monitoring services migrate from msb-pmc01-04 to msb-pmc04; Bastion VM also migrates; <code>10.1.37.0/24</code> cluster-overlap simplifies; vendor allowlist scope shrinks (msb-pmc01 IP block 10.1.37.48–51 drops out). <strong>Status: non-blocking — captured for reference; track decision as it crystallizes.</strong></div>
+    <div class="task-note"><strong>2026-05-11 — msb-pmc04 committed (formerly "under consideration"):</strong> Per Vendor Access Isolation Framework v0.2 (circulated 2026-05-11), msb-pmc04 is now <strong>committed as the third Spark cluster</strong>, hosting Airflow + ancillary services (Grafana / Prometheus / Loki, Bastion, Ansible source) + additive Ceph + CephFS / RGW frontend gateways. msb-pmc01 is being retired from the Spark fabric; services migrate to msb-pmc04. Material consequences now baked in: <code>10.1.37.0/24</code> cluster-overlap dissolves (msb-pmc01 leaves the fabric); VLAN 37 unified across msb-pmc02 / 03 / 04 as the single Spark Cluster Network (supersedes the earlier "msb-pmc03 sole tenant of 37/38/39 + new VLAN 10 chokepoint" candidate); Airflow VM (P1.0) replatforms to msb-pmc04. Companion: <code>MSB-PMC01_airflow_host_briefing_v1.3.md</code> carries the 2026-05-11 supersession notice; successor briefing under a new basename forthcoming once msb-pmc04 specs land.</div>
 
     <div class="task-block">
       <div class="task-block-title">2026-05-07 Progress (one sub-task complete)</div>
@@ -541,9 +541,33 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
     </div>
 
     <div class="task-block">
+      <div class="task-block-title">2026-05-08 Progress (both responses; layering closed)</div>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li><strong>Austin replied</strong> (<code>correspondence/Document/email_austin_response_horizon_pool_2026-05-08.md</code>): CS's = Horizon Connection Servers; policy enforcement layer = network firewall (pool's default gateway, single chokepoint)</li>
+        <li><strong>Sean replied</strong> (<code>correspondence/Document/email_sean_response_horizon_pool_2026-05-08.md</code>): "This does not change the cluster side and related VM isolation as planned" — layering confirmed orthogonal</li>
+        <li><strong>Pool validation testing closed</strong> via the 5/8 email exchange (Sean + Rohn)</li>
+        <li><strong>Consistent IP blocks for vendor-created VMs confirmed</strong> via Sean's 5/8 email</li>
+      </ul>
+    </div>
+
+    <div class="task-block">
+      <div class="task-block-title">2026-05-11 Progress — Framework v0.2 circulated</div>
+      <ul style="list-style:disc;padding-left:22px;">
+        <li><strong>Vendor Access Isolation Framework v0.2</strong> finalized (<code>security/Document/Vendor_Access_Isolation_Framework_v0.2.md</code>) and circulated to Network (Sean Klette, Austin), Cyber (Paul Barber), CIO (Rob Ball), AD admins, and Michelle. Email body sent + sanitized rendering committed to git for audit trail at <code>ready_for_delivery/vendor_access_framework_email_body_2026-05-11.html</code></li>
+        <li><strong>msb-pmc04 committed</strong> as third Spark cluster (promoted from "under consideration") — see note above for material consequences</li>
+        <li><strong>VLAN 37 unified across msb-pmc02 / 03 / 04</strong> — single Spark Cluster Network spans all three; supersedes earlier "VLAN 10 chokepoint" candidate</li>
+        <li><strong>Dev ↔ Prod cluster isolation explicitly deferred</strong> — facilitating vendor access across all three clusters is the priority; tighter dev/prod posture is a separate later cycle</li>
+        <li><strong>Vendor accounts and groups provisioned</strong> in the Horizon pool — Michelle's bridge sub-task closed</li>
+        <li><strong>Primary / secondary control framing</strong> made explicit: Austin's network firewall (single chokepoint at pool's default gateway) = primary; host-level <code>nftables</code> / <code>firewalld</code> + vendor sudo carve-out = defense-in-depth secondary</li>
+        <li><strong>Three scope expansions vs. the 2026-05-06 CIO directive</strong> now awaiting CIO risk-accept: (1) msb-pmc02 (production) in vendor scope; (2) Dev ↔ Prod cluster isolation deferred; (3) msb-pmc04 in vendor scope</li>
+        <li><strong>Awaiting responses</strong> — Sean+Austin (VLAN 37 spanning, allowlist content), Paul Barber (Cyber endorsement, sudo carve-out sign-off), Rob Ball (CIO risk-accept on 3 scope expansions), AD admins (DC-pool-wide vs. steered), Ksolves (OPSWAT install confirmation)</li>
+      </ul>
+    </div>
+
+    <div class="task-block">
       <div class="task-block-title">Sub-Tasks — Network (Sean Klette)</div>
       <div class="cb-row"><input type="checkbox" id="cb_b4_net_1" data-track><span class="cb-text">Develop the VLAN-isolation proposal — confirm tenancy on VLANs 37/38/39 exclusive to msb-pmc03; design VLAN 10 ingress/egress; document routing topology</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b4_net_2" data-track><span class="cb-text">Sync with Austin on Horizon pool ↔ cluster-side design layering (triggered by 2026-05-07 email)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_net_2" data-track checked><span class="cb-text">Sync with Austin on Horizon pool ↔ cluster-side design layering — <strong>closed 2026-05-08</strong> (Sean replied; layering confirmed orthogonal)</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b4_net_3" data-track checked><span class="cb-text">Confirm consistent IP blocks for vendor-created VMs — <strong>closed 2026-05-08</strong> via Sean's 5/8 email exchange</span></div>
       <div class="cb-row"><input type="checkbox" id="cb_b4_net_4" data-track><span class="cb-text">Address the 10.1.37.0/24 cluster overlap if VLAN-isolation path is chosen (renumbering vs. one of the alternative paths)</span></div>
     </div>
@@ -566,14 +590,16 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
     <div class="task-block">
       <div class="task-block-title">Sub-Tasks — Vendor (Ksolves)</div>
       <div class="cb-row"><input type="checkbox" id="cb_b4_vend_opswat" data-track><span class="cb-text">Confirm OPSWAT install across vendor devices (vendor-side device-posture attestation)</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b4_vend_users" data-track><span class="cb-text">Vendor user list for VDI account provisioning (Michelle owns the bridge from fqdn side)</span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_vend_users" data-track checked><span class="cb-text">Vendor user list for VDI account provisioning (Michelle bridge) — <strong>closed 2026-05-11</strong> (accounts and groups provisioned in pool)</span></div>
     </div>
 
     <div class="task-block">
-      <div class="task-block-title">Sub-Tasks — Reviewers (downstream)</div>
-      <div class="cb-row"><input type="checkbox" id="cb_b4_rev_cyber" data-track><span class="cb-text">Cyber review of final design (Paul Barber) — once Rohn + Sean have a candidate</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b4_rev_cio" data-track><span class="cb-text">CIO risk-acceptance sign-off (Rob Ball) — once Cyber endorses</span></div>
-      <div class="cb-row"><input type="checkbox" id="cb_b4_rev_exit" data-track><span class="cb-text">Phase 1B exit-condition decision (Rohn + Paul Barber)</span></div>
+      <div class="task-block-title">Sub-Tasks — Reviewers (in flight 2026-05-11 via framework v0.2)</div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_rev_cyber" data-track><span class="cb-text">Cyber endorsement of framework v0.2 (Paul Barber) — endorse primary + secondary control; confirm host-firewall pattern; sign off on vendor sudo carve-out (sudoers <code>Cmnd_Alias</code> exclusions, AppArmor on Debian, SELinux on RHEL) — <strong>asked 2026-05-11, awaiting reply</strong></span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_rev_cio" data-track><span class="cb-text">CIO risk-acceptance (Rob Ball) — three scope expansions vs. 2026-05-06 directive: (1) msb-pmc02 (production) in vendor scope; (2) Dev ↔ Prod cluster isolation deferred; (3) msb-pmc04 in vendor scope — <strong>asked 2026-05-11, awaiting reply</strong></span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_rev_ad" data-track><span class="cb-text">AD admin guidance — confirm vendor AD reach: DC-pool-wide (any-of-7) vs. steered (e.g., MSB-RO for query, MSB-RW for writeback) — <strong>asked 2026-05-11, awaiting reply</strong></span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_rev_net_vlan37" data-track><span class="cb-text">Network confirmation (Sean Klette + Austin) — VLAN 37 can be made a single fabric-wide L2 broadcast domain spanning msb-pmc02 + 03 + 04; pool-egress allowlist content matches framework Enterprise Services section — <strong>asked 2026-05-11, awaiting reply</strong></span></div>
+      <div class="cb-row"><input type="checkbox" id="cb_b4_rev_exit" data-track><span class="cb-text">Phase 1B exit-condition decision (Rohn + Paul Barber) — when does the design come off / what does cluster network posture revert to</span></div>
     </div>
 
     <div class="task-warn"><strong>Verification gate (lifts BLOCKER.4 → unblocks Phase 1B):</strong> all items above closed; design endorsed by Cyber; CIO risk-acceptance signed; pool validation testing passed.</div>

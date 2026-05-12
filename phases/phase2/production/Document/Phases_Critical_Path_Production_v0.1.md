@@ -3,7 +3,7 @@
 
 # Phases Critical Path — fqdn Production Cluster
 
-_Version 0.1 · Last updated 2026-04-27 · v1.5-sync header refresh 2026-05-08_  
+_Version 0.1 · Last updated 2026-04-27 · v1.5-sync header refresh 2026-05-08 · v0.2 framework sync 2026-05-11_  
 _Forked from `Phases_Critical_Path_Development_v1.2.md` as a starting point — production-specific adjustments pending. **Development-side has since advanced to `_v1.5.md`** (cut 2026-05-07/08); the body of this document still reflects the v1.2 fork point and needs a production-specific revision pass before promotion._  
 _Report Source: phases/phase1/development/Incoming/fqdn Report Phase 1 (Updated).docx.pdf (development scope; production scope to be defined separately)_  
 _Status: **DRAFT — pending production-specific revision.** Hardware specs (64-core nodes, 768 GB RAM, 9× 3.2 TB NVMe), production traffic profile, NUMA topology (dual-socket), and production-only services (HA SLOs, backup/DR) not yet reflected. Content below is inherited from the development plan and will be revised. **See "v1.5 Sync Status" below for events that occurred after this fork and need to be folded in during the production-specific pass.**_
@@ -87,6 +87,41 @@ The 2026-05-08 review of the v1.5 cycle surfaced material for the production-sid
 5. **NIC redundancy (Sean) for dev cluster** — listed in the email thread Apr 21 action items + Section 2 summary. Production-side equivalent: NIC redundancy on production nodes; needs explicit task on the production fork's revision pass.
 
 6. **Apache Ranger evaluation** — for Spark-level RBAC + column masking on PHI vs. de-identified data. Mentioned in dev TODO; production implementation gates Q7 (RBAC) of the questionnaire.
+
+---
+
+## Update 2026-05-11 — vendor isolation framework v0.2 circulated; production-side scope material
+
+The Vendor Access Isolation Framework was finalized as **v0.2** (`security/Document/Vendor_Access_Isolation_Framework_v0.2.md`, on-site only) and circulated to fqdn Network (Sean Klette, Austin), Cyber (Paul Barber), CIO (Rob Ball), AD admins, and Michelle on 2026-05-11 afternoon. Email body sent + sanitized rendering committed to git audit trail at `ready_for_delivery/vendor_access_framework_email_body_2026-05-11.html` (commit `be1e4ae`).
+
+**Production-side implications of v0.2 (material for the production revision pass):**
+
+1. **msb-pmc02 (production) is explicitly in vendor scope** — the framework places production alongside dev and the new msb-pmc04 inside a unified Spark Cluster Network (VLAN 37). This is **scope expansion #1** vs. the 2026-05-06 CIO directive; CIO risk-acceptance is now pending. **Material for production-side BLOCKER.4 equivalent:** the question "does production allow vendor access at all post-handover" (raised in the 2026-05-08 update above) is partially answered for the install / configuration phase — yes, vendor needs access. Whether that scope persists past handover (Phase 4) is a separate decision still owed.
+
+2. **msb-pmc04 committed as third Spark cluster** — promoted from "under consideration" (2026-05-08) to **committed** on 2026-05-11. msb-pmc04 hosts Airflow + ancillary services (Grafana / Prometheus / Loki, Bastion, Ansible source) + additive Ceph cluster + CephFS / RGW frontend gateways. The msb-pmc01 orchestration cluster is being retired; services migrate to msb-pmc04. **Production-side architecture impact:** orchestration and monitoring services that touch production now target msb-pmc04, not msb-pmc01-04. Production-fork architecture diagram revision pass must reflect this.
+
+3. **VLAN 37 unified across msb-pmc02 / 03 / 04** — single Spark Cluster Network spans all three Spark clusters. Supersedes the earlier "msb-pmc03 sole tenant of 37/38/39 + new VLAN 10 chokepoint" candidate from 2026-05-06. **Production-side implication:** prod cluster joins the same L2 broadcast domain as dev. Network sizing (IP space) must accommodate prod hosts + VMs. Comfortably within /24 today; expand to /23 if host/VM density outgrows envelope.
+
+4. **Dev ↔ Prod cluster isolation explicitly deferred** — **scope expansion #2** vs. the 2026-05-06 CIO directive. v0.2 states: "Facilitating vendor access across all three clusters is the priority; tighter dev/prod posture is deferred." For the production fork, this means **no L2 / L3 separation between dev and prod at this design stage** — both share VLAN 37, both reachable from the same Horizon pool, both with the same vendor allow-list. CIO risk-acceptance is pending. Production-fork must note this as a deferred-control item to revisit before production ePHI processing begins.
+
+5. **Primary / secondary control framing** — Austin's network firewall (single chokepoint at pool's default gateway) is **primary**; host-level `nftables` (Proxmox / Debian) + `firewalld` (RHEL 9.4 VMs) + vendor sudo carve-out is **defense-in-depth secondary**. Production hosts will adopt the same posture; production-fork should mirror the control structure when its body is revised.
+
+6. **Vendor accounts and groups provisioned in the Horizon pool** — Michelle's bridge sub-task **closed 2026-05-11**. Same pool serves both dev and production vendor work. No further provisioning action needed; pool credentials work for production access too once the broader gate clears.
+
+**Awaiting team responses (cross-doc — applies to both forks):**
+
+- **Sean Klette + Austin (Network):** confirm VLAN 37 can be made a single fabric-wide L2 broadcast domain spanning msb-pmc02 + 03 + 04; confirm pool-egress allowlist content matches the framework's Enterprise Services section
+- **Paul Barber (Cyber):** endorse the framework or surface gaps; confirm host-firewall pattern; sign off on vendor sudo carve-out approach
+- **Rob Ball (CIO):** risk-accept the 3 scope expansions vs. the 2026-05-06 directive: (1) msb-pmc02 in vendor scope; (2) Dev↔Prod isolation deferred; (3) msb-pmc04 in vendor scope. **All three have production-side implications.**
+- **fqdn AD admins:** confirm vendor AD reach approach — DC-pool-wide (any-of-7) vs. steered (e.g., MSB-RO read, MSB-RW writeback)
+- **Ksolves:** confirm OPSWAT device-posture client installed across all vendor devices
+
+**Companion documents bumped 2026-05-11:**
+
+- `MSB-PMC01_airflow_host_briefing_v1.2.md` → `_v1.3.md` (msb-pmc01 retirement / msb-pmc04 commitment)
+- `Phases_Critical_Path_Development_v1.5.md` updated in place with 2026-05-11 progress (framework v0.2 circulated)
+- `phases_critical_path_development_tracker_v1.5.html` updated in place to mirror the v1.5 status changes
+- This document (production fork) updated 2026-05-11 with v0.2 production-side implications
 
 ---
 
