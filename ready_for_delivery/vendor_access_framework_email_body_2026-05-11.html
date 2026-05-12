@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Vendor Access Isolation — Unified VLAN 37 Framework</title>
+</head>
+<body style="margin:0; padding:20px; font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; color:#1a1a1a; background:#ffffff;">
+
+<table cellpadding="0" cellspacing="0" border="0" style="max-width:680px; width:100%;">
+<tr><td style="font-size:14px; line-height:1.5;">
+
+<h2 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:20px; color:#1a1a1a; margin:0 0 12px 0; border-bottom:1px solid #cccccc; padding-bottom:4px;">Context</h2>
+
+<p style="margin:0 0 12px 0; font-size:14px; line-height:1.5;">This is a progress report on the vendor-isolation work since the 2026-05-06 CIO meeting &mdash; not a finished design, just where Sean and I have landed and what we need to move forward.</p>
+
+<p style="margin:0 0 6px 0; font-size:14px; line-height:1.5;">Quick version of what's changed since the meeting:</p>
+
+<ul style="margin:0 0 12px 0; padding-left:24px; font-size:14px; line-height:1.5;">
+<li style="margin:0 0 4px 0;">Jason stood up the Horizon pool; Austin set initial firewall policies locking egress to DNS / AD / UAG / Connection Servers</li>
+<li style="margin:0 0 4px 0;">Sean and Austin confirmed their layers (pool-level egress / cluster-side ingress) operate independently</li>
+<li style="margin:0 0 4px 0;">Sean and I decided to retire msb-pmc01 for the purpose of reducing the complexity of extending vendor access to VLAN10</li>
+<li style="margin:0 0 4px 0;">We're committing to msb-pmc04 as the third Spark cluster &mdash; picks up Airflow, monitoring, Bastion, and additive storage</li>
+<li style="margin:0 0 4px 0;">Net effect: VLAN 37 becomes the unified Spark Cluster Network across msb-pmc02 / 03 / 04; vendor reach is mediated by Austin's firewall at the pool boundary; AD and DNS are the only enterprise services in the allow list</li>
+</ul>
+
+<p style="margin:0 0 12px 0; font-size:14px; line-height:1.5;">So, you know, I am neither a network nor Active Directory engineer, so I have engaged with CoPilot for assistance to provide (what I assume to be) more on-target network details.</p>
+
+<p style="margin:0 0 12px 0; font-size:14px; line-height:1.5;">If you want to cut to the chase, the current working checklist is at the end of the document divided by teams.</p>
+
+<p style="margin:0 0 18px 0; font-size:14px; line-height:1.5;">The Goal is to land this in this week or next so vendor (and I) can move off the Webex screen-share interim.</p>
+
+<h2 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:20px; color:#1a1a1a; margin:0 0 12px 0; border-bottom:1px solid #cccccc; padding-bottom:4px;">Working assumptions</h2>
+
+<p style="margin:0 0 12px 0; font-size:14px; line-height:1.5;">These are the working assumptions.</p>
+
+<ol style="margin:0 0 18px 0; padding-left:24px; font-size:14px; line-height:1.5;">
+<li style="margin:0 0 10px 0;"><strong>A third Spark cluster (msb-pmc04) will be added</strong> alongside the existing dev cluster (msb-pmc03) and production cluster (msb-pmc02).</li>
+<li style="margin:0 0 10px 0;"><strong>msb-pmc04 hosts</strong>: Airflow + ancillary services (Grafana / Prometheus / Loki, Bastion VM, Ansible playbook source). The <strong>msb-pmc01 orchestration cluster is being retired</strong> &mdash; its services migrate to msb-pmc04; once migration completes, msb-pmc01 is out of the Spark fabric.</li>
+<li style="margin:0 0 10px 0;"><strong>VLAN 37 is the unified Spark Cluster Network</strong> &mdash; spans all three Spark clusters (msb-pmc02, msb-pmc03, msb-pmc04) and the VMs running on them. Every Spark-related service lives in VLAN 37.</li>
+<li style="margin:0 0 10px 0;"><strong>Vendor (Ksolves) needs access to all three Spark clusters</strong> during setup and configuration. <strong>Dev &harr; Prod isolation is explicitly not in scope at this design stage.</strong> Facilitating vendor access across all three clusters is the priority; tighter dev/prod posture is deferred.</li>
+<li style="margin:0 0 10px 0;"><strong>Vendor authenticates</strong> via AD when logging into the fqdn Horizon VDI pool (already stood up 2026-05-07 &mdash; <code style="font-family: Consolas, 'Courier New', monospace; background:#f0f0f0; padding:1px 4px;">ks_test</code> AD group attached, UAG-reachable). Vendor accounts and groups are provisioned (as of 2026-05-11).</li>
+<li style="margin:0 0 10px 0;"><strong>From the VDI, vendor sees VLAN 37 only</strong> as Spark-related network surface. Thus the rest of the corporate network is invisible at the L2 layer; reach to enterprise services (AD, DNS) is mediated by Austin's firewall.</li>
+</ol>
+
+<h2 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:20px; color:#1a1a1a; margin:0 0 12px 0; border-bottom:1px solid #cccccc; padding-bottom:4px;">Vendor Access Path</h2>
+
+<pre style="font-family: Consolas, 'Courier New', monospace; font-size:12px; line-height:1.35; color:#1a1a1a; background:#f6f6f6; padding:12px; border:1px solid #d0d0d0; margin:0 0 18px 0; white-space:pre;">
+[Vendor device]
+       &#9474;
+       &#9660;
+[Universal Access Gateway (UAG)]
+       &#9474;
+       &#9660;
+[Horizon VDI pool &mdash; vendor-isolated, ks_test AD group]
+       &#9474;  (default gateway = Austin's network firewall;
+       &#9474;   confirmed 2026-05-08, single chokepoint for vendor egress)
+       &#9660;
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474;              Austin's network firewall                           &#9474;
+&#9474;                                                                  &#9474;
+&#9474;  ALLOW:                                                          &#9474;
+&#9474;    &bull; VLAN 37 (unified Spark Cluster Network &mdash; see &sect; VLAN 37)     &#9474;
+&#9474;    &bull; AD domain controllers (&times; 7, see &sect; AD reach)                 &#9474;
+&#9474;    &bull; DNS servers (&times; 2, see &sect; DNS)                                &#9474;
+&#9474;    &bull; UAG / Horizon Connection Servers (already in place)         &#9474;
+&#9474;                                                                  &#9474;
+&#9474;  DENY:                                                           &#9474;
+&#9474;    &bull; All other corporate VLANs                                   &#9474;
+&#9474;    &bull; Any IPs outside the explicit allow list above               &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+       &#9474;
+       &#9660;
+[VLAN 37 &mdash; unified Spark Cluster Network]
+   &bull; msb-pmc02 (prod)        &mdash; 3 Proxmox hosts + cluster VMs
+   &bull; msb-pmc03 (dev)         &mdash; 3 Proxmox hosts + 5 cluster VMs (10.1.37.10&ndash;14)
+   &bull; msb-pmc04 (orchestration) &mdash; N Proxmox hosts + Airflow, Bastion, GPL, RGW frontend VMs
+</pre>
+
+<p style="margin:0 0 6px 0; font-size:14px; line-height:1.5;"><strong>Primary control: Austin's network firewall.</strong></p>
+
+<ul style="margin:0 0 12px 0; padding-left:24px; font-size:14px; line-height:1.5;">
+<li style="margin:0 0 4px 0;">Single chokepoint at the pool's default gateway (confirmed 2026-05-08)</li>
+<li style="margin:0 0 4px 0;">Allow / deny policy as enumerated in the diagram above</li>
+</ul>
+
+<p style="margin:0 0 6px 0; font-size:14px; line-height:1.5;"><strong>Secondary control: Defense-in-depth &mdash; host-level firewalls on every VLAN 37 host.</strong></p>
+
+<ul style="margin:0 0 18px 0; padding-left:24px; font-size:14px; line-height:1.5;">
+<li style="margin:0 0 4px 0;"><code style="font-family: Consolas, 'Courier New', monospace; background:#f0f0f0; padding:1px 4px;">nftables</code> on Proxmox hosts (Debian); <code style="font-family: Consolas, 'Courier New', monospace; background:#f0f0f0; padding:1px 4px;">firewalld</code> on RHEL 9.4 VMs</li>
+<li style="margin:0 0 4px 0;">Outbound default-deny; allow VLAN 37 internal + AD DCs + DNS</li>
+<li style="margin:0 0 4px 0;">Vendor sudo carve-out disallows <code style="font-family: Consolas, 'Courier New', monospace; background:#f0f0f0; padding:1px 4px;">nft</code> / <code style="font-family: Consolas, 'Courier New', monospace; background:#f0f0f0; padding:1px 4px;">iptables</code> / <code style="font-family: Consolas, 'Courier New', monospace; background:#f0f0f0; padding:1px 4px;">ufw</code> / <code style="font-family: Consolas, 'Courier New', monospace; background:#f0f0f0; padding:1px 4px;">firewall-cmd</code> so the host-layer rules can't be lifted operationally</li>
+<li style="margin:0 0 4px 0;">Simplified from Paul Barber's 2026-05-06 mitigation proposal &mdash; the primary control already filters at the firewall, so the host rules are a backstop rather than the only line</li>
+</ul>
+
+<h2 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:20px; color:#1a1a1a; margin:0 0 12px 0; border-bottom:1px solid #cccccc; padding-bottom:4px;">VLAN 37 Sole Tenancy</h2>
+
+<p style="margin:0 0 6px 0; font-size:14px; line-height:1.5;">Under this framework, <strong>VLAN 37 is vendor- and Spark-services-only</strong>.</p>
+
+<ul style="margin:0 0 12px 0; padding-left:24px; font-size:14px; line-height:1.5;">
+<li style="margin:0 0 4px 0;">No other fqdn workload tenants share VLAN 37</li>
+<li style="margin:0 0 4px 0;">With msb-pmc01 being retired (item 2 in <em>Working assumptions</em>), VLAN 37 becomes structurally sole-tenanted by the three Spark clusters as the retirement completes</li>
+<li style="margin:0 0 4px 0;">VLAN membership becomes the access boundary at the L2 layer, with Austin's firewall + host firewalls as the policy controls layered on top</li>
+</ul>
+
+<p style="margin:0 0 18px 0; font-size:14px; line-height:1.5;"><strong>IP space sizing:</strong> Three clusters &times; ~3 hosts each + their VMs is comfortably inside a /24 (254 host addresses). If host count or VM density outgrows the envelope later, VLAN 37 can be expressed as a /23 or larger contiguous block.</p>
+
+<h2 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:20px; color:#1a1a1a; margin:0 0 12px 0; border-bottom:1px solid #cccccc; padding-bottom:4px;">Enterprise Services in Scope (vendor needs reach)</h2>
+
+<p style="margin:0 0 12px 0; font-size:14px; line-height:1.5;">Vendor reach to these is <strong>explicit</strong> &mdash; not implied by VLAN 37 membership. Austin's firewall is the enforcement point.</p>
+
+<h3 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:16px; color:#1a1a1a; margin:18px 0 8px 0;">AD reach</h3>
+
+<p style="margin:0 0 8px 0; font-size:14px; line-height:1.5;">Per the CIO directive 2026-05-06, vendor must reach <strong>all 7 AD domain controllers</strong> because the Okta SSO chain is AD-tied and cannot subset:</p>
+
+<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; margin:0 0 12px 0; font-size:13px; line-height:1.4;">
+<tr style="background:#f0f0f0;">
+<th align="left" style="border:1px solid #d0d0d0; padding:6px 10px;">Hostname</th>
+<th align="left" style="border:1px solid #d0d0d0; padding:6px 10px;">IP</th>
+<th align="left" style="border:1px solid #d0d0d0; padding:6px 10px;">Site</th>
+</tr>
+<tr><td style="border:1px solid #d0d0d0; padding:6px 10px;">WindsorAD1</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">10.2.0.3</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">Windsor</td></tr>
+<tr><td style="border:1px solid #d0d0d0; padding:6px 10px;">WindsorAD2</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">10.2.0.4</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">Windsor</td></tr>
+<tr><td style="border:1px solid #d0d0d0; padding:6px 10px;">Garfield-AD1</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">10.0.2.150</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">Garfield</td></tr>
+<tr><td style="border:1px solid #d0d0d0; padding:6px 10px;">South-AD1</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">10.1.2.150</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">South</td></tr>
+<tr><td style="border:1px solid #d0d0d0; padding:6px 10px;">South-AD2</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">10.1.2.9</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">South</td></tr>
+<tr><td style="border:1px solid #d0d0d0; padding:6px 10px;">MSB-ADDC-RW-01</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">10.1.10.126</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">MSB (read-write)</td></tr>
+<tr><td style="border:1px solid #d0d0d0; padding:6px 10px;">MSB-ADDC-RO-02</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">10.1.10.125</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">MSB (read-only)</td></tr>
+</table>
+
+<p style="margin:0 0 12px 0; font-size:14px; line-height:1.5;"><strong>Open question for AD admins:</strong> is vendor traffic DC-pool-wide (any-of-7) or steered (e.g., MSB-RO for query, MSB-RW for writeback)? Operationally simpler if pool-wide; potentially auditable wins if steered. Likely pool-wide is the right starting posture unless there's a specific reason to constrain.</p>
+
+<h3 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:16px; color:#1a1a1a; margin:18px 0 8px 0;">DNS</h3>
+
+<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; margin:0 0 12px 0; font-size:13px; line-height:1.4;">
+<tr style="background:#f0f0f0;">
+<th align="left" style="border:1px solid #d0d0d0; padding:6px 10px;">IP</th>
+<th align="left" style="border:1px solid #d0d0d0; padding:6px 10px;">Role</th>
+</tr>
+<tr><td style="border:1px solid #d0d0d0; padding:6px 10px;">10.255.255.254</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">Primary</td></tr>
+<tr><td style="border:1px solid #d0d0d0; padding:6px 10px;">10.255.255.253</td><td style="border:1px solid #d0d0d0; padding:6px 10px;">Secondary</td></tr>
+</table>
+
+<p style="margin:0 0 18px 0; font-size:14px; line-height:1.5;">Confirmed via DNS lookups 2026-05-06. Always use DNS, not host files (per Paul Barber's 2026-05-06 guidance &mdash; "you'll get surprised by host files later").</p>
+
+<h2 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:20px; color:#1a1a1a; margin:0 0 12px 0; border-bottom:1px solid #cccccc; padding-bottom:4px;">Decisions to Make (by team)</h2>
+
+<h3 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:16px; color:#1a1a1a; margin:18px 0 8px 0;">fqdn Network (Sean Klette, Austin)</h3>
+
+<ul style="margin:0 0 12px 0; padding-left:24px; list-style:none; font-size:14px; line-height:1.5;">
+<li style="margin:0 0 4px 0;">&#9744; Confirm VLAN 37 can be made a single fabric-wide L2 broadcast domain spanning msb-pmc02 + msb-pmc03 + msb-pmc04 hosts and VMs</li>
+<li style="margin:0 0 4px 0;">&#9744; Confirm Austin's pool-egress allowlist content matches the Enterprise Services section above</li>
+</ul>
+
+<h3 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:16px; color:#1a1a1a; margin:18px 0 8px 0;">fqdn Cyber (Paul Barber)</h3>
+
+<ul style="margin:0 0 12px 0; padding-left:24px; list-style:none; font-size:14px; line-height:1.5;">
+<li style="margin:0 0 4px 0;">&#9744; Endorse the framework &mdash; primary control (Austin's firewall) + defense-in-depth (host firewalls) &mdash; or surface gaps</li>
+<li style="margin:0 0 4px 0;">&#9744; Confirm the simplified host-firewall rule pattern is acceptable as defense-in-depth (allow VLAN 37 + listed services, deny everything else)</li>
+<li style="margin:0 0 4px 0;">&#9744; Sign off on the vendor-sudo carve-out approach &mdash; sudoers <code style="font-family: Consolas, 'Courier New', monospace; background:#f0f0f0; padding:1px 4px;">Cmnd_Alias</code> exclusions, AppArmor (Debian), or SELinux (RHEL)</li>
+</ul>
+
+<h3 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:16px; color:#1a1a1a; margin:18px 0 8px 0;">fqdn CIO (Rob Ball)</h3>
+
+<ul style="margin:0 0 12px 0; padding-left:24px; list-style:none; font-size:14px; line-height:1.5;">
+<li style="margin:0 0 4px 0;">&#9744; Risk-accept the three scope expansions vs the 2026-05-06 directive:
+<ol style="margin:6px 0 0 0; padding-left:24px;">
+<li style="margin:0 0 2px 0;">msb-pmc02 (production) in vendor scope</li>
+<li style="margin:0 0 2px 0;">Dev &harr; Prod cluster isolation deferred (not in scope at this design stage)</li>
+<li style="margin:0 0 2px 0;">msb-pmc04 (new orchestration cluster) in vendor scope</li>
+</ol>
+</li>
+</ul>
+
+<h3 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:16px; color:#1a1a1a; margin:18px 0 8px 0;">fqdn AD admins</h3>
+
+<ul style="margin:0 0 12px 0; padding-left:24px; list-style:none; font-size:14px; line-height:1.5;">
+<li style="margin:0 0 4px 0;">&#9744; Confirm vendor AD reach approach: DC-pool-wide (any-of-7) vs steered (MSB-RO read, MSB-RW writeback)</li>
+</ul>
+
+<h3 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:16px; color:#1a1a1a; margin:18px 0 8px 0;">fqdn (Michelle &mdash; vendor user provisioning bridge)</h3>
+
+<ul style="margin:0 0 12px 0; padding-left:24px; list-style:none; font-size:14px; line-height:1.5;">
+<li style="margin:0 0 4px 0;">&#9745; Vendor accounts and groups provisioned in the Horizon pool &mdash; <strong>closed</strong>; in place as of 2026-05-11. No further provisioning action needed; framework sign-off is for the surrounding controls, not the accounts.</li>
+</ul>
+
+<h3 style="font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; font-size:16px; color:#1a1a1a; margin:18px 0 8px 0;">Vendor (Ksolves)</h3>
+
+<ul style="margin:0 0 12px 0; padding-left:24px; list-style:none; font-size:14px; line-height:1.5;">
+<li style="margin:0 0 4px 0;">&#9744; Confirm OPSWAT device-posture client installed across all vendor devices (requested 2026-05-07; awaiting confirmation)</li>
+</ul>
+
+</td></tr>
+</table>
+
+</body>
+</html>
