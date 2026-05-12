@@ -1,9 +1,43 @@
 Questions for Vendors — Spark Calculators / Cluster Sizing
 Created 2026-04-20 16:30
-Updated 2026-04-20 16:30
+Updated 2026-05-12
 
 ===============================================================
 
-No questions logged yet.
+[ ] RGW gateway placement — Proxmox hosts vs. Worker VMs
+    Logged: 2026-05-12
+    Owner: Ksolves
+
+    Vendor's Ksolves_Spark_YARN_Config_v1.0.pdf § 6.4 calls for 3 RGW
+    instances with the tuning (rgw_thread_pool_size 512,
+    rgw_max_concurrent_requests 1024) supporting the multi-file shuffle
+    workload (Table A: 527 GB, Table B: 113 GB).
+
+    Today's audit (2026-05-11 18:42, captured at
+    phases/phase2/development/Incoming/ceph_audit_msb-pmc03-01.corp.<fqdn>_2026-05-11_1842.log
+    § RGW Section) shows only 1 RGW daemon active on Proxmox host
+    msb-pmc03-01:
+        /usr/bin/radosgw --name client.rgw.msb-pmc03-01
+
+    Question:
+      In the final dev-cluster topology, where do the 3 RGW daemons
+      live — on the 3 Proxmox hosts (msb-pmc03-01/02/03), or on the 3
+      Worker VMs (Spark workers)?
+
+    Why it matters for sizing:
+      - If RGW on Proxmox hosts: CPU + RAM cost lands on the Proxmox
+        infrastructure reservations (currently 12c / 33 GB per node;
+        would need adjustment).
+      - If RGW on Worker VMs: CPU + RAM cost competes with Spark
+        executors inside each Worker VM; affects executor slot count
+        and per-slot RAM.
+      - If RGW on a dedicated subset (e.g., one RGW per Proxmox host,
+        terminating on all 3 hosts): hybrid sizing pattern.
+
+    Same question applies to msb-pmc04 once stood up — framework v0.2
+    names "CephFS / RGW frontend gateways" as msb-pmc04 services with
+    the same placement ambiguity.
+
+    Tracked under TODO.md > Waiting for Vendor Reply.
 
 ---------------------------------------------------------------

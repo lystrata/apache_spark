@@ -157,6 +157,50 @@ Each letter's source MD has Status updated to "Sent 2026-05-08 — awaiting vend
 
 **Files touched in this cycle:** CP_HIPAA_Compliance_v1.0.md → v1.1.md (rename + content update + PDF regen); CP v1.5 (BLOCKER.3 restructure + P0.6 tuning-applied + VLAN 37 BLOCKER.4 sub-task + status-line updates); tracker HTML (lockstep); CP_Okta_v1.1.md, MSB-PMC01_airflow_host_briefing_v1.3.md, SOW_timeline_status.md, Phases_Critical_Path_Production_v0.1.md, correspondence/Ready_For_Review/prod_architecture_questionnaire_responses_v1.0.md (all v1.0 → v1.1 cross-ref bumps).
 
+**Status update (2026-05-12 morning — Network topology pivoted; framework v0.3 drafted):** Network team email thread this morning (8:15 AM → 9:13 AM, Michelle → Networking_IT_DL → Austin / Sean Klette / Michelle, captured at `phases/phase2/development/Incoming/5_12_emails/Sean Klette.md`) established that the unified-VLAN-37 model from framework v0.2 is superseded.
+
+**Key facts from the thread:**
+- **Cluster VMs cannot move into the Ksolves VLAN** (Austin + Sean Klette confirmed).
+- **VLAN 27 (10.1.27.0/24)** is the cluster-VM network (DHCP); dev cluster VMs assigned today:
+
+  | VM | IP |
+  |---|---|
+  | `msb-sprk-dev-yarn-01` | `10.1.27.130` |
+  | `msb-sprk-dev-work-01` | `10.1.27.131` |
+  | `msb-sprk-dev-work-02` | `10.1.27.132` |
+  | `msb-sprk-dev-work-03` | `10.1.27.133` |
+  | `msb-sprk-dev-hs-01`   | `10.1.27.134` |
+
+- **VLAN 157 (10.1.157.0/24)** is the Ksolves Horizon VDI VLAN (vendor side). Cigna LAN (informational) = VLAN 156 / 10.1.156.0/24.
+- **Access model: L3 firewall policy** restricting VLAN 157 → VLAN 27, **plus remote-domain AD permissions** as the user-level authorization layer ("the latter part still needs to be cleared up" per Sean Klette).
+- **All 3 clusters end up in VLAN 27** (phased rollout — dev today; prod + orchestration as their VMs are provisioned).
+- **VLAN 37 Proxmox recognition issue (logged 2026-05-11 EOD) — RESOLVED 2026-05-12** via the re-segmentation (Sean: *"we have resolved the issue with network connectivity and the VMs on the cluster."*). The recognition problem was a "wrong VLAN" rather than a "VLAN 37 misconfig" — the fix is the move to VLAN 27.
+
+**Framework v0.3 drafted:** Captured the pivot in `security/Ready_For_Review/Vendor_Access_Isolation_Framework_v0.3.md`. Supersedes v0.2 (2026-05-11). Key revisions: VLAN 27 replaces unified VLAN 37; VLAN 157 identified as the Horizon pool's L2 VLAN; two-layer control model formalized (network L3 + remote-domain AD permissions); host firewalls + sudo carve-out restated as tertiary defense-in-depth. **Pending: 2 PM (2026-05-12) send to v0.2 recipients (Sean Klette + Austin already aware as authors of the pivot; Paul Barber, Rob Ball, AD admins need notification that v0.3 supersedes v0.2 within 24 hours).** May be revised further before send if more info comes in.
+
+**Closures via this pivot:**
+- VLAN 37 Proxmox recognition issue (BLOCKER.4 sub-task, Network owner) — closed 2026-05-12 via re-segmentation
+- "Sean and Austin confirm VLAN 37 can be made a single fabric-wide L2 broadcast domain" (BLOCKER.4 reviewer sub-task) — superseded; not the design any more
+
+**Carried open / re-framed:**
+- AD-admin DC-pool-vs-steered question — still open, more central under v0.3's two-layer model
+- New AD-admin item: define `remote.corp.<fqdn>` permissions governing what authenticated vendor users can do on VLAN 27 cluster VMs
+- CIO 3 scope expansions — substantively unchanged, just relabeled (VLAN labels changed, scope expansions are the same)
+- Cyber endorsement, sudo carve-out sign-off, OPSWAT install confirmation — unchanged
+
+**Status update (2026-05-12 midday — Phase 2 closures + Phase 3 open):**
+
+- [x] [Phase2] **VMs created on dev cluster 2026-05-12** — closes P0.1b (Worker VM OS install). 5 VMs in place: `msb-sprk-dev-yarn-01` (10.1.27.130), `msb-sprk-dev-work-01..03` (.131/.132/.133), `msb-sprk-dev-hs-01` (.134). On VLAN 27 per Network team's re-segmentation (see morning entry above).
+- [x] [Phase2] **RHEL licenses confirmed activated on dev cluster VMs 2026-05-12** — closes P0.4 post-prov. With P0.4 pre-req already closed 2026-05-08 and post-prov now closed, P0.4 fully closed.
+- [x] [Phase2] **Vendor isolation framework v0.3 promoted** — `security/Ready_For_Review/` → `security/Document/`; v0.2 archived to `security/Notes/archive/`. Ready_For_Review/ empty (resting state).
+- [x] [Phase2] **Vendor isolation framework v0.2 email moved to correspondence/Sent/** — was delivered 2026-05-11; ready_for_delivery/ artifact relocated per the Correspondence Lifecycle rule.
+- [x] [Phase2] **v0.3 Outlook-safe email body staged** at `ready_for_delivery/vendor_access_framework_email_body_2026-05-12.html` with cover-note paragraphs at top explaining v0.2 supersession; pending send to v0.2 recipients (Sean Klette + Austin Koburi already aware as authors; Paul Barber, Rob Ball, AD admins, Michelle pending notification).
+- [x] [Phase3] **Phase 3 officially open 2026-05-12.** VM provisioning side (P0.1b + P0.4) closed; vendor engineer's Phase 3 work begun yesterday continues. Phase 2 closure pending: Phase 2 closing letter responses from Ksolves (2 remaining questions), javax filter verification letter response, BLOCKER.4 (vendor-isolation framework — v0.3 in flight). Once those land, Phase 2 formally closes; Phase 3 takes over as the active phase.
+
+**New Pending Tasks captured 2026-05-12:**
+
+- [ ] [Phase3] [correspondence] **Prepare msb-pmc04 cluster details document for Ksolves** — vendor requires msb-pmc04 cluster specs (hardware, network, storage, VLAN 27 IP allocations for Airflow + Bastion + GPL + RGW frontend VMs) as soon as available so they can plan Phase 3 work. Companion to `MSB-PMC01_airflow_host_briefing_v1.3.md` (which carries the supersession notice for msb-pmc01); successor briefing under a new basename (e.g., `MSB-PMC04_airflow_host_briefing_v1.0.md`) forthcoming once msb-pmc04 hardware specs land. Owner: Rohn (assemble briefing) + Mirali (vendor coordination).
+
 - [x] [calculators] [security] **Self-contain native HTMLs — remove Google Fonts dep** — **closed 2026-05-08** via path (a). Stripped Google Fonts `<link>` references (preconnect tags + stylesheet link) from 11 native HTML files using `tmp/strip_google_fonts.py` — 27 `<link>` tags removed in total. Fonts fall back to the listed system fonts (Cascadia Code, Fira Mono, Consolas, system-ui, etc.). All 11 files now zero external resource references. Files modified: `calculators/Document/{cluster_sizing_tool,dev_cluster_math_reference,dev_calculator_guide,dev_slider_guide,dev-cluster-storage-reference,development_spark_calculator,production_spark_calculator,prod_calculator_guide,spark_flows,spark_glossary}.html` (10 git-tracked) + `security/Document/compliance_frameworks_reference.html` (1 on-site only, not git-tracked). Per project rules, styling-only changes don't require Revisions section updates.
 
 **Active design lead under exploration (Sean Klette, 2026-05-06):** make msb-pmc03 the **sole tenant** of VLANs 37 / 38 / 39, and add a new **VLAN 10** providing controlled public ingress/egress (Proxmox WebUI + SSH + VM access). If this lands, intra-cluster traffic is permitted by VLAN membership rather than per-IP allowlist, and VLAN 10 becomes the single chokepoint for the ~30–35 IP allowlist. Substantially simpler than per-host firewalls. Open items in the security note.
@@ -244,6 +288,8 @@ _Owned by reviewers (not yet ready):_
 - [ ] [Phase1] [security] **Awaiting Ksolves user list for VDI account provisioning** — vendor to deliver list of individual users who need accounts in the `remote.corp.<fqdn>` subdomain. Required regardless of design (host firewall vs Sean's VLAN approach). Item #8 from Harper's 2026-05-06 meeting summary. Owner: Ksolves.
 
 - [ ] [Phase1] [security] **Awaiting Ksolves confirmation: OPSWAT security client installed on all vendor devices** — fqdn requested install 2026-05-07; vendor to confirm install completion across all devices that will participate in Phase 1B VDI access. Required for the device-posture attestation chain (patch status, password protection, no screen-capture / keylogger software). Owner: Ksolves.
+
+- [ ] [Phase2] [calculators] **Awaiting Ksolves clarity on RGW gateway placement** — vendor's config doc § 6.4 calls for 3 RGW instances (`rgw_thread_pool_size 512`, `rgw_max_concurrent_requests 1024`) supporting the multi-file shuffle workload. Today's 2026-05-11 18:42 audit shows **only 1 RGW daemon active** on Proxmox host msb-pmc03-01 (`/usr/bin/radosgw --name client.rgw.msb-pmc03-01`). Question for vendor: where do the 3 RGW daemons live in the final dev-cluster topology — on the 3 Proxmox hosts (`msb-pmc03-01/02/03`), or on the 3 Worker VMs? **Sizing impact:** RGW process needs CPU + RAM allocation; placement determines whether the calculator's **Proxmox infrastructure reservations** or the **Worker VM sizing** must account for it. **Same question applies to msb-pmc04** once stood up — framework v0.2 names "CephFS / RGW frontend gateways" as msb-pmc04 services, with the same placement ambiguity. Source: `phases/phase2/development/Incoming/ceph_audit_msb-pmc03-01.corp.fqdn_2026-05-11_1842.log` § RGW Section (lines 249–299) + `Ksolves_Spark_YARN_Config_v1.0.pdf` § 6.4. Owner: Ksolves to clarify topology + fqdn calculator update once known.
 
 ---
 
