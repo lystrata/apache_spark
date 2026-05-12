@@ -13,7 +13,7 @@
 #   ./Scripts/check_fqdn.sh <file> [<file> ...]
 #
 # Example:
-#   ./Scripts/check_fqdn.sh phases/phase2/development/Notes/proxmox_audit_2026-05-08.md
+#   ./Scripts/check_fqdn.sh phases/development/phase2/Notes/proxmox_audit_2026-05-08.md
 #
 # Output: matches printed with filename:line:content ; "No matches" if clean.
 

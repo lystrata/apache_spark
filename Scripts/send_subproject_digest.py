@@ -10,7 +10,7 @@ existing daily TODO email), and emails it via macOS Mail.app to the
 address in `~/.config/spark-hooks/todo-email`.
 
 Default tracker:
-    phases/phase2/development/Notes/ksolves_dev_access_subproject.md
+    phases/development/phase2/Notes/ksolves_dev_access_subproject.md
 
 Override:
     python3 send_subproject_digest.py <markdown-file>
@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from send_todo_email import md_to_text, send  # noqa: E402
 
 REPO_ROOT       = Path(__file__).resolve().parent.parent
-DEFAULT_TRACKER = REPO_ROOT / "phases/phase2/development/Notes/ksolves_dev_access_subproject.md"
+DEFAULT_TRACKER = REPO_ROOT / "phases/development/phase2/Notes/ksolves_dev_access_subproject.md"
 EMAIL_FILE      = Path.home() / ".config/spark-hooks/todo-email"
 PATTERN_FILE    = Path.home() / ".config/spark-hooks/patterns"
 SUBJECT_PREFIX  = "KSolves Dev-Cluster Access — Daily Digest"

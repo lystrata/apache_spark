@@ -67,8 +67,8 @@ Rohn
 
 - **Subject of letter:** Phase 2 closure verification — items 10 + 11 from the 2026-05-08 review punch-list
 - **Cross-references:**
-  - Main CP — `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.5.md` § BLOCKER.3 (split 2026-05-08 into 3a + 3b)
-  - HIPAA sub-project — `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.0.md`
-  - Vendor configuration document — `phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` § 8
+  - Main CP — `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.5.md` § BLOCKER.3 (split 2026-05-08 into 3a + 3b)
+  - HIPAA sub-project — `phases/development/phase2/Document/CP_HIPAA_Compliance_v1.0.md`
+  - Vendor configuration document — `phases/development/phase2/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` § 8
 - **Pairs with:** `correspondence/Document/h1_javax_filter_verification_letter_to_ksolves_2026-05-08.md` (separate letter on § 8.3 javax filter ownership)
 - **Action items captured separately:** verbal NVMe LUKS notification follow-up email at `correspondence/Document/nvme_luks_already_encrypted_followup_to_ksolves_2026-05-08.md`

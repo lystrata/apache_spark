@@ -61,8 +61,8 @@ Rohn
 - **Subject of letter:** H1 javax filter verification — item 13 from the 2026-05-08 review punch-list
 - **Why a separate letter from the Phase 2 closing letter:** the Phase 2 closing letter is about Phase 2 sign-off + HIPAA framing + LUKS software question. This one is a focused single-topic question on § 8.3 fqdn-vs-vendor ownership. Keeping them separate prevents the response on H1 from getting buried in a multi-question Phase 2 reply.
 - **Cross-references:**
-  - Main CP — `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.5.md` § BLOCKER.3b (HIPAA Software & Network Compliance)
-  - HIPAA sub-project — `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.0.md`
-  - Vendor configuration document — `phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` § 8.3
-  - CP_Okta — `phases/phase2/development/Document/CP_Okta_v1.1.md`
+  - Main CP — `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.5.md` § BLOCKER.3b (HIPAA Software & Network Compliance)
+  - HIPAA sub-project — `phases/development/phase2/Document/CP_HIPAA_Compliance_v1.0.md`
+  - Vendor configuration document — `phases/development/phase2/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` § 8.3
+  - CP_Okta — `phases/development/phase2/Document/CP_Okta_v1.1.md`
 - **Pairs with:** `correspondence/Document/phase2_closing_letter_to_ksolves_2026-05-08.md` (broader Phase 2 closure verification)

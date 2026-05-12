@@ -14,7 +14,7 @@ Updated 2026-05-12
     workload (Table A: 527 GB, Table B: 113 GB).
 
     Today's audit (2026-05-11 18:42, captured at
-    phases/phase2/development/Incoming/ceph_audit_msb-pmc03-01.corp.<fqdn>_2026-05-11_1842.log
+    phases/development/phase2/Incoming/ceph_audit_msb-pmc03-01.corp.<fqdn>_2026-05-11_1842.log
     § RGW Section) shows only 1 RGW daemon active on Proxmox host
     msb-pmc03-01:
         /usr/bin/radosgw --name client.rgw.msb-pmc03-01
@@ -37,6 +37,50 @@ Updated 2026-05-12
     Same question applies to msb-pmc04 once stood up — framework v0.2
     names "CephFS / RGW frontend gateways" as msb-pmc04 services with
     the same placement ambiguity.
+
+    Tracked under TODO.md > Waiting for Vendor Reply.
+
+---------------------------------------------------------------
+
+[ ] VM disk placement — local ZFS vs. Ceph RBD vm-disks pool
+    Logged: 2026-05-12 (afternoon)
+    Owner: Ksolves (OK to migrate) + Rohn/vendor (execute once approved)
+
+    The 2026-05-12 12:18 cluster audit (post-VM-creation) showed:
+      - The dev cluster's 5 VMs (yarn-01, work-01..03, hs-01) created
+        today on VLAN 27 are placed on local ZFS volumes (zvols zd0
+        and zd16 visible on msb-pmc03-01).
+      - The Ceph RBD pool 'vm-disks' (pool 3, application=rbd, 32 PG)
+        provisioned for VM disks shows 0 added objects after VM
+        creation. The pool was clearly intended for VM disk storage
+        based on its naming + application tag.
+
+    Design intent (inferred): VM disks on Ceph RBD provide 3x
+    replication across nodes, automatic HA via Proxmox's Ceph
+    integration, and recovery from single-node failures. Local ZFS
+    pins each VM to a specific Proxmox host with no automatic
+    failover.
+
+    Status: fqdn (Rohn) alerted Ksolves 2026-05-12 afternoon.
+    Awaiting vendor OK to migrate VMs from local ZFS to RBD.
+
+    Question for vendor:
+      Was the placement on local ZFS intentional (performance /
+      simplicity)? If not, OK to migrate the 5 dev VMs to the
+      vm-disks Ceph RBD pool? Migration plan to be agreed once
+      vendor confirms.
+
+    Sizing impact:
+      - Local ZFS: VM disks consume the Proxmox boot-disk envelope
+        (sdb / sdi, 447 GB each, ZFS mirror) — limited capacity;
+        only ~2-3 VMs fit before exhausting space.
+      - Ceph RBD: VM disks consume the vm-disks pool — large
+        capacity (31 TB cluster with 3x replication = ~10 TB
+        usable for VMs + other RBD), plus HA.
+
+    Same question may apply to msb-pmc02 (prod) and msb-pmc04
+    (orchestration) VMs when provisioned. The decision pattern
+    here informs all three clusters.
 
     Tracked under TODO.md > Waiting for Vendor Reply.
 

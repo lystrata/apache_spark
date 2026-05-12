@@ -170,14 +170,14 @@ Applies to **all contexts**. Whenever new operational data is captured — meeti
 
 | Document | Path | Type |
 |---|---|---|
-| Main Critical Path | `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.x.md` | Versioned distribution doc |
-| Visual Tracker (HTML) | `phases/phase2/development/Document/phases_critical_path_development_tracker_v1.x.html` | Versioned, lockstep with main |
-| HIPAA sub-project | `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.x.md` | Versioned distribution doc |
-| Okta sub-project | `phases/phase2/development/Document/CP_Okta_v1.x.md` | Versioned distribution doc |
-| Airflow host briefing (companion) | `phases/phase2/development/Document/MSB-PMC01_airflow_host_briefing_v1.x.md` | Versioned companion doc |
-| SOW timeline tracker | `phases/phase2/development/Document/SOW_timeline_status.md` | In-place operational |
+| Main Critical Path | `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.x.md` | Versioned distribution doc |
+| Visual Tracker (HTML) | `phases/development/phase2/Document/phases_critical_path_development_tracker_v1.x.html` | Versioned, lockstep with main |
+| HIPAA sub-project | `phases/development/phase2/Document/CP_HIPAA_Compliance_v1.x.md` | Versioned distribution doc |
+| Okta sub-project | `phases/development/phase2/Document/CP_Okta_v1.x.md` | Versioned distribution doc |
+| Airflow host briefing (companion) | `phases/development/phase2/Document/MSB-PMC01_airflow_host_briefing_v1.x.md` | Versioned companion doc |
+| SOW timeline tracker | `phases/development/phase2/Document/SOW_timeline_status.md` | In-place operational |
 | Vendor-isolation planning note | `security/Notes/vendor-access-isolation-plan_2026-05-06.md` | On-site planning (not git-tracked) |
-| Production CP fork | `phases/phase2/production/Document/Phases_Critical_Path_Production_v0.x.md` | Versioned distribution doc |
+| Production CP fork | `phases/production/phase2/Document/Phases_Critical_Path_Production_v0.x.md` | Versioned distribution doc |
 | Master TODO | `TODO.md` | In-place operational index |
 
 **For each new piece of operational data:**
@@ -379,7 +379,7 @@ Files with Revisions sections:
 - `calculators/Document/production_spark_calculator.html` — section id `sec_revisions`
 - `calculators/Document/dev_cluster_math_reference.html` — section id `revisions`
 - `calculators/Document/dev-cluster-storage-reference.html` — section id `sec_revisions`
-- `phases/phase1/development/deliverables/dev_cluster_phase1_model.html` — section id `sec_revisions`
+- `phases/development/phase1/deliverables/dev_cluster_phase1_model.html` — section id `sec_revisions`
 
 When a change is made to either calculator, the corresponding guide file (`calculators/Document/prod_calculator_guide.html`, `calculators/Document/dev_calculator_guide.html`) may need updating — the guides contain inline base64 screenshots that become stale when the UI changes.
 

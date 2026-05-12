@@ -41,9 +41,9 @@ Rohn
 
 - **Subject of letter:** Written confirmation that NVMe drives are already LUKS-encrypted — item 14 from the 2026-05-08 review punch-list. The verbal was given earlier; this is the written follow-up.
 - **Cross-references:**
-  - Main CP — `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.5.md` § BLOCKER.3a (HIPAA Hardware Compliance)
-  - HIPAA sub-project — `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.0.md`
-  - Vendor configuration document — `phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` § 8.2
+  - Main CP — `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.5.md` § BLOCKER.3a (HIPAA Hardware Compliance)
+  - HIPAA sub-project — `phases/development/phase2/Document/CP_HIPAA_Compliance_v1.0.md`
+  - Vendor configuration document — `phases/development/phase2/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` § 8.2
 - **Companion letters from same review punch-list:**
   - `correspondence/Document/phase2_closing_letter_to_ksolves_2026-05-08.md` (Phase 2 closure verification — also covers LUKS software question)
   - `correspondence/Document/h1_javax_filter_verification_letter_to_ksolves_2026-05-08.md` (§ 8.3 javax filter ownership)

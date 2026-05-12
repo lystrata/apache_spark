@@ -2,7 +2,7 @@
 
 _Captured 2026-05-07 from Ksolves' formal meeting note (PDF in Incoming/, Webex meet held 2026-05-07 IST / late 2026-05-06 CST)_
 _Sanitized: vendor first names → role descriptors; fqdn corp identifier abstracted_
-_Source PDF: `phases/phase2/development/Incoming/Meeting_Notes_07_May_2026.pdf` (gitignored)_
+_Source PDF: `phases/development/phase2/Incoming/Meeting_Notes_07_May_2026.pdf` (gitignored)_
 
 ---
 
@@ -90,7 +90,7 @@ Vendor lead on leave 2026-05-07 (Ksolves day). Vendor engineers 1 and 2 will cov
 
 ## Cross-references
 
-- `phases/phase2/development/Incoming/Meeting_Notes_07_May_2026.pdf` — original PDF (gitignored)
+- `phases/development/phase2/Incoming/Meeting_Notes_07_May_2026.pdf` — original PDF (gitignored)
 - `security/Notes/harper_meeting_summary_vdi_security_2026-05-06.md` — companion: project-coordinator summary of the cyber/CIO meeting one day prior
 - `security/Notes/vendor-access-isolation-plan_2026-05-06.md` — the design state behind the VDI delay
 - `correspondence/Document/vendor_email_horizon_vdi_security_revision_2026-05-06.md` — promoted email draft to Ksolves about the VDI redesign (covers context the vendor sees on their side)

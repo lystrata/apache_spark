@@ -10,7 +10,7 @@ _Last updated 2026-05-11_
 - [x] [Phase1] [correspondence] Establish Ksolves Webex desktop access for Phase 1A interim infrastructure provisioning **(closed 2026-04-29 — Ksolves connecting via Webex)** — **superseded; reopened 2026-04-30 due to Webex Linux/Windows remote-control limitation, see entry below**
   - Phase 1A (interim): Shared Webex desktop with fqdn team oversight — **was active; now blocked**
   - Phase 1B (permanent): VMware Horizon VDI — still pending fqdn Cyber Security approval (tracked under Pending Tasks > Correspondence; non-blocking for Phase 1/2 work)
-  - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § BLOCKER.1
+  - See: phases/development/phase2/Document/Phases_Critical_Path_Development_v1.3.md § BLOCKER.1
 
 - [x] [Phase1] [correspondence] **Phase 1A re-opened 2026-04-30** — Ksolves must provision Windows host (vendor-side, in India) to run Webex Desktop client with remote control enabled
   - **Cause:** Webex's Linux desktop client does not support remote control of a Windows Webex share (verified by user — set up Linux Webex and confirmed remote-control unavailable). Ksolves is a Linux shop; fqdn shares from Windows. Without a Windows host on Ksolves' side, Phase 1A cannot proceed.
@@ -21,16 +21,16 @@ _Last updated 2026-05-11_
     - [x] Joint connectivity test: Ksolves' Windows host → fqdn-shared Windows Webex session, with remote-control verified
     - [x] Ksolves notifies fqdn when Windows host is ready, so Phase 1A kickoff can be scheduled
   - **Critical path impact:** All Phase 2 infrastructure provisioning is gated on this until vendor's Windows host is operational. Halt Period decision point (2026-05-04) may need re-evaluation depending on vendor turnaround.
-  - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § BLOCKER.1 (Hardware Prerequisite)
+  - See: phases/development/phase2/Document/Phases_Critical_Path_Development_v1.3.md § BLOCKER.1 (Hardware Prerequisite)
 
 ### Security — Credential Rotation (URGENT, 2026-05-01)
 
 - [x] [Phase1] [security] **🚨 Rotate exposed iLO administrator credentials** — the iLO admin password used by Ksolves on `msb-pmc03-01-ilo` (10.1.32.64) appears in plain text inside the vendor's bash history. Rotate the iLO password on all three msb-pmc03 nodes; if the same credential is reused for any corporate-AD account, rotate that as well; scrub `~/.bash_history` on each node (and any vendor workstation copies); coordinate with corporate IT.
-  - Source: `phases/phase2/development/Incoming/Archive/ksolves_node1_commands.txt` (occurrences at lines 82–87, 121, 138–142, 168–172) — moved to Archive/ 2026-05-11
+  - Source: `phases/development/phase2/Incoming/Archive/ksolves_node1_commands.txt` (occurrences at lines 82–87, 121, 138–142, 168–172) — moved to Archive/ 2026-05-11
 
 ### Vendor Configuration Baseline — Ksolves Spark & YARN Config v1.0 (2026-05-04)
 
-Ksolves delivered an authoritative configuration document on 2026-05-04 (`phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf`) based on actual DEV environment data (`csv_file_sizes.xlsx`). It establishes the Spark 3.5.3 / YARN 3.4.1 config baseline, answers prior P0.0a items, and surfaces several new decisions.
+Ksolves delivered an authoritative configuration document on 2026-05-04 (`phases/development/phase2/Document/Ksolves_Spark_YARN_Config_v1.0.pdf`) based on actual DEV environment data (`csv_file_sizes.xlsx`). It establishes the Spark 3.5.3 / YARN 3.4.1 config baseline, answers prior P0.0a items, and surfaces several new decisions.
 
 **Decisions captured 2026-05-05:**
 
@@ -38,7 +38,7 @@ Ksolves delivered an authoritative configuration document on 2026-05-04 (`phases
 - **GZIP non-splittability mitigation** — owner: **Development team**. Choose 1 of 4 options from § 2: pre-split upstream (best) / bzip2 codec / raw uncompressed CSV / post-read repartition (last resort).
 - **Hadoop 3.4.1 vs Spark 3.5.x classpath** — owner: **Vendor (Ksolves)** (they're doing the install). Captured for tracking only; no fqdn-side action.
 - **Ceph RGW server-side tuning** (`rgw_thread_pool_size 512`, `rgw_max_concurrent_requests 1024`) — owner: **Vendor (Ksolves)** until cluster sign-over. Captured for tracking only.
-- **HIPAA compliance** — forked into a separate sub-project: `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.1.md` (forthcoming). Main Critical Path gains a BLOCKER pointing to it. **NVMe disks are already LUKS-encrypted on this side** — must remind Ksolves before they start Spark install so they don't redo it.
+- **HIPAA compliance** — forked into a separate sub-project: `phases/development/phase2/Document/CP_HIPAA_Compliance_v1.1.md` (forthcoming). Main Critical Path gains a BLOCKER pointing to it. **NVMe disks are already LUKS-encrypted on this side** — must remind Ksolves before they start Spark install so they don't redo it.
 - **RAM hardware update** — RAM/node spec'd at **320 GB** (was 384). CLAUDE.md hardware reference updated; calculator defaults to follow.
 
 **New tasks (open):**
@@ -51,17 +51,17 @@ Ksolves delivered an authoritative configuration document on 2026-05-04 (`phases
 - [ ] [Phase1] **Bump Phases_Critical_Path_Development to v1.4** — incorporate vendor config baseline, GZIP P0, Hadoop classpath / Ceph RGW tuning as vendor-owned tasks, HIPAA BLOCKER pointing to sub-project, 3-node decision finalization. _(In progress — see batch 2.)_
 
 **Cross-references:**
-- `phases/phase2/development/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` — the vendor doc itself
-- `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.5.md` — main CP (cut 2026-05-07)
-- `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.1.md` — HIPAA sub-project
+- `phases/development/phase2/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` — the vendor doc itself
+- `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.5.md` — main CP (cut 2026-05-07)
+- `phases/development/phase2/Document/CP_HIPAA_Compliance_v1.1.md` — HIPAA sub-project
 
 ### Production Architecture Prep — Ksolves Email + Apr 27–May 01 Status (forwarded 2026-05-06)
 
-vendor lead (Ksolves) forwarded a multi-section email on 2026-05-06 that bundles: (a) a Phase 2 / VDI status update, (b) the Apr 27–May 01 weekly Ksolves status report, (c) the 16-point production architecture questionnaire, (d) a 4/21/26 daily-meeting summary, and (e) two architecture diagrams (dev + prod). Source email and supporting markdown are at `phases/phase2/development/Incoming/Vario\us_Email/Hi Rohn,.md`. Diagrams promoted to `phases/phase2/development/reference_images/`.
+vendor lead (Ksolves) forwarded a multi-section email on 2026-05-06 that bundles: (a) a Phase 2 / VDI status update, (b) the Apr 27–May 01 weekly Ksolves status report, (c) the 16-point production architecture questionnaire, (d) a 4/21/26 daily-meeting summary, and (e) two architecture diagrams (dev + prod). Source email and supporting markdown are at `phases/development/phase2/Incoming/Vario\us_Email/Hi Rohn,.md`. Diagrams promoted to `phases/development/phase2/reference_images/`.
 
 **Action items assigned to Rohn (with attribution):**
 
-- [ ] [correspondence] **Review and confirm production architecture diagram and update as needed** — source: vendor lead (Ksolves), email forwarded 2026-05-06. Reference: `phases/phase2/development/reference_images/prod_data_flow_diagram_2026-05-06.png`.
+- [ ] [correspondence] **Review and confirm production architecture diagram and update as needed** — source: vendor lead (Ksolves), email forwarded 2026-05-06. Reference: `phases/development/phase2/reference_images/prod_data_flow_diagram_2026-05-06.png`.
 - [ ] [correspondence] **Validate production infrastructure requirements and complete architecture inputs** — source: vendor lead (Ksolves), email forwarded 2026-05-06. Companion to the 16-point questionnaire response doc (in Ready_For_Review).
 - [ ] [correspondence] **Define centralized logging approach + retention policy for production** — Splunk vs ELK/Wazuh vs Datadog; HIPAA § 164.316(b)(2) requires 6-year minimum with WORM on the audit bucket. Source: vendor lead (Ksolves), questionnaire Q1–Q3, email forwarded 2026-05-06. Coordinate with fqdn corporate IT and Cyber/Security. **Linked CP item below.**
 - [ ] [correspondence] **Confirm IAM/RBAC model — specifically PHI vs de-identified entitlement boundaries** — directly informs Apache Ranger column-masking policy. Source: vendor lead (Ksolves), questionnaire Q7, email forwarded 2026-05-06. Coordinate with fqdn Cyber/Security.
@@ -93,13 +93,13 @@ vendor lead (Ksolves) forwarded a multi-section email on 2026-05-06 that bundles
   - **Companion files to bump** if their internal cross-refs touch v1.4: `MSB-PMC01_airflow_host_briefing_v1.1.md` may need v1.2 if VDI-security or production-questionnaire context lands; `CP_Okta_v1.1.md` may need v1.2 if AD DC enumeration changes the egress story.
   - **Changelog file** — write `Phases_Critical_Path_Development_v1.4_changelog.md` capturing v1.4 → v1.5 deltas; commit alongside the version-bumped artifact.
   - **PDF regeneration** for the bumped CP markdown.
-- [ ] [Phase1] **CP v1.5: New task — Snowflake Load Completion Confirmation Mechanism** — owner: **Development team (fqdn)** + Murali / Rama. The current pipeline has no mechanism to confirm Snowflake `COPY INTO` completion and trigger downstream actions (CSV cleanup, archive move, "Operational Gate" step in the dev data-flow diagram). Proposed solution from the email: audit/checkpoint table in Snowflake or a logging mechanism that the Airflow DAG polls. Source: vendor lead (Ksolves), email forwarded 2026-05-06; corroborated by the "Operational Gate Process → Move CSV files off → Designated Storage Node (Archive)" step (#10) in `phases/phase2/development/reference_images/dev_data_flow_diagram_2026-05-06.png`.
+- [ ] [Phase1] **CP v1.5: New task — Snowflake Load Completion Confirmation Mechanism** — owner: **Development team (fqdn)** + Murali / Rama. The current pipeline has no mechanism to confirm Snowflake `COPY INTO` completion and trigger downstream actions (CSV cleanup, archive move, "Operational Gate" step in the dev data-flow diagram). Proposed solution from the email: audit/checkpoint table in Snowflake or a logging mechanism that the Airflow DAG polls. Source: vendor lead (Ksolves), email forwarded 2026-05-06; corroborated by the "Operational Gate Process → Move CSV files off → Designated Storage Node (Archive)" step (#10) in `phases/development/phase2/reference_images/dev_data_flow_diagram_2026-05-06.png`.
 - [ ] [Phase1] **CP v1.5: New task — Centralized Audit Logging + Retention Policy (HIPAA-driven)** — owner: **Development team (fqdn)** + fqdn Cyber/Security. HIPAA § 164.316(b)(2) requires audit logs retained ≥ 6 years; WORM-protected audit bucket recommended. No SIEM currently scoped. This may live in `CP_HIPAA_Compliance_v1.1.md` (HIPAA-driven) rather than the main CP — placement TBD when v1.5 is cut. Source: vendor lead (Ksolves), questionnaire Q1–Q3, email forwarded 2026-05-06.
 
 **Follow-ups from this email (not action items, just tracked):**
 
 - [ ] [correspondence] **Reconcile table count: 814 (Apr 27–May 01 Ksolves status) vs. 800 (vendor `csv_file_sizes.xlsx`, 2026-05-04)** — the 814 figure dates to Ksolves' Apr 27–May 01 weekly status report; the 800 figure is the vendor's actual measurement on 2026-05-04 and is the authoritative number. The 14-table delta is likely placeholder / mapping noise. Confirm with Rama on next CSV inventory delivery. Source: same email, 2026-05-06.
-- [ ] [security] **Redact AD-group screenshot before tracking** — `phases/phase2/development/Incoming/eedfd24e-3c00-4d15-a7aa-19bfb61b1d70.png` shows `the corporate AD domain` in seven AD group strings and "an admin user" in the title bar. Useful as a corroboration of the AD group taxonomy that `CP_Okta_v1.1.md` § O0.3 will consume. Redact (blur or replace) FQDN + name, then move to `phases/phase2/development/reference_images/` with name `ad_group_membership_admin_user_example_2026-05-06.png`.
+- [ ] [security] **Redact AD-group screenshot before tracking** — `phases/development/phase2/Incoming/eedfd24e-3c00-4d15-a7aa-19bfb61b1d70.png` shows `the corporate AD domain` in seven AD group strings and "an admin user" in the title bar. Useful as a corroboration of the AD group taxonomy that `CP_Okta_v1.1.md` § O0.3 will consume. Redact (blur or replace) FQDN + name, then move to `phases/development/phase2/reference_images/` with name `ad_group_membership_admin_user_example_2026-05-06.png`.
 - [x] [correspondence] **NUC-failure refinement of BLOCKER.1** — Ksolves' email clarifies that the BLOCKER.1 vendor-Windows-host hardware prerequisite is specifically NUCs failing in their data center; Ksolves is debugging. The user has shifted to hosting Webex from his office host until they resolve hardware. Refine BLOCKER.1 wording in CP v1.5 to capture the specific cause (NUC reliability) and the interim host arrangement.
 
 ### Vendor Access Isolation — Phase 1B VDI Security Gate (NEW 2026-05-06)
@@ -135,7 +135,7 @@ Each letter's source MD has Status updated to "Sent 2026-05-08 — awaiting vend
 
 **Status update (2026-05-11, framework v0.2 circulated):** Vendor Access Isolation Framework finalized as v0.2 (`security/Document/Vendor_Access_Isolation_Framework_v0.2.md`, on-site only) and circulated to Network (Sean Klette, Austin), Cyber (Paul Barber), CIO (Rob Ball), AD admins, and Michelle for reaction. Email body (Outlook-safe HTML) sent 2026-05-11 afternoon; sanitized rendering committed to git for audit trail at `ready_for_delivery/vendor_access_framework_email_body_2026-05-11.html` (commit `be1e4ae`). Longer-form v0.1 draft archived to `security/Notes/archive/Vendor_Access_Isolation_Framework_v0.1.md`. **Key changes formalized by v0.2:** (1) msb-pmc04 commitment — promoted from "under consideration" (2026-05-08) to **committed third Spark cluster** hosting Airflow + ancillary services + additive Ceph + CephFS/RGW gateways; (2) **msb-pmc01 retirement** — services migrate to msb-pmc04; once done, msb-pmc01 is out of the Spark fabric entirely; (3) **VLAN 37 unified** across msb-pmc02 / 03 / 04 as the single Spark Cluster Network (supersedes the earlier "msb-pmc03 sole tenant of 37/38/39 + new VLAN 10 chokepoint" candidate); (4) **dev/prod isolation deferred** — explicitly not in scope at this design stage; (5) **Michelle's vendor user provisioning closed** — accounts and groups in place as of 2026-05-11; (6) primary/secondary control framing — Austin's network firewall = primary (single chokepoint at pool's default gateway); host-level `nftables`/`firewalld` + vendor sudo carve-out = defense-in-depth secondary. **Now awaiting responses from:** Sean+Austin (confirm VLAN 37 can span pmc02/03/04 + allowlist content), Paul Barber (Cyber endorse / surface gaps + sudo carve-out sign-off), Rob Ball (CIO risk-accept the 3 scope expansions vs 2026-05-06 directive: prod in scope, dev/prod isolation deferred, msb-pmc04 in scope), AD admins (DC-pool-wide vs steered), Ksolves (OPSWAT install confirmation).
 
-**Status update (2026-05-11, EOD — Phase 2 audit closures + HIPAA scope split + Phase 3 begun + VLAN 37 issue):** Daily Ksolves call + working session today landed substantive Phase 2 closures. Audit re-run captured at `phases/phase2/development/Incoming/ceph_audit_msb-pmc03-01.corp.fqdn_2026-05-11_1842.log` (raw script output; left in `Incoming/` untracked per joint decision — contains corporate FQDN + ceph auth keys, not committable as-is).
+**Status update (2026-05-11, EOD — Phase 2 audit closures + HIPAA scope split + Phase 3 begun + VLAN 37 issue):** Daily Ksolves call + working session today landed substantive Phase 2 closures. Audit re-run captured at `phases/development/phase2/Incoming/ceph_audit_msb-pmc03-01.corp.fqdn_2026-05-11_1842.log` (raw script output; left in `Incoming/` untracked per joint decision — contains corporate FQDN + ceph auth keys, not committable as-is).
 
 **Audit § 13 items all closed 2026-05-11** (Friday's audit re-run confirms or vendor verbally clarified):
 - § 13.1 Ceph version (Squid 19.2.3 vs Reef in config doc) — vendor confirmed Squid intentional + compat-tested
@@ -148,7 +148,7 @@ Each letter's source MD has Status updated to "Sent 2026-05-08 — awaiting vend
 
 **HIPAA scope split decision 2026-05-11:** Per joint fqdn–Ksolves decision, HIPAA encryption + access-control posture splits across phase boundaries:
 - **Phase 2 — HIPAA Hardware Compliance (BLOCKER.3a)** — **CLOSED 2026-05-11** (LUKS posture resolved; audit log documents the final state)
-- **Phase 3 — HIPAA Software & Network Compliance (BLOCKER.3b)** — **REASSIGNED TO PHASE 3** with canonical scope in `phases/phase2/development/Document/CP_HIPAA_Compliance_v1.1.md` (bumped from v1.0 to reflect the restructure)
+- **Phase 3 — HIPAA Software & Network Compliance (BLOCKER.3b)** — **REASSIGNED TO PHASE 3** with canonical scope in `phases/development/phase2/Document/CP_HIPAA_Compliance_v1.1.md` (bumped from v1.0 to reflect the restructure)
 - Main CP v1.5 § BLOCKER.3 effectively closes for Phase 2 as of 2026-05-11; BLOCKER.4 (vendor isolation framework) becomes the sole remaining Phase 2 gate
 
 **Phase 3 work begun (<vendor-engineer>):** Virtual machine configuration tasks initiated during today's working session. Phase 3 has begun, though Phase 2 closure has remaining items — Phase 2 closing letter responses from Ksolves (`correspondence/Document/phase2_closing_letter_to_ksolves_2026-05-08.md`), javax filter verification letter responses (`correspondence/Document/h1_javax_filter_verification_letter_to_ksolves_2026-05-08.md`), and the VLAN 37 recognition fix.
@@ -157,7 +157,7 @@ Each letter's source MD has Status updated to "Sent 2026-05-08 — awaiting vend
 
 **Files touched in this cycle:** CP_HIPAA_Compliance_v1.0.md → v1.1.md (rename + content update + PDF regen); CP v1.5 (BLOCKER.3 restructure + P0.6 tuning-applied + VLAN 37 BLOCKER.4 sub-task + status-line updates); tracker HTML (lockstep); CP_Okta_v1.1.md, MSB-PMC01_airflow_host_briefing_v1.3.md, SOW_timeline_status.md, Phases_Critical_Path_Production_v0.1.md, correspondence/Ready_For_Review/prod_architecture_questionnaire_responses_v1.0.md (all v1.0 → v1.1 cross-ref bumps).
 
-**Status update (2026-05-12 morning — Network topology pivoted; framework v0.3 drafted):** Network team email thread this morning (8:15 AM → 9:13 AM, Michelle → Networking_IT_DL → Austin / Sean Klette / Michelle, captured at `phases/phase2/development/Incoming/5_12_emails/Sean Klette.md`) established that the unified-VLAN-37 model from framework v0.2 is superseded.
+**Status update (2026-05-12 morning — Network topology pivoted; framework v0.3 drafted):** Network team email thread this morning (8:15 AM → 9:13 AM, Michelle → Networking_IT_DL → Austin / Sean Klette / Michelle, captured at `phases/development/phase2/Incoming/5_12_emails/Sean Klette.md`) established that the unified-VLAN-37 model from framework v0.2 is superseded.
 
 **Key facts from the thread:**
 - **Cluster VMs cannot move into the Ksolves VLAN** (Austin + Sean Klette confirmed).
@@ -247,13 +247,13 @@ _Owned by reviewers (not yet ready):_
 - [x] [Phase1] [correspondence] Confirm RHEL version: 9.4 (current assumption) vs. 9.7 (pending Ksolves Spark compatibility research) **— resolved 2026-04-30: proceeding with RHEL 9.4 (vendor-requested); 9.7 ISO held on disk for future evaluation but not blocking**
   - Decision: RHEL 9.4 committed for all Phase 1 VM provisioning
   - 9.7 compatibility research with Ksolves is no longer on the critical path
-  - See: phases/phase1/development/vendor_comms/phase1_vendor_questions.txt § RHEL Version Decision
+  - See: phases/development/phase1/vendor_comms/phase1_vendor_questions.txt § RHEL Version Decision
 
 - [x] [Phase1] [remote_services] Provision RHEL ISO to Proxmox local storage (user action) **— closed 2026-04-30: ISOs placed on all three dev-cluster nodes via local Directory storage at `/rpool/data/templates/iso/`; decoupled from P0.0 dependency**
   - Resolution path: User added `/rpool/data` as Datacenter → Storage → Directory entry with ISO content type enabled; Proxmox auto-created `templates/iso/` subdirectory; ISOs moved there and visible in Create-VM wizard on all three nodes
   - Versions placed: RHEL 9.4 (committed) + RHEL 9.7 (held)
   - Original blocker (waiting for P0.0 / Ceph HEALTH_OK before placing ISOs) was bypassed by using node-local ZFS storage instead of Ceph-backed shared storage
-  - See: phases/phase2/development/Document/Phases_Critical_Path_Development_v1.3.md § BLOCKER.2 (CLOSED)
+  - See: phases/development/phase2/Document/Phases_Critical_Path_Development_v1.3.md § BLOCKER.2 (CLOSED)
 
 ### P0 — Critical Path (This Week)
 
@@ -262,7 +262,7 @@ _Owned by reviewers (not yet ready):_
 - [x] [Phase1] [correspondence] Confirm cloud staging target — Azure Blob or AWS S3 — for Snowflake COPY INTO path. **Closed 2026-05-05: Azure Blob confirmed**. Pipeline: `Airflow DAG → spark-submit per table → Ceph → Parquet → Snowflake COPY INTO from Azure` (per `Ksolves_Spark_YARN_Config_v1.0.pdf` § 1.1).
 - [ ] [Phase1] [correspondence] Confirm RHEL 9.4 subscriptions active on all Worker VMs and YARN RM VM
 - [ ] [Phase1] [remote_services] Install Hadoop 3.4.1 separately on all Worker VMs and configure HADOOP_HOME — **Owner: Vendor (Ksolves)**. Note for vendor: Spark 3.5.x ships with Hadoop 3.3.x; install must set `HADOOP_HOME` → 3.4.1 + `spark.yarn.populateHadoopClasspath = true` per `Ksolves_Spark_YARN_Config_v1.0.pdf` § 3.4 deployment note.
-- [ ] [Phase1] [calculators] Run first 5 production jobs and measure actual shuffle amplification factor (update phases/phase1/development/deliverables/dev_cluster_phase1_model.html default once measured)
+- [ ] [Phase1] [calculators] Run first 5 production jobs and measure actual shuffle amplification factor (update phases/development/phase1/deliverables/dev_cluster_phase1_model.html default once measured)
 
 - [x] [Phase1] [remote_services] **Determine max concurrent Airflow task slots** — **Closed 2026-05-05: 1 concurrent job** (3-node cluster final). Vendor recommended +1 node for 2-concurrent operation but user decided 3 nodes only (budget). Per `Ksolves_Spark_YARN_Config_v1.0.pdf` § 1.2: "The cluster supports 1 concurrent Spark job with the current 3-node configuration." Airflow host sizing at P1.0 (6c / 24 GB / 500 GB SSD) remains valid for single-job orchestration.
 
@@ -285,7 +285,7 @@ _Owned by reviewers (not yet ready):_
   - Decision: Proceeding with RHEL 9.4 (vendor-requested, confirmed compatible)
   - 9.7 ISO is on disk at `/rpool/data/templates/iso/` for future use if Ksolves' compatibility research lands favorably
   - Vendor reply still welcome but does not gate any Phase 1 work
-  - See: phases/phase1/development/vendor_comms/phase1_vendor_questions.txt § RHEL Version Decision
+  - See: phases/development/phase1/vendor_comms/phase1_vendor_questions.txt § RHEL Version Decision
 
 - [ ] [correspondence] [remote_services] [security] Awaiting Ksolves reply on network, firewall, and DNS access matrix for msb-pmc01 / msb-pmc02 / msb-pmc03 — vendor assumptions and scope (combined ACL matrix: network/firewall + switch VLAN + RGW S3 IAM; dev/prod isolation; Azure egress) — see correspondence/Document/Ksolves Network Firewall DNS Query.md
   - Sent: 2026-04-30
@@ -297,14 +297,16 @@ _Owned by reviewers (not yet ready):_
 
 - [ ] [Phase1] [security] **Awaiting Ksolves confirmation: OPSWAT security client installed on all vendor devices** — fqdn requested install 2026-05-07; vendor to confirm install completion across all devices that will participate in Phase 1B VDI access. Required for the device-posture attestation chain (patch status, password protection, no screen-capture / keylogger software). Owner: Ksolves.
 
-- [ ] [Phase2] [calculators] **Awaiting Ksolves clarity on RGW gateway placement** — vendor's config doc § 6.4 calls for 3 RGW instances (`rgw_thread_pool_size 512`, `rgw_max_concurrent_requests 1024`) supporting the multi-file shuffle workload. Today's 2026-05-11 18:42 audit shows **only 1 RGW daemon active** on Proxmox host msb-pmc03-01 (`/usr/bin/radosgw --name client.rgw.msb-pmc03-01`). Question for vendor: where do the 3 RGW daemons live in the final dev-cluster topology — on the 3 Proxmox hosts (`msb-pmc03-01/02/03`), or on the 3 Worker VMs? **Sizing impact:** RGW process needs CPU + RAM allocation; placement determines whether the calculator's **Proxmox infrastructure reservations** or the **Worker VM sizing** must account for it. **Same question applies to msb-pmc04** once stood up — framework v0.2 names "CephFS / RGW frontend gateways" as msb-pmc04 services, with the same placement ambiguity. Source: `phases/phase2/development/Incoming/ceph_audit_msb-pmc03-01.corp.fqdn_2026-05-11_1842.log` § RGW Section (lines 249–299) + `Ksolves_Spark_YARN_Config_v1.0.pdf` § 6.4. Owner: Ksolves to clarify topology + fqdn calculator update once known.
+- [ ] [Phase2] [calculators] **Awaiting Ksolves clarity on RGW gateway placement** — vendor's config doc § 6.4 calls for 3 RGW instances (`rgw_thread_pool_size 512`, `rgw_max_concurrent_requests 1024`) supporting the multi-file shuffle workload. Today's 2026-05-11 18:42 audit shows **only 1 RGW daemon active** on Proxmox host msb-pmc03-01 (`/usr/bin/radosgw --name client.rgw.msb-pmc03-01`). Question for vendor: where do the 3 RGW daemons live in the final dev-cluster topology — on the 3 Proxmox hosts (`msb-pmc03-01/02/03`), or on the 3 Worker VMs? **Sizing impact:** RGW process needs CPU + RAM allocation; placement determines whether the calculator's **Proxmox infrastructure reservations** or the **Worker VM sizing** must account for it. **Same question applies to msb-pmc04** once stood up — framework v0.2 names "CephFS / RGW frontend gateways" as msb-pmc04 services, with the same placement ambiguity. Source: `phases/development/phase2/Incoming/ceph_audit_msb-pmc03-01.corp.fqdn_2026-05-11_1842.log` § RGW Section (lines 249–299) + `Ksolves_Spark_YARN_Config_v1.0.pdf` § 6.4. Owner: Ksolves to clarify topology + fqdn calculator update once known.
+
+- [ ] [Phase2] [calculators] **Awaiting Ksolves OK to migrate VM disks from local ZFS to Ceph RBD `vm-disks` pool** — 2026-05-12 12:18 audit revealed dev cluster VMs (created today on VLAN 27) are placed on local ZFS volumes (zvols `zd0`, `zd16` visible on msb-pmc03-01) rather than the Ceph RBD `vm-disks` pool that was provisioned for this purpose (pool 3, `application=rbd`, 32 PG; pool stayed at 0 added objects after VM creation). **Design intent** (per the `vm-disks` pool naming + application tag): VM disks on Ceph RBD for cross-node replication / HA. **Current state**: local ZFS on individual Proxmox hosts — VMs pinned to host, no automatic failover. **Action**: fqdn (Rohn) alerted vendor 2026-05-12 afternoon; **awaiting vendor OK to migrate VMs from local ZFS to RBD**. Migration plan TBD after vendor confirms. Source: `phases/development/phase2/Incoming/ceph_audit_msb-pmc03-01.corp.fqdn_2026-05-12_1218.log` § DISKS + § POOLS. Owner: Ksolves (OK to migrate) + Rohn/vendor (execute migration once approved).
 
 ---
 
 ## Open Questions
 
 - [ ] [remote_services] "Monitoring Apache" — Airflow dashboards, Spark dashboards, or both? Scopes Grafana build-out
-- [x] [remote_services] Second Proxmox host specs (vCPU, RAM, storage) — sets VM allocation ceiling **— Closed 2026-05-06: MSB-PMC01 specs captured in `phases/phase2/development/Document/MSB-PMC01_cluster_host_inventory.md` and Airflow target node detailed in `MSB-PMC01_airflow_host_briefing_v1.1.md`**
+- [x] [remote_services] Second Proxmox host specs (vCPU, RAM, storage) — sets VM allocation ceiling **— Closed 2026-05-06: MSB-PMC01 specs captured in `phases/development/phase2/Document/MSB-PMC01_cluster_host_inventory.md` and Airflow target node detailed in `MSB-PMC01_airflow_host_briefing_v1.1.md`**
 - [ ] [remote_services] Ingest batch window timing — validates job concurrency assumptions
 - [ ] [remote_services] Is exaBGP floating S3 IP routable from bastion host's network segment?
 - [x] [remote_services] Existing Grafana instance scope — what does it currently monitor? **— Closed 2026-05-06**
@@ -322,13 +324,13 @@ _(All configuration items completed - see Completed section)_
 **Correspondence & Project Coordination:**
 - [x] [correspondence] Work on Proxmox access method (screen sharing vs. direct) — **resolved 2026-04-29: Webex desktop sharing active for Phase 1A; VDI for Phase 1B**
 - [ ] [correspondence] Phase 1B — VMware Horizon VDI provisioning for Ksolves (permanent replacement for Webex sharing; pending fqdn Cyber Security approval; non-blocking for Phase 1/2 work)
-- [ ] [correspondence] Decide cluster outbound network path: **MPLS** (single Lumen MPLS cloud) vs. **DIA direct** (multiple Lumen DIA handoffs, paid redundancy) vs. **DIA + VPN** (VPN over DIA, traffic-engineered redundancy) — gates WAN egress throughput validation and cloud staging target choice; cluster confirmed sited at ALG Brooks with redundant ingress from Garfield + Windsor — see `phases/phase2/development/Document/ETL_outbound_map.pdf`
+- [ ] [correspondence] Decide cluster outbound network path: **MPLS** (single Lumen MPLS cloud) vs. **DIA direct** (multiple Lumen DIA handoffs, paid redundancy) vs. **DIA + VPN** (VPN over DIA, traffic-engineered redundancy) — gates WAN egress throughput validation and cloud staging target choice; cluster confirmed sited at ALG Brooks with redundant ingress from Garfield + Windsor — see `phases/development/phase2/Document/ETL_outbound_map.pdf`
 - [ ] [correspondence] Define required interconnections between remote Airflow server and Spark cluster — coordinate with Sean Klette **— In progress as of 2026-05-06 (network connections discussion underway)**
 - [ ] [correspondence] Review updated resource calculation document from vendor lead (pending receipt)
 - [x] [correspondence] Review and provide feedback on dev cluster resource calculations and mappings — see `calculators/Document/dev_cluster_math_reference.html` **— Closed 2026-05-06**
 - [ ] [correspondence] Confirm directory structure for incoming and archived CSV files (date-based vs. flat)
 - [ ] [correspondence] Identify where in the pipeline CSV compression occurs and update mapping logic — see `calculators/Document/etl-data-flow-diagram.html`
-- [x] [correspondence] Resolve authentication approach (Keycloak vs. Okta) with Cyber/Security **— Closed 2026-05-06: Okta selected; see `phases/phase2/development/Document/CP_Okta_v1.1.md`**
+- [x] [correspondence] Resolve authentication approach (Keycloak vs. Okta) with Cyber/Security **— Closed 2026-05-06: Okta selected; see `phases/development/phase2/Document/CP_Okta_v1.1.md`**
 
 **Remote Services Provisioning:**
 - [ ] [remote_services] Provision bastion VM on `msb-pmc01-04` — **Owner: Vendor (Ksolves)**. Host placement confirmed 2026-05-06; co-locates with Airflow VM and the planned Grafana/Prometheus/Loki VM on the same Tier-A node.
@@ -361,13 +363,13 @@ _(All configuration items completed - see Completed section)_
 ## Follow-Ups (from Ksolves msb-pmc03-01 baseline review, 2026-05-01)
 
 - [ ] [Phase1] [security] **Follow-Up:** Verify the `fqdn-vendor-admins` PVE group ACL was actually downgraded along with the per-user ACLs. The vendor's command history shows the group was granted `Administrator` role at `/`, then `<vendor-user-a>@pam` was set to `PVEAuditor` and `<vendor-user-b>@pam` to `PVEUser` via direct user ACLs — but the group-level grant was not visibly revoked. Run `pveum acl list | grep -i fqdn-vendor-admins`; if the Administrator entry is still present, remove it (`pveum acl delete / --group fqdn-vendor-admins --role Administrator`).
-  - Source: `phases/phase2/development/Incoming/ksolves_node1_commands.txt` (lines 196–308 group/role setup; lines 385–388 per-user downgrade)
+  - Source: `phases/development/phase2/Incoming/ksolves_node1_commands.txt` (lines 196–308 group/role setup; lines 385–388 per-user downgrade)
 
 - [ ] [Phase1] [remote_services] **Follow-Up (network team):** msb-pmc03-01 bond0 is degraded — `nic1` is DOWN with LACP `churned` state, no LACP partner. Bond is currently 25 Gbps not 50. User has noted this will be resolved when new cables are run. Schedule with the network team; re-verify with `cat /proc/net/bonding/bond0` once cabling is in place; confirm `-02` and `-03` are similarly cabled (their baseline runs are scheduled today and will reveal their state).
-  - Source: `phases/phase2/development/Incoming/ksolves_session_capture.txt` (lines 84–92 ip link, 235–312 bond status)
+  - Source: `phases/development/phase2/Incoming/ksolves_session_capture.txt` (lines 84–92 ip link, 235–312 bond status)
 
 - [ ] [Phase1] [calculators] **Follow-Up:** Confirm the underlying media class for the 7× 3.5 TiB data drives on each msb-pmc03 node. `nvme list` returned empty on `-01`, and the HPE Smart Array presents all data drives as `LOGICAL VOLUME` (single-disk RAID0 LVs — Smart Array does not support JBOD/passthrough, so individual LVs is the only path to meet the Proxmox JBOD requirement). The CLAUDE.md hardware reference states "7× 3.84 TB NVMe per node"; verify whether the underlying media is actually NVMe or SAS/SATA, and update CLAUDE.md plus `calculators/Document/dev-cluster-storage-reference.html` if the spec was wrong. Throughput math may need revising if SAS.
-  - Source: `phases/phase2/development/Incoming/ksolves_session_capture.txt` (lines 16–58 lsblk + nvme list)
+  - Source: `phases/development/phase2/Incoming/ksolves_session_capture.txt` (lines 16–58 lsblk + nvme list)
 
 ---
 

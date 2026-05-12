@@ -1,0 +1,110 @@
+# Phase 1 Vendor Questions & Correspondence
+
+## Waiting for User Data Delivery (Required by Ksolves)
+
+- [ ] CSV File Information (for storage/shuffle verification)
+  - Status: PENDING USER DATA GATHERING
+  - Required: Total CSV file count, size distribution, ZSTD compression ratio
+  - Impact: Ksolves needs this to verify OSD capacity and shuffle amplification estimates
+  - Deadline: Before P0.1 (Worker VM provisioning)
+  - See: phases/development/phase2/Document/Phases_Critical_Path_Development_v1.5.md § P0.0a
+
+## Waiting for Vendor Reply
+
+_(Pulled from master TODO — see root TODO.md for updates)_
+
+
+## Phase 1 Critical Questions
+
+### RHEL Version Decision
+- Status: PENDING KSOLVES RESEARCH
+- Question: Is Apache Spark 3.5.3 compatible with RHEL 9.7? (or must we use RHEL 9.4?)
+- Current Assumption: RHEL 9.4 (confirmed compatible with Phase 1 requirements)
+- Under Research: RHEL 9.7 (penultimate RHEL9 version — preferred if compatible)
+- Impact: Determines which RHEL ISO to download and provision locally before P0.1 VM creation
+- Context: User will place RHEL ISO in Proxmox local storage; Ksolves boots all VMs from this ISO
+- Timeline: Decision required before ISO selection and provisioning (BLOCKER.2)
+
+
+### Cloud Staging Target
+- Status: OPEN
+- Question: Azure Blob or AWS S3 for Snowflake COPY INTO path?
+- Impact: Required before Phase 0 completion
+- Context: Determines ETL staging infrastructure
+
+
+### RHEL 9.4 Subscriptions
+- Status: OPEN
+- Question: Are subscriptions active on all Worker VMs and YARN RM VM?
+- Impact: Required for package installation
+- Context: Blocking deployment readiness
+
+
+### Phase 1 Node Addition Timeline
+- Status: OPEN
+- Question: When can 4th node be added to meet 40-job SLA?
+- Impact: Phase 1 report flags this as planning dependency
+- Context: Current 3-node cluster insufficient for target workload
+
+
+## Ksolves Remote Access Strategy
+
+### Phase 1A — Interim Shared Webex Desktop Access
+- Status: READY TO IMPLEMENT
+- Method: fqdn infrastructure team shares Webex desktop with Ksolves Karthik Hegde
+- Ksolves executes all Phase 1 infrastructure provisioning through shared desktop
+- fqdn team provides oversight; Webex recording captures all actions for audit trail
+- Duration: Temporary until Phase 1B Horizon desktops are ready
+- Timeline: Can begin immediately; no infrastructure dependencies
+- Actions:
+  1. fqdn creates temporary Proxmox root or owner credentials for Webex session
+  2. fqdn schedules and initiates Webex share with Ksolves
+  3. Ksolves confirms access and begins Phase 1 P0 infrastructure provisioning
+
+### Phase 1B — Permanent VMware Horizon Desktop Access
+- Status: PENDING fqdn CYBER SECURITY APPROVAL
+- Method: Two dedicated VMware Horizon desktops for Ksolves team
+- Full owner-level Proxmox access via Horizon desktop environment
+- fqdn Cyber Security must approve Horizons deployment (compliance gate)
+- Timeline: Estimated 2–4 weeks after security approval
+- Non-blocking: Phase 1B approval does not block Phase 1A (Webex) access or Phase 1 work
+- Actions:
+  1. fqdn submits Horizons Teams infrastructure request (if not already done)
+  2. fqdn Cyber Security reviews and approves Horizons deployment
+  3. Upon approval, fqdn provisions two Horizon desktop sessions
+  4. Ksolves migrates from Webex interim to permanent Horizon access
+  5. Webex session retired once Horizon is live
+
+---
+
+## Phase 1 Meeting Notes
+
+### Vendor Daily Meeting (2026-04-23)
+- Spark History Server confirmed: Node02, 1 vCPU / 4 GB VM
+- YARN ResourceManager HA vendor requirement: active Node01, standby Node03
+- ZooKeeper process placement: 1 per node (host or small VM) — confirm with Ksolves
+- Nginx reverse proxy confirmed: required for YARN RM HA stable endpoint
+- Ansible control node confirmed: required on remote Airflow host
+- SSH key + Proxmox API token access needed for Ansible
+
+### Ksolves Directory Walkthrough (2026-04-22)
+- Airflow executor type: CeleryExecutor confirmed
+- Spark event log location: s3a://spark-history/ confirmed
+- See calculators/Notes/ for detailed walkthrough notes
+
+## References
+
+- Master TODO: `/Users/rohn/Serve/TODO.md` (Phase 1 items tagged [Phase1])
+- Phase 1 Model: `phases/development/phase1/deliverables/dev_cluster_phase1_model.html`
+- Phase 1 Planning: `phases/development/phase1/planning/`
+- Phase 1 Detailed TODO: `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.5.md` (includes Apache Hadoop documentation references for ZooKeeper/YARN HA dependency)
+
+---
+
+## Technical Sources
+
+**ZooKeeper/YARN HA Installation Order:**
+- Apache Software Foundation, "ResourceManager High Availability," in *Apache Hadoop 3.4.1 Documentation*, accessed April 24, 2026, https://hadoop.apache.org/docs/r3.4.1/hadoop-yarn/hadoop-yarn-site/ResourceManagerHA.html
+- IBM, "Configuring Apache ZooKeeper HA for YARN Resource Manager Failover," *Spectrum Symphony 7.3.1 Documentation*, accessed April 24, 2026, https://www.ibm.com/docs/en/spectrum-symphony/7.3.1?topic=harmiiy-configuring-apache-zookeeper-ha-yarn-resource-manager-failover
+
+**Key Finding:** ZooKeeper must be deployed and operational before YARN ResourceManager HA can be configured. This is a mandatory prerequisite, not optional. See Phases_Critical_Path_Development_v1.5.md § P1.3 and P1.2 for integration details.

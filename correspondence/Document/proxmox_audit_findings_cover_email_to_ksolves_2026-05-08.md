@@ -55,7 +55,7 @@ Rohn
 - **What this email body does:** introduces the attachment, summarises the green-light findings, lists the 7 verification items as a quick-look table. Full context for each item is in § 13 of the attached HTML.
 - **Pairs with:**
   - Vendor-facing audit detail: `correspondence/Document/proxmox_audit_findings_to_ksolves_2026-05-08.md` (HTML rendering attached to the email)
-  - Internal version: `phases/phase2/development/Notes/proxmox_audit_2026-05-08.md` (with internal tracking codes; not for sending)
+  - Internal version: `phases/development/phase2/Notes/proxmox_audit_2026-05-08.md` (with internal tracking codes; not for sending)
   - Phase 2 closing letter: `correspondence/Document/phase2_closing_letter_to_ksolves_2026-05-08.md`
   - H1 javax filter letter: `correspondence/Document/h1_javax_filter_verification_letter_to_ksolves_2026-05-08.md`
   - NVMe LUKS follow-up: `correspondence/Document/nvme_luks_already_encrypted_followup_to_ksolves_2026-05-08.md`

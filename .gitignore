@@ -11,7 +11,7 @@ Incoming/
 
 # Cleaned-output archives (also already covered by `Incoming/` above; kept
 # explicit so the intent is obvious when grepping .gitignore for Archive/).
-phases/phase2/development/Incoming/Archive/
+phases/development/phase2/Incoming/Archive/
 
 .claudecheckpoints/
 

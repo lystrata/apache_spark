@@ -33,7 +33,7 @@ It supersedes the now-obsolete `bastion_sizing_reference.md` (which sized a sing
 | **Total RAM** | **130 GB** |
 | Disk pool for VM volumes | Ceph `rbd_ssd` (~1.8 TiB / node, ~5.4 TiB cluster-wide) |
 
-Source: `phases/phase2/development/Document/MSB-PMC01_airflow_host_briefing_v1.1.md` § 3.1.
+Source: `phases/development/phase2/Document/MSB-PMC01_airflow_host_briefing_v1.1.md` § 3.1.
 
 **Single-NUMA caveat:** Hyperthreaded cores aren't 1:1 with physical cores under sustained compute. The effective throughput ceiling is closer to 12 physical cores. The numbers below stay safely under that threshold because Airflow / Loki / Prometheus / bastion workloads are bursty and largely IO-bound, not CPU-saturated.
 
@@ -164,7 +164,7 @@ User to compute Loki and Prometheus disk based on retention policy. Reference va
 
 ## Cross-references
 
-- `phases/phase2/development/Document/MSB-PMC01_airflow_host_briefing_v1.1.md` — host briefing for the Airflow target node (definitive host profile)
+- `phases/development/phase2/Document/MSB-PMC01_airflow_host_briefing_v1.1.md` — host briefing for the Airflow target node (definitive host profile)
 - `remote_services/Notes/bastion_sizing_reference.md` — older unified bastion VM sizing (now obsolete; superseded by this document)
 - `remote_services/Notes/monitoring_sizing_reference.md` — Prometheus / Grafana / Loki per-service sizing references
 - `remote_services/Notes/airflow_planning_notes.md` — Airflow architecture rationale

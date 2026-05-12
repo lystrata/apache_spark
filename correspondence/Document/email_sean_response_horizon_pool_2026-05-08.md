@@ -61,7 +61,7 @@ Layering confirmed by both parties. Sub-task **"Sean + Austin sync on pool ↔ c
 
 ## Cross-references
 
-- Main CP — `phases/phase2/development/Document/Phases_Critical_Path_Development_v1.5.md` § BLOCKER.4
+- Main CP — `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.5.md` § BLOCKER.4
 - Security planning note (on-site only) — `security/Notes/vendor-access-isolation-plan_2026-05-06.md`
 - 2026-05-07 outbound email — `correspondence/Document/email_sean_austin_horizon_pool_alignment_2026-05-07.md`
 - 2026-05-08 Austin reply — `correspondence/Document/email_austin_response_horizon_pool_2026-05-08.md`

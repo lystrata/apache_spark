@@ -295,7 +295,7 @@ Rohn
 
 ## Internal tracking notes (not part of the email body)
 
-- **Source:** stripped vendor-facing version of `phases/phase2/development/Notes/proxmox_audit_2026-05-08.md`
+- **Source:** stripped vendor-facing version of `phases/development/phase2/Notes/proxmox_audit_2026-05-08.md`
 - **What was stripped:** Critical Path / BLOCKER.* / P0.x / P2.x labels; Critical Path Document Synchronization rule references; sub-project paths; "review punch-list" framing; cross-reference table to internal CP items; AI-tracked-this voice and methodology notes
 - **What was kept:** all factual technical findings, verification questions, audit-run methodology
 - **What was added:** explicit "Items for verification" section (§ 13) consolidating the verification questions in vendor-facing language; a "what this audit didn't cover" section (§ 14) listing the per-node state still to capture
