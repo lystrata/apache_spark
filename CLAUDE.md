@@ -214,7 +214,16 @@ Then open `http://localhost:8000/calculators/Document/production_spark_calculato
 
 When converting markdown documents to PDF using Pandoc, always include the `--toc` flag to generate a clickable table of contents in the PDF (appears as bookmarks/outline in PDF readers). When the source markdown contains GFM checkboxes, also pass `--from=markdown+task_lists` so they render as real checkbox glyphs.
 
-**Standard command:**
+**Preferred invocation (use this):**
+```bash
+Scripts/regenerate_pdf.sh <input.md> [<output.pdf>]
+```
+
+The script wraps the standard command below. Output path defaults to the input path with `.md` swapped for `.pdf` in the same directory; pass an explicit second argument for a non-standard location. The script reports the resolved input → output paths and the generated PDF's byte count.
+
+**Why prefer the script:** the raw `eval "$(brew shellenv)" && ...` form below trips Claude Code's bash parser (`"Contains shell syntax that cannot be statically analyzed"`) and triggers a permission prompt every time. The script's invocation form parses cleanly without a prompt.
+
+**Standard command (what the script wraps; use directly only if the script is unavailable):**
 ```bash
 eval "$(brew shellenv)" && export PATH="/Library/TeX/texbin:$PATH" && \
 pandoc <input.md> -o <output.pdf> --toc --pdf-engine=lualatex -V geometry:margin=1in --from=markdown+task_lists
