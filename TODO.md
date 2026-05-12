@@ -26,7 +26,7 @@ _Last updated 2026-05-11_
 ### Security — Credential Rotation (URGENT, 2026-05-01)
 
 - [x] [Phase1] [security] **🚨 Rotate exposed iLO administrator credentials** — the iLO admin password used by Ksolves on `msb-pmc03-01-ilo` (10.1.32.64) appears in plain text inside the vendor's bash history. Rotate the iLO password on all three msb-pmc03 nodes; if the same credential is reused for any corporate-AD account, rotate that as well; scrub `~/.bash_history` on each node (and any vendor workstation copies); coordinate with corporate IT.
-  - Source: `phases/phase2/development/Incoming/ksolves_node1_commands.txt` (occurrences at lines 82–87, 121, 138–142, 168–172)
+  - Source: `phases/phase2/development/Incoming/Archive/ksolves_node1_commands.txt` (occurrences at lines 82–87, 121, 138–142, 168–172) — moved to Archive/ 2026-05-11
 
 ### Vendor Configuration Baseline — Ksolves Spark & YARN Config v1.0 (2026-05-04)
 
