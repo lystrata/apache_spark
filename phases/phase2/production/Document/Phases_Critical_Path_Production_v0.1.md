@@ -194,7 +194,7 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 #### Access Strategy (Phased)
 
 **Phase 1A (Interim):** Shared Webex Desktop with fqdn Team Oversight
-- Ksolves Karthik Hegde connects to fqdn Webex Desktop shared by fqdn infrastructure team member
+- Ksolves <vendor-technical-contact> connects to fqdn Webex Desktop shared by fqdn infrastructure team member
 - Ksolves executes Proxmox commands / VM provisioning through shared desktop screen
 - fqdn team member retains visual oversight of all Ksolves actions (audit trail)
 - **Timeline:** Ready immediately; no infrastructure dependencies
@@ -211,7 +211,7 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
 ---
 
 - **User Actions Required (Immediate):**
-  - [ ] Set up shared Webex Desktop session with Ksolves Karthik Hegde
+  - [ ] Set up shared Webex Desktop session with Ksolves <vendor-technical-contact>
   - [ ] Create temporary Proxmox root or owner credentials for Ksolves to use during Webex session
   - [ ] Document all Ksolves actions via Webex recording or shared notes for audit trail
   - [ ] Verify Webex connectivity and access permissions before Phase 1 infrastructure work begins
@@ -368,7 +368,7 @@ All Phase 2 infrastructure provisioning awaits BLOCKER.1 (Proxmox access). Once 
      - Size distribution table
      - Measured ZSTD compression ratio
      - Any notes on file characteristics that affect compression (data sparsity, cardinality, etc.)
-- **Deliverable:** CSV file metrics document or email summary to Ksolves (karthik.hegde@ksolves.com)
+- **Deliverable:** CSV file metrics document or email summary to Ksolves (<vendor-email>)
 - **Owner:** User (fqdn) — local data analysis
 - **Estimated Effort:** 2–4 hours (depends on data accessibility and tooling)
 - **Impact on Plan:** Informs P0.1 (OSD capacity allocation) and storage headroom decisions. Ksolves will reassess if actual compression differs significantly from 7× shuffle amplification assumption.
@@ -966,7 +966,7 @@ The following items are derived from Phase 1 report findings but are not explici
 - No NVMes assigned; Ksolves will allocate per spec (3× Ceph OSD, 4× Spark scratch per node)
 
 **External Dependencies:**
-- Ksolves technical contact: Karthik Hegde (karthik.hegde@ksolves.com, 8317382875)
+- Ksolves technical contact: <vendor-technical-contact> (<vendor-email>, <vendor-phone>)
 - Ksolves requires owner-level Proxmox access (BLOCKER.1) before any infrastructure work
 - fqdn sign-off required at user checkpoints (P0.2, P1.8, P1.2, P2.3) before proceeding to next phase
 - Cloud staging platform decision (P0.3) blocks Stage 6 pipeline implementation
