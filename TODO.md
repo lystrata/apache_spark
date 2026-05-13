@@ -199,7 +199,32 @@ Each letter's source MD has Status updated to "Sent 2026-05-08 — awaiting vend
 
 **New Pending Tasks captured 2026-05-12:**
 
-- [ ] [Phase3] [correspondence] **Prepare msb-pmc04 cluster details document for Ksolves** — vendor requires msb-pmc04 cluster specs (hardware, network, storage, VLAN 27 IP allocations for Airflow + Bastion + GPL + RGW frontend VMs) as soon as available so they can plan Phase 3 work. Companion to `MSB-PMC01_airflow_host_briefing_v1.3.md` (which carries the supersession notice for msb-pmc01); successor briefing under a new basename (e.g., `MSB-PMC04_airflow_host_briefing_v1.0.md`) forthcoming once msb-pmc04 hardware specs land. Owner: Rohn (assemble briefing) + Mirali (vendor coordination).
+- [x] [Phase3] [correspondence] **Prepare msb-pmc04 cluster details document for Ksolves** — **briefing v1.0 drafted 2026-05-13** at `phases/development/phase3/Ready_For_Review/MSB-PMC04_cluster_profile_v1.0.md`. Source spreadsheet captured at `phases/development/phase3/Notes/pmc04_cluster_profile_2026-05-13.xlsx`. **Topology confirmed by spreadsheet:** single Proxmox cluster of 6 nodes, workload-segregated (4 dev + 2 prod) on shared VLAN 37 host fabric with workload VMs landing on VLAN 27. Cluster totals: 864 GB RAM · ~9.9 TB ZFS boot · 74.7 TB OSD raw. Pending fqdn review then promote to `Document/` and circulate. Owner: Rohn (assemble briefing) + Mirali (vendor coordination).
+
+**New Pending Tasks captured 2026-05-13 (msb-pmc04 pre-provisioning):**
+
+_Per the spreadsheet `phases/development/phase3/Notes/pmc04_cluster_profile_2026-05-13.xlsx`. All gate Phase 3 vendor work on msb-pmc04._
+
+_Owner: Austin (Network)_
+- [ ] [Phase3] [remote_services] **Install 10/25 Gb fibre on msb-pmc04-01: cable + test**
+- [ ] [Phase3] [remote_services] **Install 10/25 Gb fibre on msb-pmc04-02: cable + test**
+- [ ] [Phase3] [remote_services] **Install 10/25 Gb fibre on msb-pmc04-03: cable + test**
+- [ ] [Phase3] [remote_services] **Install 10/25 Gb fibre on msb-pmc04-04: cable + test**
+
+_Owner: Sean Klette (Network)_
+- [ ] [Phase3] [remote_services] **Install 10/25 Gb fibre on msb-pmc04-05: cable + test**
+- [ ] [Phase3] [remote_services] **Install 10/25 Gb fibre on msb-pmc04-06: cable + test**
+- [ ] [Phase3] [remote_services] **Configure iLO on msb-pmc04-05** (no iLO IP assigned yet — other 5 nodes are at 10.1.32.162 / .199 / .172 / .232 / .58)
+- [ ] [Phase3] [remote_services] **Assign Public IPs (VLAN 37) to the 10/25 Gb interface on all 6 msb-pmc04 nodes** — msb-pmc04-01..05 pending; msb-pmc04-06 already at 10.1.37.58
+
+_Owner: Rohn (fqdn infrastructure)_
+- [ ] [Phase3] [remote_services] **Install 1.2 TB drive on msb-pmc04-05**
+- [ ] [Phase3] [remote_services] **Install 3 × 900 GB drives on msb-pmc04-06**
+- [ ] [Phase3] [remote_services] **Label all 6 msb-pmc04 nodes** (-01 through -06)
+
+_Owner: Joint / vendor-coordinated_
+- [ ] [Phase3] [remote_services] **Define Ceph pool topology for msb-pmc04** — single cluster with dev/prod pool separation, or two separate Ceph clusters per workload side. Aligns with framework v0.3 dev/prod isolation deferral.
+- [ ] [Phase3] [remote_services] **Confirm workload VM allocations to specific msb-pmc04 nodes** — which node hosts Airflow, Bastion, GPL, History Server, RGW frontend, monitoring (Grafana/Prometheus/Loki). Anticipates per-VM placement decisions for Phase 3.
 
 **Status update (2026-05-12 afternoon — DC-pool closure captured + javax filter letter re-sent + Phase 2 sign-over focus):**
 
