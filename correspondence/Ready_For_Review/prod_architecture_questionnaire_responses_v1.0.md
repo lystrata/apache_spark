@@ -19,7 +19,7 @@ The intent is for the user to walk through this document, edit the draft answers
 ## Sources Already Available to Inform Responses
 
 - `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.4.md` — main critical path
-- `phases/development/phase2/Document/CP_HIPAA_Compliance_v1.1.md` — HIPAA encryption + Web UI ACL sub-project (vendor-driven)
+- `phases/development/phase2/Document/CP_HIPAA_Compliance_v1.2.md` — HIPAA encryption + Web UI ACL sub-project (vendor-driven)
 - `phases/development/phase2/Document/CP_Okta_v1.1.md` — user-facing SSO architecture
 - `phases/development/phase2/Document/Ksolves_Spark_YARN_Config_v1.0.pdf` — vendor configuration baseline
 - `security/Notes/okta-migration-plan.md` — earlier auth scaffolding

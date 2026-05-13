@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phases Critical Path Tracker — Development Cluster v1.5</title>
+<title>Phases Critical Path Tracker — Development Cluster v1.6</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
@@ -202,8 +202,9 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
   <div class="page-header-inner">
     <div class="header-text">
       <h1>Phases Critical Path — Development Cluster</h1>
-      <h2>Interactive Tracker · Source: <code>Phases_Critical_Path_Development_v1.5.md</code></h2>
-      <p>Version 1.5 · Last updated 2026-05-11 · Click checkboxes to mark steps complete; state auto-saves to this browser only.</p>
+      <h2>Interactive Tracker · Source: <code>Phases_Critical_Path_Development_v1.6.md</code></h2>
+      <p>Version 1.6 · Last updated 2026-05-13 · Click checkboxes to mark steps complete; state auto-saves to this browser only.</p>
+      <p style="margin-top:8px; padding:10px 12px; background:#332a16; border-left:3px solid #d4a017; color:#f4e8c8;"><strong>📋 v1.6 Update (2026-05-13):</strong> Phase 2 — Ksolves-side obligations COMPLETE (joint confirmation today). <strong>javax servlet filter DROPPED from SOW</strong>; Web UI security via Kerberos + AD logins instead (Spark SPNEGO filter). <strong>Phase 3 target start 2026-05-20</strong> (one-week slip; Ksolves granted upfront time to develop Ansible scripts for Spark install/config due to isolation constraints). <strong>Kevin onboarded</strong> fqdn-side (Linux/Ansible/Proxmox; 3rd infrastructure reviewer). See <code>Phases_Critical_Path_Development_v1.6.md</code> § Update (2026-05-13) and <code>CP_HIPAA_Compliance_v1.2.md</code> §§ #H1 / #H1-rev / #H4 for detail.</p>
     </div>
     <button class="btn-theme" id="btn_theme" onclick="toggleTheme()">&#9728; Light</button>
   </div>
@@ -214,7 +215,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
 <div class="page-controls">
   <a onclick="setAllSections(false)">▼ Collapse all sections</a>
   <a onclick="setAllSections(true)">▶ Expand all sections</a>
-  <a onclick="exportMarkdown()" style="color:var(--accent);">⬇ Export progress as v1.5 markdown</a>
+  <a onclick="exportMarkdown()" style="color:var(--accent);">⬇ Export progress as v1.6 markdown</a>
   <span class="save-status" id="save_status">Auto-save ready</span>
 </div>
 
@@ -445,7 +446,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
   <summary class="section-summary">
     <span class="section-letter crit">B3</span>
     <span class="section-title">BLOCKER.3 — HIPAA Compliance — restructured 2026-05-11 (3a CLOSED, 3b → Phase 3)</span>
-    <span class="section-sub">· EFFECTIVELY CLOSED for Phase 2 on 2026-05-11 · 3a closed (LUKS resolved) · 3b reassigned to Phase 3 (CP_HIPAA_Compliance_v1.1.md)</span>
+    <span class="section-sub">· EFFECTIVELY CLOSED for Phase 2 on 2026-05-11 · 3a closed (LUKS resolved) · 3b reassigned to Phase 3 (CP_HIPAA_Compliance_v1.2.md)</span>
     <a href="#top" class="btt" onclick="event.stopPropagation()">&#8593; Top</a>
   </summary>
   <div class="section-body">
@@ -453,11 +454,11 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
     <dl class="task-meta">
       <dt>Status</dt><dd><strong>EFFECTIVELY CLOSED for Phase 2 on 2026-05-11.</strong> BLOCKER.3a (hardware compliance) closed; BLOCKER.3b (software/network compliance) reassigned to Phase 3 per joint fqdn–Ksolves decision 2026-05-11.</dd>
       <dt>Priority</dt><dd>BLOCKING (was) — production handling of ePHI on the Spark cluster requires HIPAA encryption + access-control posture per 45 CFR § 164.312; the Phase 2 portion of that posture is now satisfied</dd>
-      <dt>Sub-project</dt><dd><strong><code>phases/development/phase2/Document/CP_HIPAA_Compliance_v1.1.md</code></strong> — canonical detailed scope for BLOCKER.3b (Phase 3 work). This tracker section retains gate-level pointers only.</dd>
+      <dt>Sub-project</dt><dd><strong><code>phases/development/phase2/Document/CP_HIPAA_Compliance_v1.2.md</code></strong> — canonical detailed scope for BLOCKER.3b (Phase 3 work). This tracker section retains gate-level pointers only.</dd>
       <dt>Source</dt><dd>Ksolves' <code>Ksolves_Spark_YARN_Config_v1.0.pdf</code> § 8 (HIPAA Compliance Architecture &amp; Guidelines) — three pillars: transmission security (§ 8.1), data at rest (§ 8.2), Web UI ACL (§ 8.3)</dd>
     </dl>
 
-    <p><strong>History:</strong> split 2026-05-08 into 3a (hardware) + 3b (software/network). Restructured 2026-05-11 to align with phase boundaries — 3a stays in Phase 2 (now closed); 3b reassigned to Phase 3 with canonical scope in <code>CP_HIPAA_Compliance_v1.1.md</code>.</p>
+    <p><strong>History:</strong> split 2026-05-08 into 3a (hardware) + 3b (software/network). Restructured 2026-05-11 to align with phase boundaries — 3a stays in Phase 2 (now closed); 3b reassigned to Phase 3 with canonical scope in <code>CP_HIPAA_Compliance_v1.2.md</code>.</p>
 
     <div class="task-warn"><strong>🔒 BLOCKER.3a — HIPAA Hardware Compliance (Drive Encryption / LUKS posture) — CLOSED 2026-05-11</strong><br>
     <strong>Status:</strong> <strong>CLOSED 2026-05-11.</strong> Final posture: hardware-only encryption on scratch drives sde–sdh (bare-mounted at <code>/data/spark-scratch/drive[0-3]</code>); OSD drives sda/sdc/sdd remain dm-crypt as expected. Audit-log documentation captured.<br>
@@ -480,8 +481,8 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
 
     <div class="task-block">
       <div class="task-block-title">🔒 BLOCKER.3b — HIPAA Software &amp; Network Compliance — REASSIGNED TO PHASE 3 (2026-05-11)</div>
-      <p><strong>Status:</strong> <strong>REASSIGNED TO PHASE 3</strong> per joint fqdn–Ksolves decision 2026-05-11. No longer a Phase 2 gate. Canonical scope tracked in <code>CP_HIPAA_Compliance_v1.1.md</code>.</p>
-      <p><strong>Phase 3 scope (now in sub-project):</strong> transmission security (§ 8.1), Web UI ACL (§ 8.3 — custom javax servlet filter), SSE on Ceph buckets, local Spark I/O encryption, Kerberos service auth. See <code>CP_HIPAA_Compliance_v1.1.md</code> for items #H1, #H2, #H4, #H5 and Vendor-Owned V1–V6 verification items.</p>
+      <p><strong>Status:</strong> <strong>REASSIGNED TO PHASE 3</strong> per joint fqdn–Ksolves decision 2026-05-11. No longer a Phase 2 gate. Canonical scope tracked in <code>CP_HIPAA_Compliance_v1.2.md</code>.</p>
+      <p><strong>Phase 3 scope (now in sub-project):</strong> transmission security (§ 8.1), Web UI ACL (§ 8.3 — custom javax servlet filter), SSE on Ceph buckets, local Spark I/O encryption, Kerberos service auth. See <code>CP_HIPAA_Compliance_v1.2.md</code> for items #H1, #H2, #H4, #H5 and Vendor-Owned V1–V6 verification items.</p>
     </div>
 
     <div class="task-warn"><strong>Verification gate (lifts the parent BLOCKER.3 from Phase 2 entirely):</strong> BLOCKER.3a closed 2026-05-11 + BLOCKER.3b reassigned to Phase 3 ⇒ <strong>BLOCKER.3 effectively lifts from Phase 2 as of 2026-05-11.</strong> Production ePHI processing still requires the Phase 3 software/network HIPAA posture to land (tracked in CP_HIPAA_Compliance v1.1).</div>
@@ -570,7 +571,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
         <li><strong>Daily KSolves call</strong> covered the 5/8 audit findings: 5 items discussed today (the remaining 3 from earlier work after 2 had been closed via verbal pre-call). Closures via working-session resolution + vendor clarifications enumerated below.</li>
         <li><strong>Working-session outcomes (<vendor-engineer> + Rohn):</strong> (1) LUKS double-encryption resolved — <vendor-engineer> ran ansible reformat across all 3 dev cluster nodes; scratch drives sde–sdh bare-mounted; software LUKS layer removed; hardware-only encryption remains. (2) mclock IOPS calibration completed on OSDs 0, 4, 6, 7 — all 9 OSDs now have <code>osd_mclock_max_capacity_iops_ssd</code> values. (3) RGW server-side tuning — both settings applied (<code>rgw_thread_pool_size=512</code>, <code>rgw_max_concurrent_requests=1024</code>); verification formally deferred to Phase 3 per joint agreement (see P0.6).</li>
         <li><strong>Audit § 13 items all closed 2026-05-11</strong> (post-today's-work re-audit confirms): § 13.1 Ceph Squid 19.2.3 intentional (vendor confirmed); § 13.2 standby-only MDS normal for vendor install procedure; § 13.3 OSD device class <code>ssd</code> correct (audit mislabeled); § 13.4 pool naming intentional (SSE/WORM deferred); § 13.5 mclock calibration complete; § 13.6 RGW tuning applied + Phase 3 verification; § 13.7 LUKS posture resolved.</li>
-        <li><strong>HIPAA scope split decision 2026-05-11:</strong> BLOCKER.3a (HIPAA hardware compliance) <strong>CLOSED under Phase 2</strong>; BLOCKER.3b (HIPAA software/network compliance) <strong>REASSIGNED TO PHASE 3</strong>. Canonical scope for Phase 3 work tracked in <code>CP_HIPAA_Compliance_v1.1.md</code> (bumped from v1.0).</li>
+        <li><strong>HIPAA scope split decision 2026-05-11:</strong> BLOCKER.3a (HIPAA hardware compliance) <strong>CLOSED under Phase 2</strong>; BLOCKER.3b (HIPAA software/network compliance) <strong>REASSIGNED TO PHASE 3</strong>. Canonical scope for Phase 3 work tracked in <code>CP_HIPAA_Compliance_v1.2.md</code> (bumped from v1.0).</li>
         <li><strong>VLAN 37 Proxmox recognition issue</strong> surfaced during <vendor-engineer>'s Phase 3 VM-config work; Sean Klette debugging, isolated by 17:00 2026-05-11; remediation steps planned for the evening. Tracked as a new BLOCKER.4 sub-task above.</li>
         <li><strong>Phase 3 work begun (<vendor-engineer>):</strong> Virtual machine configuration tasks initiated during today's session. Phase 3 has begun, though Phase 2 closure still has remaining items — Phase 2 closing letter responses from Ksolves (<code>correspondence/Document/phase2_closing_letter_to_ksolves_2026-05-08.md</code>), javax filter verification letter (<code>correspondence/Document/h1_javax_filter_verification_letter_to_ksolves_2026-05-08.md</code>), and VLAN 37 recognition fix.</li>
         <li><strong>Audit log archived:</strong> <code>phases/development/phase2/Incoming/ceph_audit_msb-pmc03-01.corp.fqdn_2026-05-11_1842.log</code> (raw script output; left in <code>Incoming/</code> untracked per joint decision; contains corporate FQDN + ceph auth keys so not committable as-is).</li>
@@ -633,7 +634,7 @@ details.task-details[open] > .task-summary::before { transform: rotate(90deg); }
   </summary>
   <div class="section-body">
 
-    <p>Phase 2 substantively complete on the infrastructure side as of <strong>2026-05-12</strong>. <strong>BLOCKER.1 closed 2026-05-08</strong> — Phase 1A (Webex) access satisfies the requirement; Phase 1B permanent VDI tracked under BLOCKER.4. <strong>P0.0 (Ceph), P0.1a (Worker VM hardware), P0.4 pre-req (RHEL subs), P0.7 (network MSB-PMC01↔03) closed 2026-05-08. P0.1b (Worker VM OS install) + P0.4 post-prov (RHEL licenses activated) both closed 2026-05-12</strong> — dev cluster VMs created on VLAN 27 with IPs <code>10.1.27.130&ndash;134</code>; RHEL licenses confirmed activated. <strong>BLOCKER.3a (HIPAA hardware compliance) closed 2026-05-11; BLOCKER.3b (HIPAA software/network compliance) reassigned to Phase 3</strong> with canonical scope in <code>CP_HIPAA_Compliance_v1.1.md</code>. BLOCKER.4 gates Phase 1B (Horizon VDI) on a vendor-access isolation design + Cyber endorsement + CIO sign-off; <strong>framework v0.3 staged for send 2026-05-12</strong> (supersedes v0.2; VLAN 27 cluster + VLAN 157 Ksolves pool topology). BLOCKER.2 (RHEL ISO placement) closed 2026-04-30. <strong>Phase 3 officially open 2026-05-12</strong>. Production ePHI processing remains gated on Phase 3 software/network HIPAA posture (sub-project) plus BLOCKER.4 closure.</p>
+    <p>Phase 2 substantively complete on the infrastructure side as of <strong>2026-05-12</strong>. <strong>BLOCKER.1 closed 2026-05-08</strong> — Phase 1A (Webex) access satisfies the requirement; Phase 1B permanent VDI tracked under BLOCKER.4. <strong>P0.0 (Ceph), P0.1a (Worker VM hardware), P0.4 pre-req (RHEL subs), P0.7 (network MSB-PMC01↔03) closed 2026-05-08. P0.1b (Worker VM OS install) + P0.4 post-prov (RHEL licenses activated) both closed 2026-05-12</strong> — dev cluster VMs created on VLAN 27 with IPs <code>10.1.27.130&ndash;134</code>; RHEL licenses confirmed activated. <strong>BLOCKER.3a (HIPAA hardware compliance) closed 2026-05-11; BLOCKER.3b (HIPAA software/network compliance) reassigned to Phase 3</strong> with canonical scope in <code>CP_HIPAA_Compliance_v1.2.md</code>. BLOCKER.4 gates Phase 1B (Horizon VDI) on a vendor-access isolation design + Cyber endorsement + CIO sign-off; <strong>framework v0.3 staged for send 2026-05-12</strong> (supersedes v0.2; VLAN 27 cluster + VLAN 157 Ksolves pool topology). BLOCKER.2 (RHEL ISO placement) closed 2026-04-30. <strong>Phase 3 officially open 2026-05-12</strong>. Production ePHI processing remains gated on Phase 3 software/network HIPAA posture (sub-project) plus BLOCKER.4 closure.</p>
 
     <div class="sub-controls">
       <a onclick="setSubsections('sec_phase2', true)">Expand all subsections &amp; tasks</a>
@@ -1639,7 +1640,7 @@ spark.sql.parquet.compression.codec=zstd</pre>
           </summary>
           <div class="task-body">
             <dl class="task-meta">
-              <dt>Status</dt><dd>OPEN — added 2026-05-07; placement may shift to <code>CP_HIPAA_Compliance_v1.1.md</code> once that sub-project's section taxonomy stabilizes</dd>
+              <dt>Status</dt><dd>OPEN — added 2026-05-07; placement may shift to <code>CP_HIPAA_Compliance_v1.2.md</code> once that sub-project's section taxonomy stabilizes</dd>
               <dt>Priority</dt><dd>MEDIUM (HIGH inside HIPAA sub-project) — required for HIPAA audit-trail compliance</dd>
               <dt>Owner</dt><dd><strong>fqdn Development team</strong> + fqdn Cyber/Security</dd>
               <dt>Source</dt><dd>Vendor lead (Ksolves), questionnaire Q1–Q3, email forwarded 2026-05-06; aligns with HIPAA § 164.316(b)(2)</dd>
@@ -1676,7 +1677,7 @@ spark.sql.parquet.compression.codec=zstd</pre>
             </div>
 
             <p class="muted"><strong>Implementation impact:</strong> Likely co-locates with the existing Grafana/Prometheus/Loki VM mentioned in P1.0's host context. Requires Promtail agents on every cluster node + remote service VM. Does not block infrastructure provisioning (P0–P1) but <strong>must</strong> be in place before any ePHI processing runs.<br>
-            <strong>Cross-reference:</strong> Once <code>CP_HIPAA_Compliance_v1.1.md</code> reaches a section taxonomy that has an "audit / retention" pillar, this task may move there with a back-reference here.</p>
+            <strong>Cross-reference:</strong> Once <code>CP_HIPAA_Compliance_v1.2.md</code> reaches a section taxonomy that has an "audit / retention" pillar, this task may move there with a back-reference here.</p>
           </div>
         </details>
 
@@ -1705,7 +1706,7 @@ spark.sql.parquet.compression.codec=zstd</pre>
     <div class="cb-row"><input type="checkbox" id="cb_cps_b4" data-track><span class="cb-text"><strong>BLOCKER.4 (NEW 2026-05-06):</strong> Vendor-access isolation design + Cyber endorsement + CIO sign-off — gates Phase 1B (Horizon VDI). Partial progress 2026-05-07 (Horizon pool stood up, initial firewall posture set)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_1" data-track checked><span class="cb-text"><strong>BLOCKER.1 — Establish Ksolves Remote Access — CLOSED 2026-05-08</strong> (Phase 1A satisfies access requirement; Phase 1B permanent VDI tracked under BLOCKER.4)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_3" data-track checked><span class="cb-text">BLOCKER.2: User placed RHEL ISO(s) in Proxmox Directory storage at <code>/rpool/data/templates/iso/</code> on all three dev-cluster nodes (closed 2026-04-30 — decoupled from P0.0)</span></div>
-    <div class="cb-row"><input type="checkbox" id="cb_cps_b3" data-track checked><span class="cb-text"><strong>BLOCKER.3 (split 2026-05-08; restructured 2026-05-11):</strong> 3a (hardware compliance) — <strong>CLOSED 2026-05-11</strong> (LUKS posture resolved via ansible reformat; hardware-only encryption); 3b (software/network) — <strong>REASSIGNED TO PHASE 3</strong> (canonical scope in <code>CP_HIPAA_Compliance_v1.1.md</code>)</span></div>
+    <div class="cb-row"><input type="checkbox" id="cb_cps_b3" data-track checked><span class="cb-text"><strong>BLOCKER.3 (split 2026-05-08; restructured 2026-05-11):</strong> 3a (hardware compliance) — <strong>CLOSED 2026-05-11</strong> (LUKS posture resolved via ansible reformat; hardware-only encryption); 3b (software/network) — <strong>REASSIGNED TO PHASE 3</strong> (canonical scope in <code>CP_HIPAA_Compliance_v1.2.md</code>)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_2" data-track checked><span class="cb-text"><strong>P0.0 — Ceph cluster bootstrapped — CLOSED 2026-05-08</strong> (MON, MGR, 9× OSD, RGW; HEALTH_OK)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_4" data-track checked><span class="cb-text"><em>Parallel user prerequisites — closed 2026-05-08:</em> P0.4 (RHEL subscriptions ✅), P0.7 (network MSB-PMC01↔03 ✅; MTU resolved 2026-05-06)</span></div>
     <div class="cb-row"><input type="checkbox" id="cb_cps_4b" data-track><span class="cb-text"><em>In-flight, fqdn-owned, parallel:</em> P0.0b (GZIP mitigation decision), P2.8 (Snowflake load-completion mechanism), P2.9 (centralized audit logging)</span></div>
@@ -1827,7 +1828,7 @@ spark.sql.parquet.compression.codec=zstd</pre>
         <tr><td>Main Report</td><td><code>phases/development/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf</code></td></tr>
         <tr><td>Prerequisites</td><td><code>phases/development/phase1/Incoming/vendor_prerequisites.docx.pdf</code></td></tr>
         <tr><td>Vendor Configuration Baseline</td><td><code>phases/development/phase2/Document/Ksolves_Spark_YARN_Config_v1.0.pdf</code> (2026-05-04)</td></tr>
-        <tr><td>HIPAA Sub-project Critical Path</td><td><code>phases/development/phase2/Document/CP_HIPAA_Compliance_v1.1.md</code></td></tr>
+        <tr><td>HIPAA Sub-project Critical Path</td><td><code>phases/development/phase2/Document/CP_HIPAA_Compliance_v1.2.md</code></td></tr>
         <tr><td>Hardware Reference</td><td><code>CLAUDE.md § Hardware Reference</code></td></tr>
         <tr><td>Calculator</td><td><code>phases/development/phase1/deliverables/dev_cluster_phase1_model.html</code></td></tr>
         <tr><td>Ksolves Walkthrough</td><td><code>phases/development/phase1/research/ksolves-directory-walkthrough.md</code></td></tr>

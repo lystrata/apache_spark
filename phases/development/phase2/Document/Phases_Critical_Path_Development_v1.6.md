@@ -3,11 +3,11 @@
 
 # Phases Critical Path — fqdn Development Cluster
 
-_Version 1.5 · Last updated 2026-05-11_  
+_Version 1.6 · Last updated 2026-05-13_  
 _Phases 1–2 detailed plan from fqdn Phase 1 Report (Ksolves) — April 2026 · Configuration baseline from Ksolves Spark & YARN Config v1.0 (2026-05-04)_  
 _Report Source: phases/development/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf_  
 _Config Source: phases/development/phase2/Document/Ksolves_Spark_YARN_Config_v1.0.pdf_  
-_Status: Phase 1 (Planning) COMPLETED Apr 24 · **Phase 2 (Implementation) substantively complete on the infrastructure side as of 2026-05-12** — BLOCKER.1 closed 2026-05-08 (Phase 1A access satisfies; Phase 1B tracked under BLOCKER.4); P0.0 (Ceph), P0.1a (Worker VM hardware), P0.4 pre-req (RHEL subs in account portal), P0.7 (network MSB-PMC01↔03) all closed 2026-05-08; **P0.1b (Worker VM OS install) + P0.4 post-prov (RHEL licenses activated) both closed 2026-05-12** (dev cluster VMs created on VLAN 27 with IPs `10.1.27.130–134`; RHEL licenses confirmed activated); **BLOCKER.3a (HIPAA hardware compliance) closed 2026-05-11** (LUKS posture resolved via ansible reformat); **BLOCKER.3b reassigned to Phase 3** (HIPAA software/network compliance scoped in `CP_HIPAA_Compliance_v1.1.md`) · Remaining Phase 2 gate: BLOCKER.4 (Phase 1B vendor-access isolation — framework v0.3 in flight 2026-05-12) · 3-node cluster finalized 2026-05-05 · Ksolves Horizon pool stood up 2026-05-07; pool validation + IP blocks closed 2026-05-08 · **Vendor isolation framework v0.3 staged for send 2026-05-12** (supersedes v0.2 from 2026-05-11; VLAN 27 cluster + VLAN 157 Ksolves pool + L3 firewall + remote-domain AD permissions; VLAN 37 model retired) · **All 7 audit § 13 items closed 2026-05-11** · **VLAN 37 Proxmox recognition issue closed 2026-05-12 via re-segmentation** · **Phase 3 officially open 2026-05-12** (vendor engineer's VM-configuration work continues from yesterday; formal Phase 2 closure pending Phase 2 closing letter responses + javax filter verification letter + BLOCKER.4 closure) · Out-of-scope items flagged for vendor clarification_
+_Status: Phase 1 (Planning) COMPLETED Apr 24 · **Phase 2 (Implementation) — Ksolves-side obligations COMPLETE as of 2026-05-13** (joint fqdn–Ksolves confirmation); BLOCKER.1 closed 2026-05-08; P0.0/P0.1a/P0.4 pre-req/P0.7 all closed 2026-05-08; P0.1b + P0.4 post-prov closed 2026-05-12 (dev cluster VMs on VLAN 27, `10.1.27.130–134`); **BLOCKER.3a (HIPAA hardware) closed 2026-05-11** (LUKS posture resolved); **BLOCKER.3b reassigned to Phase 3** (HIPAA software/network scoped in `CP_HIPAA_Compliance_v1.2.md`) · Remaining fqdn-side Phase 2 closures: BLOCKER.4 (vendor-access isolation — framework v0.3 in flight); javax filter verification letter (closed 2026-05-13 — **javax dropped from SOW** at today's meeting; security via Kerberos + AD logins); Phase 2 closing letter responses outstanding · 3-node cluster finalized 2026-05-05 · Vendor isolation framework v0.3 staged for send 2026-05-12 (VLAN 27 + VLAN 157 + L3 firewall + remote-domain AD permissions) · All 7 audit § 13 items closed 2026-05-11 · VLAN 37 Proxmox recognition issue closed 2026-05-12 · **Phase 3 target start 2026-05-20** (per joint agreement 2026-05-13) — Ksolves granted upfront time to develop Ansible scripts for Spark install/configuration (originally manual; pivoted to Ansible-driven proactively due to vendor-access isolation constraints) · **Team:** Kevin onboarded 2026-05-13 (fqdn-side; Linux/Ansible/Proxmox + 3rd infrastructure reviewer)_
 
 ---
 
@@ -43,7 +43,7 @@ _Companion tracker: `phases/development/phase2/Document/SOW_timeline_status.md` 
 - **Phase 1 (Discovery & Setup Planning, 1 wk):** Completed 2026-04-24 — about 4 days past the SOW Week-1 boundary. Essentially on plan given the 1-week budget.
 - **Phase 2 (Proxmox & VM Creation, 3 wks, window 2026-04-21 → 2026-05-11):** In window, **not yet started**. Each week BLOCKER.1 (Ksolves remote access) stays open consumes ~1/3 of the Phase 2 budget.
 - **Halt Period decision point: 2026-05-04** (end of SOW Week 3). If BLOCKER.1 has not closed by this date, fqdn should consider formally invoking SOW § 7.2 (Halt Period) so the gated duration is excised from the schedule, milestones, and SLA. Whether to invoke is a contracting decision per SOW § 9.2 (Project Change Control).
-- **SOW V1.1 pending:** the 2026-04-27 verbal vendor reversal (single YARN RM, no ZooKeeper, no nginx — captured in P0.2, P1.2, and the dropped P1.3/P1.4) is **not yet reflected** in a written SOW revision. SOW V1.1 also needs to capture (a) the 3-node finalization (vendor recommended +1 node; declined 2026-05-05 on budget), (b) the new HIPAA scope (BLOCKER.3 below + `CP_HIPAA_Compliance_v1.1.md` sub-project), and (c) the rollover to vendor's `Ksolves_Spark_YARN_Config_v1.0.pdf` (2026-05-04) as the configuration baseline. The SOW Document History table is still blank past V1.0; § 9 requires a written, signed change order for material scope changes. Tracked under `TODO.md § Waiting for Vendor Reply`.
+- **SOW V1.1 pending:** the 2026-04-27 verbal vendor reversal (single YARN RM, no ZooKeeper, no nginx — captured in P0.2, P1.2, and the dropped P1.3/P1.4) is **not yet reflected** in a written SOW revision. SOW V1.1 also needs to capture (a) the 3-node finalization (vendor recommended +1 node; declined 2026-05-05 on budget), (b) the new HIPAA scope (BLOCKER.3 below + `CP_HIPAA_Compliance_v1.2.md` sub-project), (c) the rollover to vendor's `Ksolves_Spark_YARN_Config_v1.0.pdf` (2026-05-04) as the configuration baseline, (d) **javax servlet filter dropped from SOW 2026-05-13 (joint agreement); Web UI security via Kerberos + AD logins instead**, and (e) **Ansible-driven Spark install/configuration replacing the implicit manual posture** (Ksolves granted upfront prep time 2026-05-13 due to isolation constraints). The SOW Document History table is still blank past V1.0; § 9 requires a written, signed change order for material scope changes. Tracked under `TODO.md § Waiting for Vendor Reply`.
 - **Out-of-scope reminder:** SOW § 2.2 excludes "user load or performance testing" — P1.8 (5 production sample jobs / shuffle amplification measurement) likely needs a Change Order or separate SOW.
 - **3-node cluster decision (2026-05-05):** Vendor's `Ksolves_Spark_YARN_Config_v1.0.pdf` § 1.3 SLA Risk Summary recommends "Phase 1 (+1 node → 2 concurrent jobs) strongly recommended" — fqdn has **declined** the +1 node addition on budget grounds. The 3-node cluster proceeds with **1 concurrent Spark job**; vendor's "feasible-but-zero-buffer" SLA analysis at 3 nodes is the accepted posture. Mitigation strategies: schedule the 12 largest tables first (79.29% of total volume per vendor analysis); add Airflow size-check gate to skip the 184 placeholder tables.
 - **NUC hardware prerequisite resolved (2026-05-06):** Ksolves' Phase 1A Windows-host hardware blocker (NUC reliability issues in their data center) is resolved. User has shifted to hosting Webex from their fqdn-office host. Phase 1A is **active** — vendor lead drives Proxmox provisioning over Webex screen share with fqdn oversight. Ansible `--check`-mode playbook testing has begun (2026-05-07).
@@ -75,9 +75,29 @@ Per Ksolves April 24 status report, Phase 1 planning is **COMPLETE**. All discov
 
 <a id="phase-2-implementation-pending-blocker1"></a>
 
-## PHASE 2 — IMPLEMENTATION (IN PROGRESS — gated by BLOCKER.4; BLOCKER.3a closed 2026-05-11, BLOCKER.3b reassigned to Phase 3)
+## PHASE 2 — IMPLEMENTATION (Ksolves-side COMPLETE 2026-05-13; fqdn-side closure pending BLOCKER.4 + Phase 2 closing letter)
 
-Phase 2 infrastructure provisioning is in progress. **Phase 1A access is satisfying the access requirement** (BLOCKER.1 closed 2026-05-08). Permanent VDI replacement (Phase 1B) is tracked under BLOCKER.4. **HIPAA scope split 2026-05-11:** Phase 2 hardware-encryption compliance (BLOCKER.3a) closed 2026-05-11; Phase 3 software/network HIPAA compliance (BLOCKER.3b) reassigned to Phase 3 with canonical scope in `CP_HIPAA_Compliance_v1.1.md`. Production ePHI processing remains gated on the full HIPAA posture (Phase 2 + Phase 3) plus BLOCKER.4 closure.
+Phase 2 infrastructure provisioning **Ksolves-side obligations are complete as of 2026-05-13** (joint fqdn–Ksolves confirmation, today's meeting). Phase 1A access continues to satisfy the access requirement (BLOCKER.1 closed 2026-05-08); permanent VDI replacement (Phase 1B) is tracked under BLOCKER.4. **HIPAA scope split 2026-05-11:** Phase 2 hardware-encryption compliance (BLOCKER.3a) closed 2026-05-11; Phase 3 software/network HIPAA compliance (BLOCKER.3b) reassigned to Phase 3 with canonical scope in `CP_HIPAA_Compliance_v1.2.md`. Production ePHI processing remains gated on the full HIPAA posture (Phase 2 + Phase 3) plus BLOCKER.4 closure.
+
+### Update (2026-05-13) — Phase 2 Ksolves-side complete; javax dropped; Phase 3 May-20 target; team expansion; Ansible-for-Spark-install scope
+
+**Joint meeting 2026-05-13** with Ksolves landed five substantive items:
+
+1. **Phase 2 — Ksolves-side obligations COMPLETE.** Vendor confirms today that Ksolves-delivered Phase 2 work is done. **fqdn-side HIPAA hardware/software split is also complete on the hardware side** (BLOCKER.3a closed 2026-05-11). Software + network HIPAA compliance (BLOCKER.3b) formally pushed to Phase 3 — canonical tracker `CP_HIPAA_Compliance_v1.2.md`. Phase 2 closure on the fqdn side awaits: (a) Phase 2 closing letter responses from Ksolves (2 of 3 questions still open — LUKS effectively closed by 2026-05-11 resolution); (b) BLOCKER.4 (vendor-isolation framework v0.3); (c) cluster sign-over verification checklist (deferred Phase 2 closure deliverable).
+
+2. **javax servlet filter — DROPPED FROM SOW** (joint agreement, today's meeting). The custom javax filter requirement on Spark Web UI / History Server (vendor doc § 8.3) is **removed from the scope of work with fqdn concurrence**. Security on the Web UIs will be enforced via **Kerberos + AD logins** instead. **Closes:** the 2026-05-08 javax filter verification letter (re-sent 2026-05-12) is now superseded; #H1 in `CP_HIPAA_Compliance_v1.2.md` closes as DROPPED. **New work surfaced:** Kerberos service principals + AD identity integration on Web UIs lands under Phase 3 — captured as a new HIPAA item (#H1-rev) in `CP_HIPAA_Compliance_v1.2.md`.
+
+3. **Team expansion — Kevin onboarded (fqdn-side).** Kevin joins the fqdn project team effective 2026-05-13. Skills: Linux, Ansible, Proxmox. Role: assist with on-cluster ops + 3rd-set-of-infrastructure-eyes review on Phase 3 architecture decisions (Spark/YARN install, Ansible playbook validation, HIPAA software/network compliance). Reduces single-point-of-knowledge risk on fqdn's side as Phase 3 scope grows.
+
+4. **Phase 3 — target start 2026-05-20** (joint agreement). One week behind SOW indicative (2026-05-12). The week 2026-05-13 → 2026-05-19 is allocated to Ksolves' Ansible-script preparation (item 5 below) plus fqdn-side Phase 2 closure (BLOCKER.4, Phase 2 closing letter, cluster sign-over checklist).
+
+5. **Ansible-for-Spark-install scope expansion — Ksolves granted upfront time.** Spark installation and configuration on the dev cluster were originally scoped as manual Ksolves work in the SOW. Because of the vendor-access isolation constraints (Phase 1B Horizon pool gating, framework v0.3 design surface), Ksolves has asked for and been granted **additional up-front time to develop Ansible scripts** that perform the Spark installations and configuration. Rationale: rather than wait passively on the isolation design to land before manual installs can begin, Ksolves is using the gap proactively to build automated install playbooks. Net effect on the schedule is the Phase 3 start shift to 2026-05-20 (item 4). Net effect on scope is a SOW V1.1 line for "Ansible-driven Spark install/config" replacing the implicit manual posture; tracked under `SOW_timeline_status.md § Vendor change pending`.
+
+**Cross-doc updates from this entry:**
+- `CP_HIPAA_Compliance_v1.2.md` — #H1 javax filter dropped; Kerberos+AD authentication path added as new sub-item (#H1-rev) under § 8.3 framing.
+- `SOW_timeline_status.md` — Phase 3 May-20 target; SOW V1.1 list expanded with javax drop + Ansible-for-Spark-install scope.
+- `TODO.md` — javax filter verification letter closed (DROPPED FROM SOW path); Phase 3 May-20 target captured; Kevin onboarding noted; Ansible-for-Spark-install Pending Task added.
+- `security/Notes/vendor-access-isolation-plan_2026-05-06.md` — Kerberos + AD logins added as Web-UI authentication layer; team-member note for Kevin (on-site only, not git-tracked).
 
 <a id="blocker1-establish-ksolves-remote-access"></a>
 
@@ -186,7 +206,7 @@ Two-stage access strategy: an interim Webex desktop arrangement followed by a pe
 ### 🔒 BLOCKER.3 — HIPAA Compliance (split 2026-05-08; restructured 2026-05-11)
 
 - **Status (Phase 2 view):** **EFFECTIVELY CLOSED 2026-05-11.** BLOCKER.3a (hardware compliance) closed; BLOCKER.3b (software/network compliance) reassigned to Phase 3 scope per joint fqdn–Ksolves decision 2026-05-11.
-- **Sub-project:** **`phases/development/phase2/Document/CP_HIPAA_Compliance_v1.1.md`** — canonical detailed scope for BLOCKER.3b (Phase 3 work). This main-CP section retains the gate-level pointers only.
+- **Sub-project:** **`phases/development/phase2/Document/CP_HIPAA_Compliance_v1.2.md`** — canonical detailed scope for BLOCKER.3b (Phase 3 work). This main-CP section retains the gate-level pointers only.
 - **Source:** Ksolves' `Ksolves_Spark_YARN_Config_v1.0.pdf` § 8 (HIPAA Compliance Architecture & Guidelines) — three pillars: transmission security (§ 8.1), data at rest (§ 8.2), Web UI ACL (§ 8.3).
 - **History:** split 2026-05-08 into 3a (hardware) + 3b (software/network). On 2026-05-11 the scope-split was sharpened to align with phase boundaries — 3a stays in Phase 2 (now closed); 3b reassigned to Phase 3.
 
@@ -206,8 +226,8 @@ Two-stage access strategy: an interim Webex desktop arrangement followed by a pe
 
 #### 🔒 BLOCKER.3b — HIPAA Software & Network Compliance — **REASSIGNED TO PHASE 3 (2026-05-11)**
 
-- **Status:** **REASSIGNED TO PHASE 3 (2026-05-11)** per joint fqdn–Ksolves decision. No longer a Phase 2 gate. Canonical scope tracked in `CP_HIPAA_Compliance_v1.1.md`.
-- **Phase 3 scope (now in sub-project):** transmission security (§ 8.1), Web UI ACL (§ 8.3 — custom javax servlet filter), SSE on Ceph buckets, local Spark I/O encryption, Kerberos service auth. See `CP_HIPAA_Compliance_v1.1.md` for items #H1, #H2, #H4, #H5 and Vendor-Owned V1–V6 verification items.
+- **Status:** **REASSIGNED TO PHASE 3 (2026-05-11)** per joint fqdn–Ksolves decision. No longer a Phase 2 gate. Canonical scope tracked in `CP_HIPAA_Compliance_v1.2.md`.
+- **Phase 3 scope (now in sub-project):** transmission security (§ 8.1), Web UI ACL (§ 8.3 — **Kerberos + AD logins replaces dropped custom javax servlet filter** per joint SOW agreement 2026-05-13), SSE on Ceph buckets, local Spark I/O encryption, Kerberos service auth. See `CP_HIPAA_Compliance_v1.2.md` for items #H1 (DROPPED — javax) + #H1-rev (Kerberos+AD), #H2, #H4, #H5 and Vendor-Owned V1–V6 verification items.
 
 #### Verification gate (lifts the parent BLOCKER.3 from Phase 2 entirely)
 
@@ -504,7 +524,7 @@ _Reviewers (downstream):_
 - **Ksolves Actions (closed):**
   - [x] Create three VM containers on Proxmox: GKPR-SPARK-WK-01 (Node01), GKPR-SPARK-WK-02 (Node02), GKPR-SPARK-WK-03 (Node03)
   - [x] Allocate 18 vCPU per VM (dev cluster has single NUMA domain × 32 cores per node; 18 vCPU fits within one domain — NUMA pinning enabled, no boundary crossing)
-  - [x] Allocate RAM per VM (per the v1.5 RAM cascade: dev cluster physical maximum is 320 GB / node = 10 × 32 GB DIMMs; verify actual VM allocation matches the v1.5 model)
+  - [x] Allocate RAM per VM (per the v1.5/v1.6 RAM cascade: dev cluster physical maximum is 320 GB / node = 10 × 32 GB DIMMs; verify actual VM allocation matches the model)
   - [x] Attach NVMe drives 4–7 to scratch mount (15.36 TB per node for Spark shuffle)
 - **Verification:** Proxmox shows all three VM containers; `lscpu` (post-OS-install) will confirm 18 vCPU per VM
 - **Owner:** Ksolves (executed)
@@ -1058,7 +1078,7 @@ _Reviewers (downstream):_
 
 ### 🟡 P2.9 — Centralized Audit Logging + Retention Policy (HIPAA-driven, NEW 2026-05-07)
 
-- **Status:** OPEN — added 2026-05-07; placement may shift to `CP_HIPAA_Compliance_v1.1.md` once that sub-project's section taxonomy stabilizes
+- **Status:** OPEN — added 2026-05-07; placement may shift to `CP_HIPAA_Compliance_v1.2.md` once that sub-project's section taxonomy stabilizes
 - **Priority:** MEDIUM (treated HIGH inside the HIPAA sub-project) — required for HIPAA audit-trail compliance
 - **Owner:** **fqdn Development team** + fqdn Cyber/Security
 - **Source:** Vendor lead (Ksolves), questionnaire Q1–Q3, email forwarded 2026-05-06 (referenced in TODO.md). Aligns with HIPAA § 164.316(b)(2).
@@ -1078,7 +1098,7 @@ _Reviewers (downstream):_
 - **Implementation impact:** Likely co-locates with the existing Grafana/Prometheus/Loki VM mentioned in P1.0's host context. Requires Promtail agents on every cluster node + remote service VM. Does **not** block infrastructure provisioning (P0–P1) but **must** be in place before any ePHI processing runs.
 - **Verification:** Logs from all enumerated sources land in central store; retention policy verified by attempting a delete (should be denied within retention window); integrity check passes; audit-administrator role can read all logs; non-admin roles cannot.
 - **Estimated Effort:** Design: 1 week. Implementation: 2–3 weeks. Validation: 1 week. Likely runs in parallel with HIPAA encryption pillars (BLOCKER.3).
-- **Cross-reference:** Once `CP_HIPAA_Compliance_v1.1.md` reaches a section taxonomy that has an "audit / retention" pillar, this task may move there with a back-reference here. For now it lives in the main CP for visibility.
+- **Cross-reference:** Once `CP_HIPAA_Compliance_v1.2.md` reaches a section taxonomy that has an "audit / retention" pillar, this task may move there with a back-reference here. For now it lives in the main CP for visibility.
 
 ---
 
@@ -1146,7 +1166,7 @@ The following items are derived from Phase 1 report findings but are not explici
   - [x] BLOCKER.2: RHEL ISO(s) in Proxmox Directory storage at `/rpool/data/templates/iso/` on all three dev-cluster nodes (closed 2026-04-30)
   - [ ] **BLOCKER.3 (split 2026-05-08):**
     - [ ] **3a — Hardware compliance** — vendor claimed closed under Phase 2 on 2026-05-08; **fqdn verification pending** (LUKS-on-encrypted-drives; double-encryption stability + CPU performance; cryptsetup status check). Tracked in Phase 2 closing letter.
-    - [ ] **3b — Software & network compliance** — Spark RPC, TLS, SSL, Web UI ACL, custom javax servlet filter (#H1, fqdn-side ownership pending vendor verification). See `CP_HIPAA_Compliance_v1.1.md`.
+    - [ ] **3b — Software & network compliance** — Spark RPC, TLS, SSL, Web UI ACL via **Kerberos + AD logins** (replaces dropped javax servlet filter per 2026-05-13 SOW change), SSE on Ceph buckets, local Spark I/O encryption. See `CP_HIPAA_Compliance_v1.2.md`.
   - [ ] **BLOCKER.4 (NEW 2026-05-06):** Vendor-access isolation design + Cyber endorsement + CIO sign-off — gates Phase 1B (Horizon VDI). Partial progress 2026-05-07 (Horizon pool stood up, initial firewall posture set); layering closed 2026-05-08; cluster-side design + Cyber + CIO ahead.
   - [x] **P0.0: Ceph cluster bootstrapped — CLOSED 2026-05-08** (MON, MGR, 9× OSD, RGW; HEALTH_OK)
   - [x] **P0.1a: Worker VM hardware created — CLOSED 2026-05-08** (3× VM containers; vCPU + RAM + NVMe attached)
@@ -1184,7 +1204,7 @@ The following items are derived from Phase 1 report findings but are not explici
 - **Main Report:** phases/development/phase1/Incoming/fqdn Report Phase 1 (Updated).docx.pdf
 - **Prerequisites:** phases/development/phase1/Incoming/vendor_prerequisites.docx.pdf
 - **Vendor Configuration Baseline:** phases/development/phase2/Document/Ksolves_Spark_YARN_Config_v1.0.pdf (2026-05-04)
-- **HIPAA Sub-project Critical Path:** phases/development/phase2/Document/CP_HIPAA_Compliance_v1.1.md
+- **HIPAA Sub-project Critical Path:** phases/development/phase2/Document/CP_HIPAA_Compliance_v1.2.md
 - **Hardware Reference:** CLAUDE.md § Hardware Reference
 - **Calculator:** phases/development/phase1/deliverables/dev_cluster_phase1_model.html
 - **Ksolves Walkthrough:** phases/development/phase1/research/ksolves-directory-walkthrough.md
@@ -1195,7 +1215,7 @@ The following items are derived from Phase 1 report findings but are not explici
 - **Cluster Sizing Tool:** calculators/Document/cluster_sizing_tool.html
 - **Math Reference:** calculators/Document/dev_cluster_math_reference.html
 - **Storage Reference:** calculators/Document/dev-cluster-storage-reference.html
-- **Visual Tracker (HTML):** phases/development/phase2/Document/phases_critical_path_development_tracker_v1.5.html
+- **Visual Tracker (HTML):** phases/development/phase2/Document/phases_critical_path_development_tracker_v1.6.html
 - **Vendor-isolation source documents (security context, on-site only):** security/Notes/vendor-access-isolation-plan_2026-05-06.md · security/Document/vendor_security_design_overview_v1.0.md · security/Notes/harper_meeting_summary_vdi_security_2026-05-06.md
 - **Horizon pool alignment email (2026-05-07):** correspondence/Document/email_sean_austin_horizon_pool_alignment_2026-05-07.md
 - **Vendor security email (2026-05-07):** correspondence/Document/vendor_email_horizon_vdi_security_revision_2026-05-06.md
@@ -1212,7 +1232,7 @@ The following items are derived from Phase 1 report findings but are not explici
 
 ---
 
-_Updated: 2026-05-07 (v1.5: BLOCKER.4 vendor-isolation gate added; BLOCKER.1 Phase 1A activated 2026-05-06; Horizon pool stand-up 2026-05-07; Ansible topology revised; Nginx scope corrected; P2.8 Snowflake load completion + P2.9 centralized audit logging added; MTU resolution noted)_  
+_Updated: 2026-05-13 (v1.6: Phase 2 Ksolves-side complete; javax filter DROPPED from SOW — Kerberos+AD replaces it on Web UIs; Phase 3 target start 2026-05-20; Kevin onboarded fqdn-side; Ansible-for-Spark-install scope captured. v1.5 delta — 2026-05-07: BLOCKER.4 vendor-isolation gate added; BLOCKER.1 Phase 1A activated 2026-05-06; Horizon pool stand-up 2026-05-07; Ansible topology revised; Nginx scope corrected; P2.8 Snowflake load completion + P2.9 centralized audit logging added; MTU resolution noted)_  
 _Phase 1 status reflected per ksolves_april_24_process_report.txt_  
-_Location: phases/development/phase2/Document/Phases_Critical_Path_Development_v1.5.md_  
+_Location: phases/development/phase2/Document/Phases_Critical_Path_Development_v1.6.md_  
 _Status: Promoted to Document/ on 2026-05-07_

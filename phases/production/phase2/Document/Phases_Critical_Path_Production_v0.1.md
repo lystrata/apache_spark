@@ -4,7 +4,7 @@
 # Phases Critical Path — fqdn Production Cluster
 
 _Version 0.1 · Last updated 2026-04-27 · v1.5-sync header refresh 2026-05-08 · v0.2 framework sync 2026-05-11 · clean-slate body rewrite 2026-05-12_  
-_Originally forked 2026-04-27 from `Phases_Critical_Path_Development_v1.2.md`; clean-slate rewrite 2026-05-12 — body content replaced with a production-specific scaffold to remove inherited dev statuses. Parallel sibling doc on the dev side is now `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.5.md`; cross-referenced where applicable but NOT inherited from._  
+_Originally forked 2026-04-27 from `Phases_Critical_Path_Development_v1.2.md`; clean-slate rewrite 2026-05-12 — body content replaced with a production-specific scaffold to remove inherited dev statuses. Parallel sibling doc on the dev side is now `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.6.md`; cross-referenced where applicable but NOT inherited from._  
 _Status: **CLEAN-SLATE 2026-05-12 — production-cluster scaffold.** All four phases (1–4) currently NOT YET STARTED / NOT YET PLANNED for the production cluster. Phase status on the dev cluster does NOT imply phase status on the production cluster — each cluster's phases are distinct. The "Update 2026-05-XX" sections below capture dev-cluster events with production-side implications (forward-looking notes for production planning, not retroactive status of the production cluster). Production-specific scope (hardware spec confirmation, traffic profile, HA SLOs, backup/DR, Pre-Flight Gates) will be filled in when production planning starts._
 
 ---
@@ -19,7 +19,7 @@ This document was forked from `Phases_Critical_Path_Development_v1.2.md` (2026-0
 
 **v1.3 → v1.4 (2026-05-05):**
 - 3-node cluster finalized (vendor recommended +1 node, fqdn declined on budget)
-- HIPAA scope forked into sub-project: `CP_HIPAA_Compliance_v1.1.md` (BLOCKER.3 added)
+- HIPAA scope forked into sub-project: `CP_HIPAA_Compliance_v1.2.md` (BLOCKER.3 added)
 - GZIP non-splittability mitigation elevated to P0 decision (P0.0b)
 - P0.0a closed (vendor delivered CSV analysis in `Ksolves_Spark_YARN_Config_v1.0.pdf` § 1.1)
 - P0.3 closed (Azure Blob confirmed)
@@ -119,8 +119,8 @@ The Vendor Access Isolation Framework was finalized as **v0.2** (`security/Docum
 
 - `MSB-PMC01_airflow_host_briefing_v1.2.md` → `_v1.3.md` (msb-pmc01 retirement / msb-pmc04 commitment)
 - `CP_HIPAA_Compliance_v1.0.md` → `_v1.1.md` (HIPAA scope split: 3a closes Phase 2, 3b reassigned to Phase 3; see below)
-- `Phases_Critical_Path_Development_v1.5.md` updated in place with 2026-05-11 progress (framework v0.2 circulated; BLOCKER.3a closed; BLOCKER.3b → Phase 3; VLAN 37 recognition issue)
-- `phases_critical_path_development_tracker_v1.5.html` updated in place to mirror the v1.5 status changes
+- `Phases_Critical_Path_Development_v1.6.md` updated in place with 2026-05-11 progress (framework v0.2 circulated; BLOCKER.3a closed; BLOCKER.3b → Phase 3; VLAN 37 recognition issue)
+- `phases_critical_path_development_tracker_v1.6.html` updated in place to mirror the v1.5 status changes
 - This document (production fork) updated 2026-05-11 with v0.2 production-side implications
 
 ---
@@ -131,7 +131,7 @@ The Vendor Access Isolation Framework was finalized as **v0.2** (`security/Docum
 
 1. **HIPAA scope split — Phase 2 hardware compliance (BLOCKER.3a) vs Phase 3 software/network compliance (BLOCKER.3b).** Per joint fqdn–Ksolves decision 2026-05-11, the HIPAA scope splits across phase boundaries. **Production-side reading:**
    - **Phase 2 hardware compliance** for production = drive-encryption posture on production hardware (768 GB RAM, 64-core nodes, 9× 3.2 TB NVMe — note hardware differs from dev). When production cluster is provisioned, the same LUKS double-encryption issue should be checked at install time. **Mitigation:** apply the dev-cluster lesson — direct vendor to use existing hardware encryption only (no software LUKS layer on hardware-encrypted drives).
-   - **Phase 3 software/network compliance** = transmission security, Web UI ACL, SSE on Ceph buckets, local Spark I/O encryption, Kerberos service auth. **Production-side reading:** production cluster must satisfy the full Phase 3 HIPAA posture before ePHI processing. Canonical scope tracked in `CP_HIPAA_Compliance_v1.1.md` (which now scopes Phase 3 work for both dev and production).
+   - **Phase 3 software/network compliance** = transmission security, Web UI ACL, SSE on Ceph buckets, local Spark I/O encryption, Kerberos service auth. **Production-side reading:** production cluster must satisfy the full Phase 3 HIPAA posture before ePHI processing. Canonical scope tracked in `CP_HIPAA_Compliance_v1.2.md` (which now scopes Phase 3 work for both dev and production).
 
 2. **Phase 2 audit § 13 items all closed (dev cluster).** Production-side equivalent: same audit script should run on the production cluster post-install. Action items the script flags (mclock IOPS calibration, RGW server-side tuning, OSD device class, LUKS posture, pool naming intent, CephFS MDS state, Ceph version) need to be verified on production hardware before production sign-off.
 
@@ -145,7 +145,7 @@ The Vendor Access Isolation Framework was finalized as **v0.2** (`security/Docum
 
 ## Document Overview
 
-This document is the Critical Path for the fqdn **Production** Spark cluster (`msb-pmc02`). It is structurally a sibling to the development cluster's Critical Path (`phases/development/phase2/Document/Phases_Critical_Path_Development_v1.5.md`), but the two clusters have **distinct phase progressions** — completion on dev does NOT imply completion on prod.
+This document is the Critical Path for the fqdn **Production** Spark cluster (`msb-pmc02`). It is structurally a sibling to the development cluster's Critical Path (`phases/development/phase2/Document/Phases_Critical_Path_Development_v1.6.md`), but the two clusters have **distinct phase progressions** — completion on dev does NOT imply completion on prod.
 
 **Current production-cluster state (as of 2026-05-12):**
 
@@ -232,7 +232,7 @@ Phase 2 sign-over verification on production will mirror the dev-cluster checkli
 - Backup/DR readiness verification
 - Production traffic-profile validation (vs. dev pilot)
 
-**Cross-reference**: dev-side Phase 2 sign-over verification checklist is in development on the dev CP (see `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.5.md` — current focus area as of 2026-05-12 afternoon).
+**Cross-reference**: dev-side Phase 2 sign-over verification checklist is in development on the dev CP (see `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.6.md` — current focus area as of 2026-05-12 afternoon).
 
 ---
 
@@ -245,7 +245,7 @@ Phase 2 sign-over verification on production will mirror the dev-cluster checkli
 Production-cluster Phase 3 (Spark / YARN / Hadoop installation + HIPAA software/network compliance + integration + bring-up) has not been initiated. Scope will mirror the dev-cluster Phase 3 taxonomy where production conditions match:
 
 - Spark 3.5.3 + YARN 3.4.1 + Hadoop 3.4.1 installation per vendor config baseline
-- HIPAA software/network compliance per `CP_HIPAA_Compliance_v1.1.md` — Phase 3 scope items: transmission security (§ 8.1), Web UI ACL (§ 8.3), SSE on Ceph buckets, local Spark I/O encryption, Kerberos service auth
+- HIPAA software/network compliance per `CP_HIPAA_Compliance_v1.2.md` — Phase 3 scope items: transmission security (§ 8.1), Web UI ACL (§ 8.3), SSE on Ceph buckets, local Spark I/O encryption, Kerberos service auth
 - Custom javax servlet filter for Spark Web UI / History Server ACL (§ 8.3) — fqdn-side vs vendor-side ownership pending resolution on dev (HIGH priority letter re-sent 2026-05-12)
 - Apache Airflow 2.10.4 deployment + DAG integration (production DAGs may differ from dev pilot)
 - Apache Ranger evaluation + integration for PHI/de-identified entitlement model (drives column masking)
@@ -312,9 +312,9 @@ These items are surfaced from the 16-point production architecture questionnaire
 
 **Cross-references to dev cluster (parallel, NOT inherited):**
 
-- Dev Critical Path — `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.5.md`
-- Dev Critical Path visual tracker — `phases/development/phase2/Document/phases_critical_path_development_tracker_v1.5.html`
-- HIPAA sub-project (applies to both clusters at Phase 3 — single canonical scope) — `phases/development/phase2/Document/CP_HIPAA_Compliance_v1.1.md`
+- Dev Critical Path — `phases/development/phase2/Document/Phases_Critical_Path_Development_v1.6.md`
+- Dev Critical Path visual tracker — `phases/development/phase2/Document/phases_critical_path_development_tracker_v1.6.html`
+- HIPAA sub-project (applies to both clusters at Phase 3 — single canonical scope) — `phases/development/phase2/Document/CP_HIPAA_Compliance_v1.2.md`
 - Okta sub-project (applies to both clusters) — `phases/development/phase2/Document/CP_Okta_v1.1.md`
 - Airflow host briefing (msb-pmc01 → msb-pmc04 supersession 2026-05-12) — `phases/development/phase2/Document/MSB-PMC01_airflow_host_briefing_v1.3.md`
 - Vendor configuration baseline — `phases/development/phase2/Document/Ksolves_Spark_YARN_Config_v1.0.pdf`
