@@ -21,3 +21,7 @@ tmp/
 # Review staging — derived HTML/PDF renders of project source files; rebuilt as needed.
 # Contents are reproducible from the sources in calculators/, correspondence/, phases/, etc.
 html_review/
+
+# Internal briefings — on-site only, unsanitized (real names, real cluster/host IDs).
+# Mirrors the security/ posture: never git-tracked.
+Internal_Briefings/
