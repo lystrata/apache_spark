@@ -199,7 +199,7 @@ Each letter's source MD has Status updated to "Sent 2026-05-08 — awaiting vend
 
 **New Pending Tasks captured 2026-05-12:**
 
-- [x] [Phase3] [correspondence] **Prepare msb-pmc04 cluster details document for Ksolves** — **briefing v1.0 drafted 2026-05-13** at `phases/development/phase3/Ready_For_Review/MSB-PMC04_cluster_profile_v1.0.md`. Source spreadsheet captured at `phases/development/phase3/Notes/pmc04_cluster_profile_2026-05-13.xlsx`. **Topology confirmed by spreadsheet:** single Proxmox cluster of 6 nodes, workload-segregated (4 dev + 2 prod) on shared VLAN 37 host fabric with workload VMs landing on VLAN 27. Cluster totals: 864 GB RAM · ~9.9 TB ZFS boot · 74.7 TB OSD raw. Pending fqdn review then promote to `Document/` and circulate. Owner: Rohn (assemble briefing) + Mirali (vendor coordination).
+- [x] [Phase3] [correspondence] **Prepare msb-pmc04 cluster details document for Ksolves** — **briefing v1.0 drafted 2026-05-13** at `phases/development/phase3/Ready_For_Review/MSB-PMC04_cluster_profile_v1.0.md`. Source spreadsheet captured at `phases/development/phase3/Notes/pmc04_cluster_profile_2026-05-13.xlsx`. **Topology confirmed by spreadsheet:** single Proxmox cluster of 6 nodes; all hosts on VLAN 37 with workload VMs landing on VLAN 27. Cluster totals: 864 GB RAM · ~9.9 TB ZFS boot · 74.7 TB OSD raw. **Scope is hardware + network capacity only** — workload allocation (VM placement, Airflow HA layout, Ceph pool topology, service packaging) is Ksolves' Phase 3 design call. Pending fqdn review then promote to `Document/` and circulate. Owner: Rohn (assemble briefing) + Mirali (vendor coordination).
 
 **New Pending Tasks captured 2026-05-13 (msb-pmc04 pre-provisioning):**
 
@@ -222,9 +222,8 @@ _Owner: Rohn (fqdn infrastructure)_
 - [ ] [Phase3] [remote_services] **Install 3 × 900 GB drives on msb-pmc04-06**
 - [ ] [Phase3] [remote_services] **Label all 6 msb-pmc04 nodes** (-01 through -06)
 
-_Owner: Joint / vendor-coordinated_
-- [ ] [Phase3] [remote_services] **Define Ceph pool topology for msb-pmc04** — single cluster with dev/prod pool separation, or two separate Ceph clusters per workload side. Aligns with framework v0.3 dev/prod isolation deferral.
-- [ ] [Phase3] [remote_services] **Confirm workload VM allocations to specific msb-pmc04 nodes** — which node hosts Airflow, Bastion, GPL, History Server, RGW frontend, monitoring (Grafana/Prometheus/Loki). Anticipates per-VM placement decisions for Phase 3.
+_Owner: Ksolves (Phase 3 vendor-led design)_
+- [ ] [Phase3] [remote_services] **Ksolves to design msb-pmc04 workload deployment** — vendor designs and proposes VM placement across the 6 nodes, service packaging (monolithic vs split VMs), Ceph pool / RGW tenancy topology, and dev/prod separation patterns at the storage layer. fqdn provides hardware/network capacity record (`phases/development/phase3/Ready_For_Review/MSB-PMC04_cluster_profile_v1.0.md`) and reviews vendor's proposal. **Required before Phase 3 vendor provisioning begins.** Phase 3 requirement context: Ksolves Airflow needs are 1 dev (no HA) + 3 prod HA; storage tier serves both dev and prod S3 buckets.
 
 **Status update (2026-05-12 afternoon — DC-pool closure captured + javax filter letter re-sent + Phase 2 sign-over focus):**
 
