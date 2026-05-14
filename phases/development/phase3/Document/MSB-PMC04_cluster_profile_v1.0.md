@@ -31,14 +31,16 @@ All capacities in GigaBytes (GB) unless noted. "OSD raw" is the raw block-device
 
 ### Per-node detail
 
-| Node | Racked | RAM | ZFS (boot) | OSD layout | OSD raw | iLO | Public IP |
-|------|--------|-----|------------|------------|---------|-----|-----------|
-| msb-pmc04-01 | Yes | 160 GB | 3 × 600 GB | 5 × 1200 GB | 6 000 GB | 10.1.32.162 | not yet assigned |
-| msb-pmc04-02 | Yes | 160 GB | 3 × 600 GB | 3 × 1200 GB + 5 × 900 GB | 8 100 GB | 10.1.32.199 | not yet assigned |
-| msb-pmc04-03 | Yes | 160 GB | 3 × 600 GB | 5 × 1200 GB | 6 000 GB | 10.1.32.172 | not yet assigned |
-| msb-pmc04-04 | Yes | 160 GB | 3 × 600 GB | 3 × 1200 GB + 5 × 900 GB | 8 100 GB | 10.1.32.232 | not yet assigned |
-| msb-pmc04-05 | Yes | 96 GB | 3 × 600 GB | 21 × 1200 GB | 25 200 GB | _(not yet)_ | not yet assigned |
-| msb-pmc04-06 | Yes | 128 GB | 3 × 300 GB | 17 × 1200 GB + 4 × 900 GB | 21 300 GB | 10.1.32.58 | 10.1.37.58 |
+All 6 nodes are racked as of 2026-05-13. _PubIP_ values shown as `TBD` are pending Sean's assignment on the 10/25 Gb interface.
+
+| Node | RAM | ZFS (boot) | OSD layout | OSD raw | iLO | PubIP |
+|------|-----|------------|------------|---------|-----|-------|
+| msb-pmc04-01 | 160 GB | 3 × 600 GB | 5 × 1200 GB | 6 000 GB | 10.1.32.162 | &nbsp;&nbsp;TBD |
+| msb-pmc04-02 | 160 GB | 3 × 600 GB | 3 × 1200 + 5 × 900 GB | 8 100 GB | 10.1.32.199 | &nbsp;&nbsp;TBD |
+| msb-pmc04-03 | 160 GB | 3 × 600 GB | 5 × 1200 GB | 6 000 GB | 10.1.32.172 | &nbsp;&nbsp;TBD |
+| msb-pmc04-04 | 160 GB | 3 × 600 GB | 3 × 1200 + 5 × 900 GB | 8 100 GB | 10.1.32.232 | &nbsp;&nbsp;TBD |
+| msb-pmc04-05 |  96 GB | 3 × 600 GB | 21 × 1200 GB | 25 200 GB | &nbsp;&nbsp;TBD | &nbsp;&nbsp;TBD |
+| msb-pmc04-06 | 128 GB | 3 × 300 GB | 17 × 1200 + 4 × 900 GB | 21 300 GB | 10.1.32.58 | 10.1.37.58 |
 
 ### Cluster totals
 
@@ -59,7 +61,7 @@ VLAN assignments at msb-pmc04:
 
 | Layer | VLAN | CIDR | Purpose | Examples |
 |-------|------|------|---------|----------|
-| **Proxmox nodes** | **37** | 10.1.37.0/24 | All msb-pmc04 host PubIPs land here; SSH, Proxmox WebUI, Ceph cluster traffic | msb-pmc04-06 at 10.1.37.58; other 5 PubIPs pending Sean's assignment |
+| **Proxmox nodes** | **37** | 10.1.37.0/24 | All msb-pmc04 node PubIPs land here; SSH, Proxmox WebUI, Ceph cluster traffic | msb-pmc04-06 at 10.1.37.58; other 5 PubIPs TBD |
 | **Workload VMs** | **27** | 10.1.27.0/24 | Network where vendor-provisioned VMs land. DHCP-managed. | dev cluster VMs already at 10.1.27.130–134 on msb-pmc03 (pattern continues here) |
 | iLO out-of-band | _(corporate management)_ | 10.1.32.0/24 | Lights-out management for each physical node; not part of Spark fabric | iLO IPs in the per-node table above |
 
@@ -75,19 +77,11 @@ Nodes on VLAN 37; VMs on VLAN 27.
 |------|-------|--------|
 | 10/25 Gb fibre install + cable + test | All 6 nodes | In flight |
 | iLO configuration | msb-pmc04-05 (only node without iLO IP) | In flight |
-| Public IP assignment (VLAN 37) on 10/25 Gb interface | All 6 nodes; -06 already at 10.1.37.58 | In flight |
+| PubIP assignment (VLAN 37) on 10/25 Gb interface | All 6 nodes; -06 already at 10.1.37.58 | In flight |
 | Drive installs | 1.2 TB drive on msb-pmc04-05; 3 × 900 GB drives on msb-pmc04-06 | In flight |
 | Node labeling | All 6 nodes | In flight |
 
 **Vendor's working surface** — VLAN 27 workload VMs on msb-pmc04 hosts — becomes available once the items above complete. An updated status will be circulated when the surface is live.
-
----
-
-## Companion Documents
-
-| Document | Purpose |
-|----------|---------|
-| `phases/development/phase3/Notes/pmc04_cluster_profile_2026-05-13.xlsx` | Source spreadsheet captured from the racking team; this briefing derives from it. |
 
 ---
 
@@ -100,3 +94,5 @@ Nodes on VLAN 37; VMs on VLAN 27.
 | 2026-05-13 (workload allocation revision) | Workload split restructured to reflect Ksolves' Phase 3 Airflow requirements: 1 dev Airflow (no HA) + 3 prod Airflow HA + shared dev/prod S3 / Ceph storage tier. Marked PROPOSED — pending Ksolves sign-off. Hardware table unified with a "Proposed Workload" column. (Superseded by the next revision.) |
 | 2026-05-13 (hardware-only scope) | Scope tightened to **hardware and network capacity only**. Removed: Proposed Workload Allocation section; "Proposed Workload" column from hardware table; tier-based subtotals; Airflow / dev / prod application references; Ceph pool/RGW topology framing; usable-capacity claims (depend on Ksolves' Ceph design decisions). Reformatted all major sections as tables — Summary, Hardware Inventory (per-node + cluster totals), Network, Pre-Provisioning Status, Companion Documents. The briefing now reads as the hardware/network capacity record; Ksolves designs the workload deployment over this infrastructure. |
 | 2026-05-13 (network section trim) | Removed the "Why VLAN 37 and 27 are separate" paragraph (vendor-access framing not germane to a hardware-profile briefing) and the "Vendor-facing reading" paragraph (Webex / Horizon references not germane here). Dropped the "Vendor access ingress" row from the VLAN table for the same reason. Network section now reads as the simple "Nodes on VLAN 37; VMs on VLAN 27" framing with the table doing the work. Summary header row relabeled "Node network / Workload-VM network" (was "Host network / Workload-VM network"). Also removed framework v0.3 cross-ref from Companion Documents (briefing now stands alone as hardware/network record) and trimmed the document Status line accordingly. |
+| 2026-05-13 (PDF formatting fixes) | Tightened the Hardware Inventory table to fit portrait page width: dropped redundant "Racked" column (all 6 racked — noted in lead-in paragraph instead); renamed "Public IP" → "PubIP" for narrower header; collapsed double-spaces in "3 × 1200 GB + 5 × 900 GB" → "3 × 1200 + 5 × 900 GB"; replaced "_(not yet)_" / "not yet assigned" placeholders with "TBD" for consistency. Companion Documents long file path broken into two lines via `<br>` to allow proper wrapping. PDF regenerated. |
+| 2026-05-13 (final pass) | Two final adjustments: (1) dropped the Companion Documents section entirely (fqdn-internal source reference only — not vendor-facing); (2) added `&nbsp;` padding before `TBD` values in the Hardware Inventory iLO/PubIP cells so the columns don't merge visually in the PDF render. |
