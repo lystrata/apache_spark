@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>ExaBGP configuration requirements — Phase 3</title></head>
+<body style="margin:0; padding:20px; font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif; color:#1a1a1a; background:#ffffff;">
+  <table cellpadding="0" cellspacing="0" border="0" style="max-width:680px; width:100%;">
+    <tr><td style="padding:0 0 12px 0; font-size:14px; line-height:1.5;">
+      <p style="margin:0 0 12px 0;">Hi Prashamt, Kerthik,</p>
+
+      <p style="margin:0 0 12px 0;">As we firm up Phase 3, I have a configuration-spec request for our network team on the ExaBGP layer.</p>
+
+      <p style="margin:0 0 12px 0;">With RGW running on the Spark cluster nodes (as confirmed by the dev install on <span style="font-family: Consolas, 'Courier New', monospace; font-size:13px; background:#f4f4f4; padding:1px 4px;">msb-pmc03</span>), the original architecture has ExaBGP advertising the Ceph RGW S3 endpoint as a VIP from each RGW-bearing node toward our network fabric.</p>
+
+      <p style="margin:0 0 12px 0;"><strong>Preliminary question &mdash; please confirm:</strong> does your Spark and RGW client configuration support a single VIP fronted by ExaBGP failover, or does it currently hardcode per-node RGW addresses? Confirming this up front ensures the VIP pattern is actually the architecture we're building toward.</p>
+
+      <p style="margin:0 0 12px 0;"><strong>If the single-VIP / ExaBGP pattern is what you're delivering,</strong> our network engineer Sean owns the upstream BGP configuration on the fqdn side. To configure that side correctly, we need from you a short configuration spec covering:</p>
+
+      <ul style="margin:0 0 12px 24px; padding:0; font-size:14px; line-height:1.5;">
+        <li style="margin:0 0 6px 0;"><strong>BGP AS numbers</strong> &mdash; the AS the RGW nodes (ExaBGP speakers) will use, and the AS expected on the upstream peer.</li>
+        <li style="margin:0 0 6px 0;"><strong>Peering model</strong> &mdash; eBGP or iBGP; direct neighbor sessions or via a route reflector.</li>
+        <li style="margin:0 0 6px 0;"><strong>VIP details</strong> &mdash; the prefix(es) to be advertised, the VIP IP(s), and the VLAN on which they sit.</li>
+        <li style="margin:0 0 6px 0;"><strong>Source addresses</strong> &mdash; which interface / VLAN on each RGW node originates the BGP session (we'll map this to firewall and ACL policy on the upstream side).</li>
+        <li style="margin:0 0 6px 0;"><strong>Authentication</strong> &mdash; MD5 / TCP-AO requirement on the BGP session, or no auth.</li>
+        <li style="margin:0 0 6px 0;"><strong>Timers</strong> &mdash; hold timer, keepalive interval; BFD enable and timers if applicable.</li>
+        <li style="margin:0 0 6px 0;"><strong>Route policy</strong> &mdash; any prefix-list / route-map you expect on the upstream side.</li>
+        <li style="margin:0 0 6px 0;"><strong>Load distribution</strong> &mdash; active/active anycast across multiple RGW nodes (ECMP on the upstream) or active/standby.</li>
+        <li style="margin:0 0 6px 0;"><strong>Failover behavior</strong> &mdash; handling of graceful shutdown vs. ungraceful node failure; whether detection is BFD-driven or BGP hold-timer expiry.</li>
+      </ul>
+
+      <p style="margin:0 0 12px 0;">Per-cluster scope:</p>
+
+      <ul style="margin:0 0 12px 24px; padding:0; font-size:14px; line-height:1.5;">
+        <li style="margin:0 0 6px 0;"><strong>Dev cluster (<span style="font-family: Consolas, 'Courier New', monospace; font-size:13px; background:#f4f4f4; padding:1px 4px;">msb-pmc03</span>):</strong> RGW is already running on the nodes; bring ExaBGP into the dev environment as part of Phase 3 for validation.</li>
+        <li style="margin:0 0 6px 0;"><strong>Prod cluster (<span style="font-family: Consolas, 'Courier New', monospace; font-size:13px; background:#f4f4f4; padding:1px 4px;">msb-pmc02</span>):</strong> Once the prod cluster is brought online (gated on outstanding CPU hardware), the same pattern applies.</li>
+      </ul>
+
+      <p style="margin:0 0 12px 0;">A paragraph per bullet above is plenty &mdash; Sean can drive the upstream configuration from that.</p>
+
+      <p style="margin:0 0 12px 0;">Happy to walk through any of this in our next status sync or in a dedicated working session &mdash; whichever fits your schedule.</p>
+    </td></tr>
+    <tr><td style="padding:8px 0; font-size:13px; line-height:1.4; color:#444444; border-top:1px solid #cccccc;">
+      <p style="margin:0;">Thanks,<br>Rohn</p>
+    </td></tr>
+  </table>
+</body>
+</html>
